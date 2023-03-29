@@ -10,6 +10,5 @@ pyspellchecker==0.6.3
 adjustText==0.7.3
 ruptures==1.1.7
 tslearn @ git+https://github.com/tslearn-team/tslearn.git
-ipykernel==6.16.0
 numpy==1.23.3
-jupyter==1.0.0
+xmltodict==0.12.0
