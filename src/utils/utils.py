@@ -6,14 +6,14 @@ import re
 import numpy as np
 
 
-def read_xml(file_path: str):
+def read_xml(file_path: str) -> dict:
         with open(file_path, 'r') as f:
             xml_string = f.read()
         return xmltodict.parse(xml_string)
 
 
 
-def get_articles(file_path: str):
+def get_articles(file_path: str) -> list:
     """
     Read in the xml file and return a list of articles.
 
@@ -27,7 +27,7 @@ def get_articles(file_path: str):
     return xml_dict['records']['record']
 
 
-def get_article_text(article: dict):
+def get_article_text(article: dict) -> str:
     """
     Get the text from an article.
 
