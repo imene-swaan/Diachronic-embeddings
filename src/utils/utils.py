@@ -13,7 +13,7 @@ def read_xml(file_path: str) -> dict:
 
 
 
-def get_articles(file_path: str) -> list:
+def get_records(file_path: str) -> list:
     """
     Read in the xml file and return a list of articles.
 
@@ -44,7 +44,35 @@ def get_article_text(article: dict) -> str:
         return article['fulltext']
 
  
-def get_sentences(records: list):
+
+def get_articles(file_path: str) -> list:
+    """
+    Get all articles from a file.
+
+    Args:
+        file_path (str): The path to the file.
+
+    Returns:
+        list: A list of articles.
+    """
+
+    records = get_records(file_path)
+    articles = []
+    for record in records:
+        article = get_article_text(record)
+
+        if type(article) == list:
+            article = ' '.join(article)
+
+        if article is None:
+            continue
+        
+        else:
+            articles.append(article)
+    
+    return articles
+
+def get_sentences(articles: list):
     """
     Get all sentences from a list of articles (dict).
 
@@ -55,19 +83,13 @@ def get_sentences(records: list):
         list: A list of sentences.
     """
     sentences = []
-    for record in records:
-        article = get_article_text(record)
-
-        if article == '':
-            continue
-        
-        else:
-            sentences.extend(article.split('. '))
+    for article in articles:
+        sentences.extend(article.split('. '))
         
     return sentences
 
 
-def save_sentences(sentences: list, file_path: str):
+def save_texts(texts: list, file_path: str):
     """
     Save a list of sentences to a file.
 
@@ -76,33 +98,22 @@ def save_sentences(sentences: list, file_path: str):
         file_path (str): The path to the file.
     """
     with open(file_path, 'w') as f:
-        for sentence in sentences:
-            f.write(sentence + '\n')
+        for line in texts:
+            f.write(line + '\n')
+
 
 
 # ------------------- cleantxt --------------------
-def cleantxt(text, remove_punctuation, lowercase, lemmatize, remove_stopwords):
-    """
-    Simple text preprocessing function. Define your args in the config.yaml file.
+def cleantxt(text, options: dict):
+    
+    newtext = re.sub('\n', ' ', text) # Remove ordinary linebreaks (there shouldn't be, so this might be redundant)
 
-    Args:
-        text (str): The text to be preprocessed.
-        remove_punctuation (bool): Whether punctuation should be removed.
-        lowercase (bool): Whether text should be lowercased.
-
-        remove_stopwords (bool): Whether stopwords should be removed.
-
-    Returns:
-        str: Preprocessed text (without punctuation/lowercased depending on args).
-    """
-    newtext = re.sub('-\n', '', text) # Remove OCR'd linebreaks within words if they exist
-    newtext = re.sub('\n', ' ', newtext) # Remove ordinary linebreaks (there shouldn't be, so this might be redundant)
-    if remove_punctuation == True:
+    if options['remove_punctuation']:
         newtext = re.sub(r'[^a-zA-Z0-9\s\.]', ' ', str(newtext)) # Remove anything that is not a space, a letter, a dot, or a number
-    if lowercase == True:
+    if options['lowercase']:
         newtext = str(newtext).lower() # Lowercase
     
-    if lemmatize == True:
+    if options['lemmatize']:
         from nltk.stem import WordNetLemmatizer
         from nltk.corpus import wordnet 
 
@@ -110,7 +121,7 @@ def cleantxt(text, remove_punctuation, lowercase, lemmatize, remove_stopwords):
 
         newtext = ' '.join(list(map(lambda x: lemmatizer.lemmatize(x, wordnet.VERB), newtext.split())))
     
-    if remove_stopwords == True:
+    if options['remove_stopwords']:
         from nltk.corpus import stopwords
         stop_words = set(stopwords.words('english'))
         newtext = ' '.join(list(filter(lambda x: x not in stop_words, newtext.split())))
