@@ -46,8 +46,8 @@ class PREPROCESS():
                 print(f'Saving {len(clean_articles)} articles at ../input/articles/{p}_articles.json')
                 save_texts(clean_articles, f'../input/articles/{p}_articles.txt')
             
-            if self.configs['save_sentences']:
-                save_texts(sentences, f'../input/sentences/{p}_sentences.txt')
+            # if self.configs['save_sentences']:
+            #     save_texts(sentences, f'../input/sentences/{p}_sentences.txt')
 
             print(f'Finished processing {p} period\n\n\n')
 
