@@ -1,5 +1,3 @@
-import xmltodict
-import json
 import yaml
 import os
 from glob import glob
@@ -8,11 +6,12 @@ from utils.utils import *
 
 class PREPROCESS():
 
-    def __init__(self, path='../input/xml/', config_path='config.yaml'):
-        self.path = path
-
+    def __init__(self, config_path='config.yaml'):
+        
         with open(config_path, "rb") as f:
             self.configs = yaml.load(f, Loader=yaml.FullLoader)
+
+        self.path = self.configs['input_path']
 
         if str(self.configs['periods']).lower() == 'all':
             self.file_paths = glob(os.path.join(self.path, '*.xml'))
@@ -29,7 +28,7 @@ class PREPROCESS():
         for i, p in enumerate(self.time_periods):
             print(f'Processing {p} period')
             articles = get_articles(self.file_paths[i])
-            sentences = get_sentences(articles)
+            # sentences = get_sentences(articles)
 
             print(f'Found {len(articles)} articles')
 
@@ -42,12 +41,11 @@ class PREPROCESS():
                 clean_articles = articles
             
 
-            if self.configs['save_articles']:
-                print(f'Saving {len(clean_articles)} articles at ../input/articles/{p}_articles.json')
-                save_texts(clean_articles, f'../input/articles/{p}_articles.txt')
+            if self.configs['Preprocessing']['save_as'] == 'articles':
+                print(f'Saving {len(clean_articles)} articles at {self.configs["Preprocessing"]["output_path"]}/{p}_articles.txt')
+                save_texts(clean_articles, f'{self.configs["Preprocessing"]["output_path"]}/{p}_articles.txt')
             
-            # if self.configs['save_sentences']:
-            #     save_texts(sentences, f'../input/sentences/{p}_sentences.txt')
+            # if self.configs['Preprocessing']['save_as'] == 'sentences':
 
             print(f'Finished processing {p} period\n\n\n')
 
