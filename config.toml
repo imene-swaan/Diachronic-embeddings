@@ -1,12 +1,30 @@
 # Configuration file for the experiment.
-
-
-# The name of the experiment
-title = "Thesis - 1"
+[experiment] 
+name = "Thesis - 1"
 
 [dataset]
-name = "NewYork times magazine"
-periods = ["1990", "2000", "2010"]
+name = "NewYork times"
+periods = [
+    1980,
+    1982,
+    1985,
+    1987,
+    1989,
+    1990,
+    1992,
+    1995,
+    2000,
+    2001,
+    2005,
+    2008,
+    2010,
+    2012,
+    2015,
+    2017
+]
+
+
+
 
 
 
