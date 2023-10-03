@@ -1,61 +1,52 @@
 import yaml
 import os
 from glob import glob
+import re
 
-from utils.utils import *
+
+
+# ------------------- cleantxt --------------------
+def cleantxt(text, **kwargs):
+    
+    newtext = re.sub('\n', ' ', text) # Remove ordinary linebreaks (there shouldn't be, so this might be redundant)
+
+    if kwargs.get('remove_punctuation', False):
+        newtext = re.sub(r'[^a-zA-Z0-9\s\.]', ' ', str(newtext)) # Remove anything that is not a space, a letter, a dot, or a number
+    if kwargs.get('lowercase', False):
+        newtext = str(newtext).lower() # Lowercase
+    
+    if kwargs.get('lemmatize', False):
+        from nltk.stem import WordNetLemmatizer
+        from nltk.corpus import wordnet 
+
+        lemmatizer = WordNetLemmatizer()
+
+        newtext = ' '.join(list(map(lambda x: lemmatizer.lemmatize(x, wordnet.VERB), newtext.split())))
+    
+    if kwargs.get('remove_stopwords', False):
+        from nltk.corpus import stopwords
+        stop_words = set(stopwords.words('english'))
+        newtext = ' '.join(list(filter(lambda x: x not in stop_words, newtext.split())))
+
+    return newtext
+
 
 class PREPROCESS():
+    def __init__(self):
+        pass
 
-    def __init__(self, config_path='config.yaml'):
+    def forward(self,
+                text,
+                **kwargs):
+    
+        return cleantxt(text, **kwargs)
         
-        with open(config_path, "rb") as f:
-            self.configs = yaml.load(f, Loader=yaml.FullLoader)
-
-        self.path = self.configs['input_path']
-
-        if str(self.configs['periods']).lower() == 'all':
-            self.file_paths = glob(os.path.join(self.path, '*.xml'))
-            self.time_periods = sorted([i.split('/')[-1].split('.')[1] for i in self.file_paths])
-        
-        else:
-            self.time_periods = self.configs['periods']
-            self.file_paths = [i for i in glob(os.path.join(self.path, '*.xml')) if i.split('/')[-1].split('.')[1] in self.time_periods]
-
-
-        self.periods = len(self.time_periods)
-        print(f'Found {self.periods} periods')
-
-        for i, p in enumerate(self.time_periods):
-            print(f'Processing {p} period')
-            articles = get_articles(self.file_paths[i])
-            # sentences = get_sentences(articles)
-
-            print(f'Found {len(articles)} articles')
-
-            
-            if not self.configs['Preprocessing']['skip']:
-                print('Preprocessing articles')
-                clean_articles = [cleantxt(a, self.configs['Preprocessing']['options']) for a in articles]
-
-            else:
-                clean_articles = articles
-            
-
-            if self.configs['Preprocessing']['save_as'] == 'articles':
-                print(f'Saving {len(clean_articles)} articles at {self.configs["Preprocessing"]["output_path"]}/{p}_articles.txt')
-                save_texts(clean_articles, f'{self.configs["Preprocessing"]["output_path"]}/{p}_articles.txt')
-            
-            # if self.configs['Preprocessing']['save_as'] == 'sentences':
-
-            print(f'Finished processing {p} period\n\n\n')
-
-
 
     
         
-
+    
 
 
 if __name__ == '__main__':
-    preprocess = PREPROCESS()
-    print(*preprocess.time_periods)
+    text = 'Hello! yes is a stopword. Needing to test \n for lemmatization ALSO!'
+    print(cleantxt(text, remove_stopwords=True, lemmatize=True, lowercase=True, remove_punctuation=True))

@@ -2,6 +2,9 @@
 [experiment] 
 name = "Thesis - 1"
 
+
+
+
 [dataset]
 name = "NewYork times"
 periods = [
@@ -22,6 +25,47 @@ periods = [
     2015,
     2017
 ]
+
+path = "input/xml/TheNewYorkTimes{}.xml"
+file_type = "xml"
+tag = "fulltext"
+
+
+
+
+
+
+
+
+[preprocessing]
+skip = false
+options={"remove_stopwords"= true, "remove_punctuation"= true, "remove_numbers"= true, "lowercase"= true, "lemmatize"= true}
+  
+
+
+
+
+
+
+[Masked_language_model]
+skip = false
+architecture = "Roberta"
+
+tokenizer = "distilroberta-base"
+tokenizer_options = {"max_length"= 512, "padding"= "max_length", "truncation"= true}
+mlm_options = {"mlm_probability"= 0.15, "max_predictions_per_seq"= 20}
+
+model = "distilroberta-base"
+train = true
+model_options = {"learning_rate" = 2e-5, "num_train_epochs" = 5, "weight_decay" = 0.01}
+
+evaluation = true
+train_test_split = 0.8
+evaluation_options = {"perplexity"= true}
+
+
+
+
 
 
 
