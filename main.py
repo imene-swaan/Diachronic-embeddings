@@ -1,121 +1,41 @@
-from pydantic import BaseModel, validator
-from typing import List
-from src.utils.utils import read_toml as get_config
 from src.data.data_loader import Loader
 from src.data.data_preprocessing import PREPROCESS
-
-class Experiment(BaseModel):
-    name: str
-    description: str
-
-class Dataset(BaseModel):
-    name: str
-    periods: List[int]
-    file_type: str
-    path: str
-    tag: str
-
-class Preprocessing(BaseModel):
-    skip: bool
-    options: dict
-
-    #validate that options values are boolean
-    @validator('options')
-    def validate_options(cls, v):
-        for key in v:
-            if not isinstance(v[key], bool):
-                raise ValueError('options values must be boolean')
-        return v
-
-class Masked_language_model(BaseModel):
-    skip: bool
-    architecture: str
-
-    tokenizer: str
-    tokenizer_options: dict
-    mlm_options: dict
-
-    model = str
-    train = bool
-    model_options = dict
-
-    evaluation = bool
-    train_test_split = float
-    evaluation_options = dict
-
-    @validator('tokenizer_options')
-    def validate_tokenizer_options(cls, v):
-        for key in v:
-            if key == "max_length":
-                if not isinstance(v[key], int):
-                    raise ValueError('max_length must be integer')
-                else:
-                    if v[key] > 512:
-                        raise ValueError('max_length must be less than 512')
-            break  
-        return v
-    
-    @validator('mlm_options')
-    def validate_mlm_options(cls, v):
-        for key in v:
-            if key == "mlm_probability":
-                if not isinstance(v[key], float):
-                    raise ValueError('mlm_probability must be float')
-                else:
-                    if v[key] > 1 or v[key] < 0:
-                        raise ValueError('mlm_probability must be between 0 and 1')
-        return v
-    
-    
+from src.embeddings.roberta import RobertaMLM
 
 
 
 
 
-class Config(BaseModel):
-    experiment: Experiment
-    dataset: Dataset
-    preprocessing: Preprocessing
-    Masked_language_model: Masked_language_model
-
-    
 
 
-def main(config: Config):
-    print('experiment: ', config['experiment']['name'])
+def main(data_path, periods, **kwargs):
+
     print('*'*10, 'Loading data', '*'*10, '\n')
-
+    file_type = data_path.split('.')[-1]
     corpora = {}
-
-    if config['dataset']['file_type'] == 'xml':
-        for period in config['dataset']['periods']:
-            path = config['dataset']['path'].format(period)
-            data = Loader.from_xml(path, config['dataset']['tag']).forward()
+    if file_type == 'xml':
+        xml_tag = kwargs['xml_tag']
+        for period in periods:
+            path = data_path.format(period)
+            data = Loader.from_xml(path, xml_tag).forward()
             corpora[period] = data
 
-
-
-    
-    elif config['dataset']['file_type'] == 'txt':
-        for period in config['dataset']['periods']:
-            path = config['dataset']['path'].format(period)
+    elif file_type == 'txt':
+        for period in periods:
+            path = file_path.format(period)
             data = Loader.from_txt(path).forward()
             corpora[period] = data
-
-    
     else:
         raise ValueError('File type not supported')
     
-    if not config['preprocessing']['skip']:
-        print('*'*10, 'Preprocessing data', '*'*10, '\n')
-        for period in config['dataset']['periods']:
-            print('before: ', corpora[period][0][:100])
-            corpora[period] = list(map(lambda x: PREPROCESS().forward(x, **config['preprocessing']['options']), corpora[period]))
-            print('after: ', corpora[period][0][:100])
 
+    print('*'*10, 'Preprocessing data', '*'*10, '\n')
+    preprocessing_options = kwargs['preprocessing_options']
+    for period in periods:
+        corpora[period] = list(map(lambda x: PREPROCESS().forward(x, **preprocessing_options), corpora[period]))
+       
 
-    if not config['Masked_language_model']['skip']:
-        print('*'*10, 'Masked language modeling (Diachronic Embeddings)', '*'*10, '\n')
+    print('*'*10, 'Masked language modeling (Diachronic Embeddings)', '*'*10, '\n')
         
         
     
@@ -127,8 +47,49 @@ def main(config: Config):
 
 
 if __name__ == "__main__":
-    config = get_config('config.toml')
-    main(config)
+    periods = [
+        1980,
+        1982,
+        1985,
+        1987,
+        1989,
+        1990,
+        1992,
+        1995,
+        2000,
+        2001,
+        2005,
+        2008,
+        2010,
+        2012,
+        2015,
+        2017
+    ]
+
+    xml_tag = 'fulltext'
+    file_path = "input/xml/TheNewYorkTimes{}.xml"
+
+    preprocessing_options = {"remove_stopwords": True, "remove_punctuation": True, "remove_numbers": True, "lowercase": True, "lemmatize": True}
+
+    architecture = "Roberta"
+
+    tokenizer = "distilroberta-base"
+    tokenizer_options = {"max_length": 512, "padding": "max_length", "truncation": True}
+
+    mlm_options = {"mlm_probability": 0.15, "max_predictions_per_seq": 20}
+
+    model = "distilroberta-base"
+
+    model_options = {"learning_rate": 2e-5, "num_train_epochs": 5, "weight_decay": 0.01}
+
+    train_test_split = 0.8
+    evaluation_options = {"perplexity": True}
+
+    main(file_path, 
+         periods, 
+         xml_tag = 'fulltext',
+         preprocessing_options = preprocessing_options,
+         )
 
 
 

@@ -25,11 +25,7 @@ periods = [
     2015,
     2017
 ]
-
-path = "input/xml/TheNewYorkTimes{}.xml"
-file_type = "xml"
-tag = "fulltext"
-
+files = {"path"= "input/xml/TheNewYorkTimes{}.xml", "file_type"= "xml", "tag"= "fulltext"}
 
 
 

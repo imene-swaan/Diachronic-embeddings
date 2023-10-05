@@ -1,4 +1,5 @@
 import os.path
+from transformers import RobertaTokenizer, RobertaForMaskedLM
 
 import torch
 from pathlib import Path
@@ -36,22 +37,21 @@ class VectorEmbeddings:
         self._tokens = []
         self.model = None
         self.vocab = False
-        self.lematizer = None
 
         lg.set_verbosity_error()
-        self._bert_case_preparation()
+        self._roberta_case_preparation()
 
     @property
     def tokens(self):
         return self._tokens
 
-    def _bert_case_preparation(self) -> None:
+    def _roberta_case_preparation(self) -> None:
         """
         This method is used to prepare the BERT model for the inference.
         """
-        model_path = self.model_path if self.model_path is not None else 'bert-base-uncased'
-        self.bert_tokenizer = BertTokenizer.from_pretrained(model_path)
-        self.model = BertModel.from_pretrained(
+        model_path = self.model_path if self.model_path is not None else 'roberta-base'
+        self.roberta_tokenizer = RobertaTokenizer.from_pretrained(model_path)
+        self.model = RobertaForMaskedLM.from_pretrained(
             model_path,
             output_hidden_states = True,
         )
@@ -72,8 +72,10 @@ class VectorEmbeddings:
             raise ValueError(
                 f'The Embedding model {self.model.__class__.__name__} has not been initialized'
             )
-        marked_text = "[CLS] " + doc + " [SEP]"
-        tokens = self.bert_tokenizer.tokenize(marked_text)
+        
+        main_word = ' ' + main_word.lower() + ' '
+        masked_text = doc.replace(main_word, "<mask>")
+        tokens = self.roberta_tokenizer.tokenize(masked_text)
         try:
             main_token_id = tokens.index(main_word.lower())
             idx = self.bert_tokenizer.convert_tokens_to_ids(tokens)
