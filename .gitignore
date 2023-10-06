@@ -1,6 +1,7 @@
 input/
 notebooks/my_awesome_eli5_mlm_model/
 notebooks/MLM_2015/
+notebooks/*.ipynb
 output/
 model
 DS_Store

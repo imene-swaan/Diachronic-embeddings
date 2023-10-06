@@ -361,7 +361,7 @@ class MaskedWordInference:
             )
         
         masked_sentence = sentence.replace(word, self.roberta_tokenizer.mask_token)
-        tokenized_input = self.roberta_tokenizer(masked_sentence, return_tensors='pt')
+        tokenized_input = self.roberta_tokenizer(masked_sentence, return_tensors='pt', max_length=128)
 
         try: 
             mask_token_index = torch.where(tokenized_input["input_ids"] == self.roberta_tokenizer.mask_token_id)[1]
