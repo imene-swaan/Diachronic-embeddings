@@ -2,7 +2,7 @@ import os
 from glob import glob
 import yaml
 import tomli
-
+import random
 
 def read_toml(config_path: str) -> dict:
     """
@@ -46,6 +46,27 @@ def read_txt(file_path: str) -> list:
         return f.readlines()
     
 
+def train_test_split(data, test_ratio=0.2, random_seed=None):
+    """
+    Split the data into train and test sets.
+
+    Args:
+        data (list): The data to split.
+        test_ratio (float): The ratio of the test set.
+        random_seed (int): The random seed.
+
+    Returns:
+        tuple: A tuple of the train and test sets.
+    """
+    
+    if random_seed:
+        random.seed(random_seed)
+    data_copy = data[:]
+    random.shuffle(data_copy)
+    split_idx = int(len(data_copy) * (1 - test_ratio))
+    train_data = data_copy[:split_idx]
+    test_data = data_copy[split_idx:]
+    return train_data, test_data
 
 
 
