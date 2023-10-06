@@ -2,7 +2,8 @@
 from typing import Union, List
 from pathlib import Path
 import xml.etree.ElementTree as ET 
-from src.utils.utils import read_txt
+from src.utils.utils import read_txt, sample_data
+
 
 class Loader():
     def __init__(
@@ -33,7 +34,21 @@ class Loader():
                 texts.append(elem.text)
         return cls(texts)
     
-    def forward(self):
+    def forward(self, target_words: List[str] = None, max_documents: int = None, shuffle: bool = True, random_seed=None):
+        if target_words is not None:
+            relevant_texts = []
+            for text in self.texts:
+                if any([word in text for word in target_words]):
+                    relevant_texts.append(text)
+            
+            self.texts = relevant_texts
+        
+        if max_documents is not None:
+            if shuffle:
+                self.texts = sample_data(self.texts, max_documents, random_seed)
+            else:
+                self.texts = self.texts[:max_documents]
+
         return self.texts
         
 
