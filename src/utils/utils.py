@@ -1,5 +1,3 @@
-import os
-from glob import glob
 import yaml
 import tomli
 import random
@@ -46,7 +44,7 @@ def read_txt(file_path: str) -> list:
         return f.readlines()
     
 
-def train_test_split(data, test_ratio=0.2, random_seed=None):
+def train_test_split(data: list, test_ratio=0.2, random_seed=None):
     """
     Split the data into train and test sets.
 
@@ -69,9 +67,21 @@ def train_test_split(data, test_ratio=0.2, random_seed=None):
     return train_data, test_data
 
 
+def sample_data(data: list, sample_size: int, random_seed=None):
+    """
+    Sample data.
 
-if __name__ == '__main__':
-    path = '../../data/articles_raw_data/'
-    file_path = glob(os.path.join(path, '*.xml'))[0]
+    Args:
+        data (list): The data to sample.
+        sample_size (int): The size of the sample.
+        random_seed (int): The random seed.
 
+    Returns:
+        list: The sampled data.
+    """
     
+    if random_seed:
+        random.seed(random_seed)
+    data_copy = data[:]
+    random.shuffle(data_copy)
+    return data_copy[:sample_size]
