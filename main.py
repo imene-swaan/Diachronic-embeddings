@@ -46,14 +46,16 @@ def main(output_dir, data_path, periods, **kwargs):
         results[period] = {}
         MLM = MaskedWordInference(path)
         for word in kwargs['target_words']:
-            results[period][word] = {}
+            results[period][word] = []
 
             print(f'Word: {word} in {period}')
             for i, sentence in enumerate(corpora[period]):
                 if word in sentence.split()[:100]:
-                    print(f'Found {word} in sentence {i} of length: {len(sentence)}')
-                    results[period][word]['sentence'] = sentence
-                    results[period][word]['top_words'], _ = MLM.get_top_k_words(word= word, sentence= sentence, k=kwargs['inference_options']['top_k'])
+                    print(f'Found {word} in sentence {i} of length: {len(sentence.split())}')
+                    t = {}
+                    t['sentence'] = ' '.join(sentence.split()[:120])
+                    t['top_words'], _ = MLM.get_top_k_words(word= word, sentence= sentence, k=kwargs['inference_options']['top_k'])
+                    results[period][word].append(t)
         
         with open(f'{output_dir}/results_{period}.json', 'w') as f:
             json.dump(results[period], f, indent=4)
@@ -72,21 +74,21 @@ if __name__ == "__main__":
         os.mkdir(output_dir)
     periods = [
         1980,
-        1982,
-        1985,
-        1987,
-        1989,
-        1990,
-        1992,
-        1995,
-        2000,
-        2001,
-        2005,
-        2008,
-        2010,
-        2012,
-        2015,
-        2017
+        # 1982,
+        # 1985,
+        # 1987,
+        # 1989,
+        # 1990,
+        # 1992,
+        # 1995,
+        # 2000,
+        # 2001,
+        # 2005,
+        # 2008,
+        # 2010,
+        # 2012,
+        # 2015,
+        # 2017
     ]
 
     xml_tag = 'fulltext'
@@ -97,7 +99,7 @@ if __name__ == "__main__":
         "remove_punctuation": True, 
         "remove_numbers": False, 
         "lowercase": True, 
-        "lemmatize": False
+        "lemmatize": True
         }
 
     mlm_options = {

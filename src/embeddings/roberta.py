@@ -404,7 +404,7 @@ class MaskedWordInference:
         tokenized_input = self.roberta_tokenizer(masked_sentence, return_tensors='pt', max_length=128)
 
         try:
-            mask_token_index = torch.where(tokenized_input["input_ids"] == self.roberta_tokenizer.mask_token_id)[1]
+            mask_token_index = (tokenized_input.input_ids == self.roberta_tokenizer.mask_token_id)[0].nonzero(as_tuple=True)[0]
 
             with torch.no_grad():
                 logits = self.model(**tokenized_input).logits
@@ -420,10 +420,9 @@ class MaskedWordInference:
                 
                 return top_k_words, filled_sentences
         
-        except ValueError:
-            raise ValueError(
-                f'The word: "{word}" does not exist in the list of tokens: {tokenized_input} from {sentence}'
-            )
+        except IndexError:
+            print(f'The word: "{word}" does not exist in the list of tokens')
+            return [], []
         
 
 
