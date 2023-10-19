@@ -1,101 +1,197 @@
+from typing import List, Union
+from pathlib import Path
+from gensim.models import Word2Vec
+from src.utils.utils import smart_procrustes_align_gensim
+import os
+from pathlib import Path
 
 
 
-
-
-
-
-# ------------------- smart_procrustes_align_gensim --------------------
-# from: https://gist.github.com/quadrismegistus/09a93e219a6ffc4f216fb85235535faf
-def smart_procrustes_align_gensim(base_embed, other_embed, words=None):
+class Word2VecTrainer:
     """
-    Original script: https://gist.github.com/quadrismegistus/09a93e219a6ffc4f216fb85235535faf
-    Procrustes align two gensim word2vec models (to allow for comparison between same word across models).
-    Code ported from HistWords <https://github.com/williamleif/histwords> by William Hamilton <wleif@stanford.edu>.
-        
-    First, intersect the vocabularies (see `intersection_align_gensim` documentation).
-    Then do the alignment on the other_embed model.
-    Replace the other_embed model's syn0 and syn0norm numpy matrices with the aligned version.
-    Return other_embed.
-
-    If `words` is set, intersect the two models' vocabulary with the vocabulary in words (see `intersection_align_gensim` documentation).
-    """
-
-    # patch by Richard So [https://twitter.com/richardjeanso) (thanks!) to update this code for new version of gensim
-    # base_embed.init_sims(replace=True)
-    # other_embed.init_sims(replace=True)
-
-    # make sure vocabulary and indices are aligned
-    in_base_embed, in_other_embed = intersection_align_gensim(base_embed, other_embed, words=words)
-
-    # re-filling the normed vectors
-    in_base_embed.wv.fill_norms(force=True)
-    in_other_embed.wv.fill_norms(force=True)
-
-    # get the (normalized) embedding matrices
-    base_vecs = in_base_embed.wv.get_normed_vectors()
-    other_vecs = in_other_embed.wv.get_normed_vectors()
-
-    # just a matrix dot product with numpy
-    m = other_vecs.T.dot(base_vecs) 
-    # SVD method from numpy
-    u, _, v = np.linalg.svd(m)
-    # another matrix operation
-    ortho = u.dot(v) 
-    # Replace original array with modified one, i.e. multiplying the embedding matrix by "ortho"
-    other_embed.wv.vectors = (other_embed.wv.vectors).dot(ortho)    
+    Wrapper class for gensim.models.Word2Vec
     
-    return other_embed
+    Parameters
+    ----------
+    model_path : str, optional
+        Path to a pretrained model, by default None
+        min_count : int, optional
+        window : int, optional
+        negative : int, optional
+        ns_exponent : float, optional
+        vector_size : int, optional
+        workers : int, optional
+        sg : int, optional
+        **kwargs : optional
+            Additional parameters for gensim.models.Word2Vec
 
-# ------------------- intersection_align_gensim --------------------
-# from: https://gist.github.com/quadrismegistus/09a93e219a6ffc4f216fb85235535faf
-def intersection_align_gensim(m1, m2, words=None):
+    Attributes
+    ----------
+    model : gensim.models.Word2Vec
+        The Word2Vec model
+
+    Methods
+    -------
+    train(data, output_path, epochs, alpha, min_alpha, compute_loss, **kwargs)
+        Train the Word2Vec model on the given data
+
     """
-    Intersect two gensim word2vec models, m1 and m2.
-    Only the shared vocabulary between them is kept.
-    If 'words' is set (as list or set), then the vocabulary is intersected with this list as well.
-    Indices are re-organized from 0..N in order of descending frequency (=sum of counts from both m1 and m2).
-    These indices correspond to the new syn0 and syn0norm objects in both gensim models:
-        -- so that Row 0 of m1.syn0 will be for the same word as Row 0 of m2.syn0
-        -- you can find the index of any word on the .index2word list: model.index2word.index(word) => 2
-    The .vocab dictionary is also updated for each model, preserving the count but updating the index.
-    """
-
-    # Get the vocab for each model
-    vocab_m1 = set(m1.wv.index_to_key)
-    vocab_m2 = set(m2.wv.index_to_key)
-
-    # Find the common vocabulary
-    common_vocab = vocab_m1 & vocab_m2
-    if words: common_vocab &= set(words)
-
-    # If no alignment necessary because vocab is identical...
-    if not vocab_m1 - common_vocab and not vocab_m2 - common_vocab:
-        return (m1,m2)
-
-    # Otherwise sort by frequency (summed for both)
-    common_vocab = list(common_vocab)
-    common_vocab.sort(key=lambda w: m1.wv.get_vecattr(w, "count") + m2.wv.get_vecattr(w, "count"), reverse=True)
-    # print(len(common_vocab))
-
-    # Then for each model...
-    for m in [m1, m2]:
-        # Replace old syn0norm array with new one (with common vocab)
-        indices = [m.wv.key_to_index[w] for w in common_vocab]
-        old_arr = m.wv.vectors
-        new_arr = np.array([old_arr[index] for index in indices])
-        m.wv.vectors = new_arr
-
-        # Replace old vocab dictionary with new one (with common vocab)
-        # and old index2word with new one
-        new_key_to_index = {}
-        new_index_to_key = []
-        for new_index, key in enumerate(common_vocab):
-            new_key_to_index[key] = new_index
-            new_index_to_key.append(key)
-        m.wv.key_to_index = new_key_to_index
-        m.wv.index_to_key = new_index_to_key
+    
+    def __init__(
+            self,
+            model_path: str = None,
+            min_count=5,
+            window=5,
+            negative=5,
+            ns_exponent=0.75,
+            vector_size=300,
+            workers=1,
+            sg=1,
+            **kwargs
+            ):
         
-        print(len(m.wv.key_to_index), len(m.wv.vectors))
+        if model_path:
+            self.model = Word2Vec.load(model_path)
+        else:
+            self.model = Word2Vec(
+                    min_count=min_count,
+                    window=window,
+                    negative=negative,
+                    ns_exponent=ns_exponent,
+                    vector_size=vector_size,
+                    workers=workers,
+                    sg=sg,
+                    **kwargs
+                    )
         
-    return (m1,m2)
+    def train(
+            self, 
+            data: List[str],
+            output_path: Union[str, Path] = None,
+            epochs=5,
+            alpha=0.025,
+            min_alpha=0.0001,
+            compute_loss=True,
+            **kwargs
+            ):
+        self.model.build_vocab(data)
+        total_examples = self.model.corpus_count
+        self.model.train(
+                data,
+                total_examples=total_examples,
+                epochs=epochs,
+                alpha=alpha,
+                min_alpha=min_alpha,
+                compute_loss=compute_loss,
+                **kwargs
+                )
+        if output_path:
+            self.model.save(output_path)
+
+
+class Word2VecAlign:
+    def __init__(
+            self, 
+            model_paths: List[str],
+            
+            ):
+        self.model_paths = model_paths
+        self.reference_model = None
+        self.models = []
+        self.model_names = [Path(model_path).stem for model_path in model_paths]
+        self.aligned_models = []
+
+    def load_models(self):
+        for model_path in self.model_paths:
+            self.models.append(Word2Vec.load(model_path))
+
+    def align_models(
+            self,
+            reference_index: int = -1,
+            output_dir: str = None,
+            method: str = "procrustes",
+            ):
+        
+        if method != "procrustes":
+            raise NotImplementedError("Only procrustes alignment is implemented. Please use method='procrustes'")
+
+        
+        self.reference_model = self.models[reference_index]
+        self.models.pop(reference_index)
+
+        for i, model in enumerate(self.models):
+            if i == reference_index:
+                self.reference_model.save(f"{output_dir}/{self.model_names[reference_index]}_aligned.model")
+                self.aligned_models.append(self.reference_model)
+            
+            aligned_model = smart_procrustes_align_gensim(self.reference_model,model)
+            aligned_model.save(f"{output_dir}/{self.model_names[i]}_aligned.model")
+            self.aligned_models.append(aligned_model)
+
+        return self.aligned_models
+
+
+
+
+class WordEmbeddings:
+    def __init__(
+            self,
+            pretrained_model_path: str,
+            ):
+        self.model_path = pretrained_model_path
+        if pretrained_model_path is not None:
+            if not os.path.exists(pretrained_model_path):
+                raise ValueError(
+                    f"Model path {pretrained_model_path} does not exist."
+                )
+            self.model_path = Path(pretrained_model_path)
+        
+        self.model = None
+        self.vocab = False
+
+        self._word2vec_case_preparation()
+    
+    def _word2vec_case_preparation(self) -> None:
+        self.model = Word2Vec.load(self.model_path)
+        self.vocab = True
+    
+    def infer_vector(self, word):
+        if not self.vocab:
+            raise ValueError(
+                f'The Embedding model {self.model.__class__.__name__} has not been initialized'
+            )
+        return self.vectors[word]
+    
+    
+
+
+class Word2VecInference:
+    def __init__(
+            self,
+            pretrained_model_path: str,
+            ):
+        self.word_vectorizor = WordEmbeddings(pretrained_model_path)
+    
+    def get_embedding(self, word):
+        return self.word_vectorizor.infer_vector(word)
+    
+    def get_similarity(self, word1, word2):
+        return self.word_vectorizor.model.wv.similarity(word1, word2)
+    
+    def get_top_k_words(
+            self,
+            positive: List[str],
+            negative: List[str],
+            k: int = 10,
+            ):
+        sims = self.word_vectorizor.model.wv.most_similar(
+            positive=positive,
+            negative=negative,
+            topn=k
+            )
+        
+        return tuple(map(list, zip(*sims)))
+
+
+if __name__ == "__main__":
+    pass
