@@ -216,6 +216,8 @@ class WordEmbeddings:
             This method is used to prepare the Roberta model for the inference.
         infer_vector(doc:str, main_word:str)
             This method is used to infer the vector embeddings of a word from a sentence.
+        infer_logits(doc:str, main_word:str)
+            This method is used to infer the logits of a word from a sentence.
     """
     def __init__(
         self,
@@ -280,10 +282,9 @@ class WordEmbeddings:
 
             return main_token_embedding
 
-        except ValueError:
-            raise ValueError(
-                f'The word: "{main_word}" does not exist in the list of tokens from {doc}'
-            )
+        except:
+            print(f'The word: "{main_word}" does not exist in the list of tokens from {doc}')
+            return []
     
     def infer_logits(self, doc:str, main_word:str):
 
@@ -303,7 +304,7 @@ class WordEmbeddings:
                 
             return token_logits
         
-        except IndexError:
+        except:
             print(f'The word: "{main_word}" does not exist in the list of tokens')
             return []
 
@@ -320,7 +321,9 @@ class RobertaInference:
             The constructor for the VectorEmbeddings class.
         _roberta_case_preparation()
             This method is used to prepare the Roberta model for the inference.
-        infer_vector(doc:str, main_word:str)
+        get_embedding(word:str, sentence:str)
+            This method is used to infer the vector embeddings of a word from a sentence.
+        get_top_k_words(word:str, sentence:str, k:int=3)
             This method is used to infer the vector embeddings of a word from a sentence.
     """
 
@@ -354,10 +357,11 @@ class RobertaInference:
         self.vocab = True
 
     
-    def get_mask_embedding(
+    def get_embedding(
             self,
             word : str, 
-            sentence: str
+            sentence: str,
+            mask = True
             ):
         
         """
@@ -375,8 +379,11 @@ class RobertaInference:
                 f'The Embedding model {self.model.__class__.__name__} has not been initialized'
             )
         
-        masked_sentence = sentence.replace(word, self.tokenizer.mask_token)
-        embedding = self.word_vectorizor.infer_vector(doc=masked_sentence, main_word=self.tokenizer.mask_token)
+        if mask:
+            sentence = sentence.replace(word, self.tokenizer.mask_token)
+            word = self.tokenizer.mask_token
+            
+        embedding = self.word_vectorizor.infer_vector(doc=sentence, main_word=word)
         return embedding
 
     def get_top_k_words(
@@ -394,7 +401,6 @@ class RobertaInference:
 
         Returns:
             top_k_words: list
-            filled_sentences: list
         """
         if not self.vocab:
             raise ValueError(
