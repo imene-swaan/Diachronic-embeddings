@@ -245,11 +245,12 @@ class WordEmbeddings:
         This method is used to prepare the BERT model for the inference.
         """
         model_path = self.model_path if self.model_path is not None else 'roberta-base'
-        self.roberta_tokenizer = RobertaTokenizer.from_pretrained(model_path)
+        self.tokenizer = RobertaTokenizer.from_pretrained(model_path)
         self.model = RobertaForMaskedLM.from_pretrained(
             model_path,
             output_hidden_states = True,
         )
+        self.max_length = self.model.config.max_position_embeddings
         self.model.eval()
         self.vocab = True
 
@@ -269,9 +270,9 @@ class WordEmbeddings:
             )
         
      
-        tokenized_input = self.roberta_tokenizer(doc, return_tensors='pt')
+        tokenized_input = self.tokenizer(doc, return_tensors='pt', max_length=self.max_length)
         try:
-            token_index = tokenized_input.index(self.roberta_tokenizer.encode(main_word)[0])
+            token_index = tokenized_input.index(self.tokenizer.encode(main_word)[0])
             with torch.no_grad():
                 outputs = self.model(**tokenized_input)
                 last_hidden_states = outputs.last_hidden_state
@@ -281,13 +282,35 @@ class WordEmbeddings:
 
         except ValueError:
             raise ValueError(
-                f'The word: "{main_word}" does not exist in the list of tokens: {tokenized_input} from {doc}'
+                f'The word: "{main_word}" does not exist in the list of tokens from {doc}'
+            )
+    
+    def infer_logits(self, doc:str, main_word:str):
+
+        if not self.vocab:
+            raise ValueError(
+                f'The Embedding model {self.model.__class__.__name__} has not been initialized'
             )
 
+        tokenized_input = self.tokenizer(doc, return_tensors='pt', max_length=self.max_length)
+        try:
+            token_index = (tokenized_input.input_ids == main_word)[0].nonzero(as_tuple=True)[0]
+
+            with torch.no_grad():
+                outputs = self.model(**tokenized_input)
+                logits = outputs.logits
+                token_logits = logits[0, token_index, :]
+                
+            return token_logits
+        
+        except IndexError:
+            print(f'The word: "{main_word}" does not exist in the list of tokens')
+            return []
 
 
 
-class MaskedWordInference:
+
+class RobertaInference:
     """
     This class is used to infer vector embeddings from a sentence.
 
@@ -313,8 +336,9 @@ class MaskedWordInference:
                 )
             self.model_path = Path(pretrained_model_path)
 
-        self.model = None
+        self.word_vectorizor = None
         self.vocab = False
+        
 
         lg.set_verbosity_error()
         self._roberta_case_preparation()
@@ -325,14 +349,8 @@ class MaskedWordInference:
         This method is used to prepare the Roberta model for the inference.
         """
         model_path = self.model_path if self.model_path is not None else 'roberta-base'
-        self.roberta_tokenizer = RobertaTokenizer.from_pretrained(model_path)
-        self.model = RobertaForMaskedLM.from_pretrained(
-            model_path,
-            output_hidden_states = True,
-        )
-
-        self.max_length = self.model.config.max_position_embeddings
-        self.model.eval()
+        self.tokenizer = RobertaTokenizer.from_pretrained(model_path)
+        self.word_vectorizor = WordEmbeddings(pretrained_model_path=model_path)
         self.vocab = True
 
     
@@ -357,30 +375,15 @@ class MaskedWordInference:
                 f'The Embedding model {self.model.__class__.__name__} has not been initialized'
             )
         
-        
-        masked_sentence = sentence.replace(word, self.roberta_tokenizer.mask_token)
-        tokenized_input = self.roberta_tokenizer(masked_sentence, return_tensors='pt', max_length=self.max_length)
-
-        try: 
-            mask_token_index = torch.where(tokenized_input["input_ids"] == self.roberta_tokenizer.mask_token_id)[1]
-            with torch.no_grad():
-                outputs = self.model(**tokenized_input)
-                last_hidden_states = outputs.last_hidden_state  # Get the last hidden states of the tokens
-                mask_token_embedding = last_hidden_states[:, mask_token_index, :]
-            return mask_token_embedding
-    
-        except ValueError:
-            raise ValueError(
-                f'The word: "{word}" does not exist in the list of tokens: {tokenized_input} from {sentence}'
-            )
-            return []
-    
+        masked_sentence = sentence.replace(word, self.tokenizer.mask_token)
+        embedding = self.word_vectorizor.infer_vector(doc=masked_sentence, main_word=self.tokenizer.mask_token)
+        return embedding
 
     def get_top_k_words(
             self,
             word : str,
             sentence: str,
-            k: int = 10
+            k: int = 3
             ):
         """
         This method is used to infer the vector embeddings of a word from a sentence.
@@ -399,29 +402,23 @@ class MaskedWordInference:
             )
         
 
-        masked_sentence = sentence.replace(word, self.roberta_tokenizer.mask_token)
-        tokenized_input = self.roberta_tokenizer(masked_sentence, return_tensors='pt', max_length=self.max_length)
+        masked_sentence = sentence.replace(word, self.tokenizer.mask_token)
+        logits = self.word_vectorizor.infer_logits(doc=masked_sentence, main_word=self.roberta_tokenizer.mask_token)
+        top_k_tokens = torch.topk(logits, k, dim=1).indices[0].tolist()
 
-        try:
-            mask_token_index = (tokenized_input.input_ids == self.roberta_tokenizer.mask_token_id)[0].nonzero(as_tuple=True)[0]
-
-            with torch.no_grad():
-                logits = self.model(**tokenized_input).logits
-                mask_token_logits = logits[0, mask_token_index, :]
-                top_k_tokens = torch.topk(mask_token_logits, k, dim=1).indices[0].tolist()
-
-                top_k_words = []
-                filled_sentences = []
-                for token in top_k_tokens:
-                    w = self.roberta_tokenizer.decode([token])
-                    top_k_words.append(w)
-                    filled_sentences.append(masked_sentence.replace(self.roberta_tokenizer.mask_token, w))
-                
-                return top_k_words, filled_sentences
+        top_k_words = []
+        for token in top_k_tokens:
+            w = self.tokenizer.decode([token])
+            top_k_words.append(w)
+            
         
-        except IndexError:
-            print(f'The word: "{word}" does not exist in the list of tokens')
-            return [], []
+        return top_k_words
+
+
+
+
+if __name__ == "__main__":
+    pass
         
 
 
