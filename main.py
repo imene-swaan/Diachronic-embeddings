@@ -1,6 +1,7 @@
 from src.data.data_loader import Loader
 from src.data.data_preprocessing import PREPROCESS
-from src.feature_extraction.roberta import RobertaTrainer, MaskedWordInference, WordEmbeddings
+from src.feature_extraction.roberta import RobertaTrainer, RobertaInference
+from src.feature_extraction.word2vec import Word2VecTrainer, Word2VecAlign, Word2VecInference
 
 import json
 import os
@@ -12,10 +13,10 @@ def main(output_dir, data_path, periods, **kwargs):
     corpora = {}
     target_word =kwargs['target_word'][0]
 
-    nodes = {}
-    node_features = {}
+    graph_inputs = {}
 
     xml_tag = kwargs['xml_tag']
+    word2vec_paths = []
     for period in periods:
         path = data_path.format(period)
         corpora[period] = Loader.from_xml(
@@ -37,29 +38,45 @@ def main(output_dir, data_path, periods, **kwargs):
                                 )
                             )
         
-        path = f'{output_dir}/MLM_roberta_{period}'
+        roberta_path = f'{output_dir}/MLM_roberta_{period}'
         trainor = RobertaTrainer(**kwargs['mlm_options'])
-        trainor.train(data=corpora[period], output_dir= path)
+        trainor.train(data=corpora[period], output_dir= roberta_path)
+
+        word2vec_path = f'{output_dir}/word2vec_{period}'
+        word2vec_paths.append(word2vec_path)
+        trainor = Word2VecTrainer()
+        trainor.train(data=corpora[period], output_dir=word2vec_path)
+    
+
+    # aligning word2vec
+    aligned_word2vec_dir = f'{output_dir}/word2vec_aligned'
+    align = Word2VecAlign(model_paths= word2vec_paths).align_models(reference_index=-1, output_dir=aligned_word2vec_dir, method="procrustes")
+
+    # inference
+    for i, period in enumerate(periods):
+        word2vec = Word2VecInference(f'{output_dir}/word2vec_aligned/word2vec_{period}_aligned.model')
+        roberta = RobertaInference(f'{output_dir}/MLM_roberta_{period}')
 
 
 
-        nodes[period] = []
-        MLM = MaskedWordInference(path)
-        for i, sentence in enumerate(corpora[period]):
-            if target_word in sentence.split():
-                top_k, _ = MLM.get_top_k_words(word= target_word, sentence= sentence, k=kwargs['inference_options']['top_k'])
-                nodes[period].extend(top_k)
-        
-        nodes[period] = list(set(nodes[period]))
+        context_words = word2vec.get_top_k_words(
+            positive=[target_word], 
+            k=kwargs['inference_options']['Context_k']
+            )
 
-        node_features[period] = {}
-        emb = WordEmbeddings(pretrained_model_path=path)
-        for node in nodes[period]:
-            node_features[period][node] = emb.infer_vector(node, node)
-            
-                    
+        similar_words = []
+        for i, doc in enumerate(corpora[period]):
+            top_k_words = roberta.get_top_k_words(
+                word=target_word,
+                sentence=doc,
+                k=kwargs['inference_options']['MLM_k']
+                )
+            similar_words.extend(top_k_words)
 
-    return results         
+        break
+    
+    return context_words, similar_words
+             
         
         
 
@@ -113,7 +130,8 @@ if __name__ == "__main__":
         }
 
     inference_options = {
-        "top_k": 3
+        "MLM_k": 3,
+        "Context_k": 10,
         }
 
     target_word = [
