@@ -1,65 +1,37 @@
 from src.data.data_loader import Loader
 from src.data.data_preprocessing import PREPROCESS
-from src.embeddings.roberta import RobertaTrainer, MaskedWordInference
+from src.feature_extraction.roberta import RobertaTrainer, MaskedWordInference
 
 import json
 import os
 
 
+
 def main(output_dir, data_path, periods, **kwargs):
     print('*'*10, 'Loading data', '*'*10, '\n')
-    # file_type = data_path.split('.')[-1]
     corpora = {}
-    # if file_type == 'xml':
+    results = {}
 
     xml_tag = kwargs['xml_tag']
     for period in periods:
         path = data_path.format(period)
-        corpora[period] = Loader.from_xml(path, xml_tag).forward(target_words=kwargs['target_words'], max_documents=kwargs['max_documents'], shuffle=kwargs['shuffle'])
+        corpora[period] = Loader.from_xml(path, xml_tag).forward(target_words=kwargs['target_words'], max_documents=kwargs['max_documents'], shuffle=kwargs['shuffle']) # Loader.from_txt(path).forward()
 
-    # elif file_type == 'txt':
-    #     for period in periods:
-    #         path = file_path.format(period)
-    #         corpora[period] = Loader.from_txt(path).forward()
-    # else:
-    #     raise ValueError('File type not supported')
-    
-        print('Found {} documents in corpus: {}'.format(len(corpora[period]), period))
-        print('*'*10, 'Preprocessing data', '*'*10, '\n')
-    # for period in periods:
         corpora[period] = list(map(lambda x: PREPROCESS().forward(x, **kwargs['preprocessing_options']), corpora[period]))
-    
-        print('Finished preprocessing')
-        print('*'*10, 'Masked language modeling (Diachronic Embeddings)', '*'*10, '\n')
-        # training
-        print('Training MLM')
-    # for period in periods:
         path = f'{output_dir}/MLM_roberta_{period}'
         trainor = RobertaTrainer(**kwargs['mlm_options'])
         trainor.train(data=corpora[period], output_dir= path)
 
-       
-        results = {}
-        # inference
-        print('Inference')
-    # for period in periods:
         results[period] = {}
         MLM = MaskedWordInference(path)
         for word in kwargs['target_words']:
             results[period][word] = []
-
-            print(f'Word: {word} in {period}')
             for i, sentence in enumerate(corpora[period]):
                 if word in sentence.split()[:100]:
-                    print(f'Found {word} in sentence {i} of length: {len(sentence.split())}')
                     t = {}
                     t['sentence'] = ' '.join(sentence.split()[:120])
                     t['top_words'], _ = MLM.get_top_k_words(word= word, sentence= sentence, k=kwargs['inference_options']['top_k'])
                     results[period][word].append(t)
-        
-        with open(f'{output_dir}/results_{period}.json', 'w') as f:
-            json.dump(results[period], f, indent=4)
-        print('Finished inference')
 
     return results         
         
