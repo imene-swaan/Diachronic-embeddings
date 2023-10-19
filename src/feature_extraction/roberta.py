@@ -330,6 +330,8 @@ class MaskedWordInference:
             model_path,
             output_hidden_states = True,
         )
+
+        self.max_length = self.model.config.max_position_embeddings
         self.model.eval()
         self.vocab = True
 
@@ -355,13 +357,9 @@ class MaskedWordInference:
                 f'The Embedding model {self.model.__class__.__name__} has not been initialized'
             )
         
-        if len(sentence.split()) > 128:
-            raise ValueError(
-                f'The sentence: "{sentence}" is too long. The maximum length is 128 tokens'
-            )
         
         masked_sentence = sentence.replace(word, self.roberta_tokenizer.mask_token)
-        tokenized_input = self.roberta_tokenizer(masked_sentence, return_tensors='pt', max_length=128)
+        tokenized_input = self.roberta_tokenizer(masked_sentence, return_tensors='pt', max_length=self.max_length)
 
         try: 
             mask_token_index = torch.where(tokenized_input["input_ids"] == self.roberta_tokenizer.mask_token_id)[1]
@@ -375,6 +373,7 @@ class MaskedWordInference:
             raise ValueError(
                 f'The word: "{word}" does not exist in the list of tokens: {tokenized_input} from {sentence}'
             )
+            return []
     
 
     def get_top_k_words(
@@ -401,7 +400,7 @@ class MaskedWordInference:
         
 
         masked_sentence = sentence.replace(word, self.roberta_tokenizer.mask_token)
-        tokenized_input = self.roberta_tokenizer(masked_sentence, return_tensors='pt', max_length=128)
+        tokenized_input = self.roberta_tokenizer(masked_sentence, return_tensors='pt', max_length=self.max_length)
 
         try:
             mask_token_index = (tokenized_input.input_ids == self.roberta_tokenizer.mask_token_id)[0].nonzero(as_tuple=True)[0]

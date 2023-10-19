@@ -1,6 +1,6 @@
 from src.data.data_loader import Loader
 from src.data.data_preprocessing import PREPROCESS
-from src.feature_extraction.roberta import RobertaTrainer, MaskedWordInference
+from src.feature_extraction.roberta import RobertaTrainer, MaskedWordInference, WordEmbeddings
 
 import json
 import os
@@ -11,6 +11,7 @@ def main(output_dir, data_path, periods, **kwargs):
     print('*'*10, 'Loading data', '*'*10, '\n')
     corpora = {}
     results = {}
+    embeddings = {}
 
     xml_tag = kwargs['xml_tag']
     for period in periods:
@@ -22,6 +23,7 @@ def main(output_dir, data_path, periods, **kwargs):
         trainor = RobertaTrainer(**kwargs['mlm_options'])
         trainor.train(data=corpora[period], output_dir= path)
 
+        
         results[period] = {}
         MLM = MaskedWordInference(path)
         for word in kwargs['target_words']:
