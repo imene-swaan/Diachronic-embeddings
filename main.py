@@ -10,30 +10,54 @@ import os
 def main(output_dir, data_path, periods, **kwargs):
     print('*'*10, 'Loading data', '*'*10, '\n')
     corpora = {}
-    results = {}
-    embeddings = {}
+    target_word =kwargs['target_word'][0]
+
+    nodes = {}
+    node_features = {}
 
     xml_tag = kwargs['xml_tag']
     for period in periods:
         path = data_path.format(period)
-        corpora[period] = Loader.from_xml(path, xml_tag).forward(target_words=kwargs['target_words'], max_documents=kwargs['max_documents'], shuffle=kwargs['shuffle']) # Loader.from_txt(path).forward()
+        corpora[period] = Loader.from_xml(
+            path, 
+            xml_tag
+            ).forward(
+                target_words=[target_word], 
+                max_documents=kwargs['max_documents'], 
+                shuffle=kwargs['shuffle']
+                ) # Loader.from_txt(path).forward()
 
-        corpora[period] = list(map(lambda x: PREPROCESS().forward(x, **kwargs['preprocessing_options']), corpora[period]))
+
+        corpora[period] = list(map(lambda x: 
+                                    PREPROCESS().forward(
+                                       x, 
+                                       **kwargs['preprocessing_options']
+                                    ), 
+                                    corpora[period]
+                                )
+                            )
+        
         path = f'{output_dir}/MLM_roberta_{period}'
         trainor = RobertaTrainer(**kwargs['mlm_options'])
         trainor.train(data=corpora[period], output_dir= path)
 
-        
-        results[period] = {}
+
+
+        nodes[period] = []
         MLM = MaskedWordInference(path)
-        for word in kwargs['target_words']:
-            results[period][word] = []
-            for i, sentence in enumerate(corpora[period]):
-                if word in sentence.split()[:100]:
-                    t = {}
-                    t['sentence'] = ' '.join(sentence.split()[:120])
-                    t['top_words'], _ = MLM.get_top_k_words(word= word, sentence= sentence, k=kwargs['inference_options']['top_k'])
-                    results[period][word].append(t)
+        for i, sentence in enumerate(corpora[period]):
+            if target_word in sentence.split():
+                top_k, _ = MLM.get_top_k_words(word= target_word, sentence= sentence, k=kwargs['inference_options']['top_k'])
+                nodes[period].extend(top_k)
+        
+        nodes[period] = list(set(nodes[period]))
+
+        node_features[period] = {}
+        emb = WordEmbeddings(pretrained_model_path=path)
+        for node in nodes[period]:
+            node_features[period][node] = emb.infer_vector(node, node)
+            
+                    
 
     return results         
         
@@ -92,20 +116,8 @@ if __name__ == "__main__":
         "top_k": 3
         }
 
-    target_words = [
-            "office",
-            "gay",
-            "abuse",
-            "king",
-            "apple",
-            "bank",
-            "war",
-            "love",
-            "money",
-            "school",
-            "police",
-            "family",
-            "work"
+    target_word = [
+            "office"
         ]
     
     r = main(
@@ -113,7 +125,7 @@ if __name__ == "__main__":
         file_path, 
         periods, 
         xml_tag = 'fulltext',
-        target_words = target_words,
+        target_word = target_word,
         max_documents = 10000,
         shuffle = True,
         preprocessing_options = preprocessing_options,
