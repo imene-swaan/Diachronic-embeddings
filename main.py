@@ -13,7 +13,14 @@ def main(output_dir, data_path, periods, **kwargs):
     corpora = {}
     target_word =kwargs['target_word'][0]
 
-    graph_inputs = {}
+    graph_inputs = {
+        "nodes": [],
+        "node_types": [],
+        "node_features": [],
+        "edges": [],
+        "edge_features": [],
+        "edge_types": []
+    }
 
     xml_tag = kwargs['xml_tag']
     word2vec_paths = []
@@ -57,13 +64,14 @@ def main(output_dir, data_path, periods, **kwargs):
         word2vec = Word2VecInference(f'{output_dir}/word2vec_aligned/word2vec_{period}_aligned.model')
         roberta = RobertaInference(f'{output_dir}/MLM_roberta_{period}')
 
-
-
         context_words = word2vec.get_top_k_words(
-            positive=[target_word], 
+            positive=[target_word],
+            negative= None,
             k=kwargs['inference_options']['Context_k']
             )
-
+        
+        context_nodes = list(set(context_words))
+    
         similar_words = []
         for i, doc in enumerate(corpora[period]):
             top_k_words = roberta.get_top_k_words(
@@ -73,7 +81,26 @@ def main(output_dir, data_path, periods, **kwargs):
                 )
             similar_words.extend(top_k_words)
 
-        break
+        similar_nodes = list(set(similar_words))
+        
+
+
+        node_types = [1] * len(context_nodes) + [0] * len(similar_nodes) # 1 for context, 0 for similar
+        nodes = context_nodes + similar_nodes
+
+        node_features = {node: [] for node in nodes}
+        for i, doc in enumerate(corpora[period]):
+            for node in nodes:
+                if node in doc:
+                    embedding = roberta.get_embedding(word=node, sentence=doc, mask=False)
+                    node_features[node].append(embedding)
+        
+        edges = []
+
+        
+
+            
+
     
     return context_words, similar_words
              
