@@ -181,7 +181,7 @@ class Word2VecInference:
     def get_top_k_words(
             self,
             positive: List[str],
-            negative: List[str],
+            negative: Union[List[str], None] = None,
             k: int = 10,
             ):
         sims = self.word_vectorizor.model.wv.most_similar(
