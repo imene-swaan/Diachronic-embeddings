@@ -284,7 +284,7 @@ class WordEmbeddings:
 
         except:
             print(f'The word: "{main_word}" does not exist in the list of tokens from {doc}')
-            return []
+            return torch.tensor([])
     
     def infer_logits(self, doc:str, main_word:str):
 
@@ -295,7 +295,7 @@ class WordEmbeddings:
 
         tokenized_input = self.tokenizer(doc, return_tensors='pt', max_length=self.max_length)
         try:
-            token_index = (tokenized_input.input_ids == main_word)[0].nonzero(as_tuple=True)[0]
+            token_index = tokenized_input.index(self.tokenizer.encode(main_word)[0])
 
             with torch.no_grad():
                 outputs = self.model(**tokenized_input)
@@ -306,7 +306,7 @@ class WordEmbeddings:
         
         except:
             print(f'The word: "{main_word}" does not exist in the list of tokens')
-            return []
+            return torch.tensor([])
 
 
 
@@ -409,7 +409,7 @@ class RobertaInference:
         
 
         masked_sentence = sentence.replace(word, self.tokenizer.mask_token)
-        logits = self.word_vectorizor.infer_logits(doc=masked_sentence, main_word=self.roberta_tokenizer.mask_token)
+        logits = self.word_vectorizor.infer_logits(doc=masked_sentence, main_word=self.tokenizer.mask_token)
         top_k_tokens = torch.topk(logits, k, dim=1).indices[0].tolist()
 
         top_k_words = []
