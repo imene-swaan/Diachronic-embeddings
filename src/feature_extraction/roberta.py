@@ -4,7 +4,7 @@ import tqdm
 from typing import Union, List
 from pathlib import Path
 import math
-from transformers import RobertaTokenizer, RobertaForMaskedLM, DataCollatorForLanguageModeling, get_linear_schedule_with_warmup, logging as lg
+from transformers import RobertaTokenizer, RobertaForMaskedLM, RobertaModel, DataCollatorForLanguageModeling, get_linear_schedule_with_warmup, logging as lg
 import torch
 from torch.utils.data import DataLoader, Dataset
 import torch.optim as optim
@@ -248,7 +248,7 @@ class WordEmbeddings:
         """
         model_path = self.model_path if self.model_path is not None else 'roberta-base'
         self.tokenizer = RobertaTokenizer.from_pretrained(model_path)
-        self.model = RobertaForMaskedLM.from_pretrained(
+        self.model = RobertaModel.from_pretrained(
             model_path,
             output_hidden_states = True,
         )
@@ -273,18 +273,33 @@ class WordEmbeddings:
         
      
         tokenized_input = self.tokenizer(doc, return_tensors='pt', max_length=self.max_length)
-        try:
-            token_index = tokenized_input.index(self.tokenizer.encode(main_word)[0])
-            with torch.no_grad():
-                outputs = self.model(**tokenized_input)
-                last_hidden_states = outputs.last_hidden_state
-                main_token_embedding = last_hidden_states[:, token_index, :]
+        word_tokens = self.tokenizer.tokenize(main_word)
+        print('word_tokens: ', word_tokens)
+        print('tokenized_input: ', self.tokenizer.tokenize(doc))
 
-            return main_token_embedding
+        # with torch.no_grad():
+        #     outputs = self.model(**tokenized_input)
+        #     last_hidden_states = outputs.last_hidden_state
+        
+        # word_embeddings = []
+        # token_index = 0
 
-        except:
-            print(f'The word: "{main_word}" does not exist in the list of tokens from {doc}')
-            return torch.tensor([])
+        # for token in tokenized_input['input_ids'][0]:
+        #     current_token = self.tokenizer.decode(token)
+        #     if current_token in word_tokens:
+
+        # try:
+        #     token_index = tokenized_input.index(self.tokenizer.encode(main_word)[0])
+        #     with torch.no_grad():
+        #         outputs = self.model(**tokenized_input)
+        #         last_hidden_states = outputs.last_hidden_state
+        #         main_token_embedding = last_hidden_states[:, token_index, :]
+
+        #     return main_token_embedding
+
+        # except:
+        #     print(f'The word: "{main_word}" does not exist in the list of tokens from {doc}')
+        #     return torch.tensor([])
     
     def infer_logits(self, doc:str, main_word:str):
 
@@ -294,6 +309,7 @@ class WordEmbeddings:
             )
 
         tokenized_input = self.tokenizer(doc, return_tensors='pt', max_length=self.max_length)
+
         try:
             token_index = tokenized_input.index(self.tokenizer.encode(main_word)[0])
 

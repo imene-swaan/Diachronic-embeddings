@@ -155,12 +155,12 @@ class WordEmbeddings:
         self.model = Word2Vec.load(self.model_path)
         self.vocab = True
     
-    def infer_vector(self, word):
+    def infer_vector(self, word:str, norm = False) -> List[float]:
         if not self.vocab:
             raise ValueError(
                 f'The Embedding model {self.model.__class__.__name__} has not been initialized'
             )
-        return self.vectors[word]
+        return self.model.wv.get_vector(word, norm = norm)
     
     
 
@@ -172,28 +172,27 @@ class Word2VecInference:
             ):
         self.word_vectorizor = WordEmbeddings(pretrained_model_path)
     
-    def get_embedding(self, word):
-        return self.word_vectorizor.infer_vector(word)
+    def get_embedding(self, word:str, norm: bool = False):
+        return self.word_vectorizor.infer_vector(word= word, norm = norm)
     
-    def get_similarity(self, word1, word2):
+    def get_similarity(self, word1: str, word2: str):
         return self.word_vectorizor.model.wv.similarity(word1, word2)
     
     def get_top_k_words(
             self,
-            positive: List[str],
-            negative: Union[List[str], None] = None,
+            word: str,
             k: int = 10,
             ):
-        
+
         try:
             sims = self.word_vectorizor.model.wv.most_similar(
-                positive=positive,
-                negative=negative,
+                word,
                 topn=k
                 )
             return tuple(map(list, zip(*sims)))
         
         except KeyError:
+            print("The word in the input is not in the model vocabulary.")
             return []
         
 

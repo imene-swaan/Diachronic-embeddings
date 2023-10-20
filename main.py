@@ -38,7 +38,7 @@ def main(output_dir, data_path, periods, **kwargs):
                                     corpora[period]
                                 )
                             )
-        # training the models
+        #training the models
         print(f'Training Roberta from {period} ...', '\n')
         roberta_path = f'{output_dir}/MLM_roberta_{period}'
         trainor = RobertaTrainer(**kwargs['mlm_options'])
@@ -53,11 +53,18 @@ def main(output_dir, data_path, periods, **kwargs):
 
     # aligning word2vec
     print(f'Aligning Word2Vec models ...', '\n')
-
     aligned_word2vec_dir = f'{output_dir}/word2vec_aligned'
     if not os.path.exists(aligned_word2vec_dir):
         os.mkdir(aligned_word2vec_dir)
-    Word2VecAlign(model_paths= word2vec_paths).align_models(reference_index=-1, output_dir=aligned_word2vec_dir, method="procrustes")
+
+    Word2VecAlign(
+        model_paths= word2vec_paths
+        ).align_models(
+            reference_index=-1, 
+            output_dir=aligned_word2vec_dir, 
+            method="procrustes"
+            )
+
 
     # feature extraction
     print(f'Extracting features ...', '\n')
@@ -71,13 +78,12 @@ def main(output_dir, data_path, periods, **kwargs):
     }
     for i, period in enumerate(periods):
         print(f'Extracting features from {period} ...', '\n')
-        word2vec = Word2VecInference(f'{output_dir}/word2vec_aligned/word2vec_{period}_aligned.model')
+        word2vec = Word2VecInference(f'{output_dir}/word2vec_{period}.model')
         roberta = RobertaInference(f'{output_dir}/MLM_roberta_{period}')
 
         print(f'Extracting context words ...', '\n')
         context_words = word2vec.get_top_k_words(
-            positive=[target_word],
-            negative= None,
+            word=target_word,
             k=kwargs['inference_options']['Context_k']
             )
         
