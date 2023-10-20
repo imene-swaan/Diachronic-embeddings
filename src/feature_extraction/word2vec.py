@@ -67,10 +67,10 @@ class Word2VecTrainer:
     def train(
             self, 
             data: List[str],
-            output_path: Union[str, Path] = None,
+            output_dir: Union[str, Path] = None,
             epochs=5,
-            alpha=0.025,
-            min_alpha=0.0001,
+            start_alpha=0.025,
+            end_alpha=0.0001,
             compute_loss=True,
             **kwargs
             ):
@@ -80,13 +80,13 @@ class Word2VecTrainer:
                 data,
                 total_examples=total_examples,
                 epochs=epochs,
-                alpha=alpha,
-                min_alpha=min_alpha,
+                start_alpha=start_alpha,
+                end_alpha=end_alpha,
                 compute_loss=compute_loss,
                 **kwargs
                 )
-        if output_path:
-            self.model.save(output_path)
+        if output_dir:
+            self.model.save(output_dir)
 
 
 class Word2VecAlign:
@@ -100,6 +100,8 @@ class Word2VecAlign:
         self.models = []
         self.model_names = [Path(model_path).stem for model_path in model_paths]
         self.aligned_models = []
+
+        self.load_models()
 
     def load_models(self):
         for model_path in self.model_paths:
@@ -117,13 +119,11 @@ class Word2VecAlign:
 
         
         self.reference_model = self.models[reference_index]
+        self.reference_model.save(f"{output_dir}/{self.model_names[reference_index]}_aligned.model")
+        self.aligned_models.append(self.reference_model)
         self.models.pop(reference_index)
 
         for i, model in enumerate(self.models):
-            if i == reference_index:
-                self.reference_model.save(f"{output_dir}/{self.model_names[reference_index]}_aligned.model")
-                self.aligned_models.append(self.reference_model)
-            
             aligned_model = smart_procrustes_align_gensim(self.reference_model,model)
             aligned_model.save(f"{output_dir}/{self.model_names[i]}_aligned.model")
             self.aligned_models.append(aligned_model)
@@ -144,7 +144,7 @@ class WordEmbeddings:
                 raise ValueError(
                     f"Model path {pretrained_model_path} does not exist."
                 )
-            self.model_path = Path(pretrained_model_path)
+            self.model_path = pretrained_model_path
         
         self.model = None
         self.vocab = False
@@ -184,13 +184,18 @@ class Word2VecInference:
             negative: Union[List[str], None] = None,
             k: int = 10,
             ):
-        sims = self.word_vectorizor.model.wv.most_similar(
-            positive=positive,
-            negative=negative,
-            topn=k
-            )
         
-        return tuple(map(list, zip(*sims)))
+        try:
+            sims = self.word_vectorizor.model.wv.most_similar(
+                positive=positive,
+                negative=negative,
+                topn=k
+                )
+            return tuple(map(list, zip(*sims)))
+        
+        except KeyError:
+            return []
+        
 
 
 if __name__ == "__main__":
