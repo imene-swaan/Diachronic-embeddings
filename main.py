@@ -2,7 +2,7 @@ from src.data.data_loader import Loader
 from src.data.data_preprocessing import PREPROCESS
 from src.feature_extraction.roberta import RobertaTrainer, RobertaInference
 from src.feature_extraction.word2vec import Word2VecTrainer, Word2VecAlign, Word2VecInference
-
+import numpy as np
 import json
 import os
 
@@ -13,18 +13,10 @@ def main(output_dir, data_path, periods, **kwargs):
     corpora = {}
     target_word =kwargs['target_word'][0]
 
-    graph_inputs = {
-        "nodes": [],
-        "node_types": [],
-        "node_features": [],
-        "edges": [],
-        "edge_features": [],
-        "edge_types": []
-    }
-
     xml_tag = kwargs['xml_tag']
     word2vec_paths = []
     for period in periods:
+        # loading the data
         path = data_path.format(period)
         corpora[period] = Loader.from_xml(
             path, 
@@ -35,7 +27,7 @@ def main(output_dir, data_path, periods, **kwargs):
                 shuffle=kwargs['shuffle']
                 ) # Loader.from_txt(path).forward()
 
-
+        # preprocessing
         corpora[period] = list(map(lambda x: 
                                     PREPROCESS().forward(
                                        x, 
@@ -44,7 +36,7 @@ def main(output_dir, data_path, periods, **kwargs):
                                     corpora[period]
                                 )
                             )
-        
+        # training the models
         roberta_path = f'{output_dir}/MLM_roberta_{period}'
         trainor = RobertaTrainer(**kwargs['mlm_options'])
         trainor.train(data=corpora[period], output_dir= roberta_path)
@@ -59,7 +51,15 @@ def main(output_dir, data_path, periods, **kwargs):
     aligned_word2vec_dir = f'{output_dir}/word2vec_aligned'
     align = Word2VecAlign(model_paths= word2vec_paths).align_models(reference_index=-1, output_dir=aligned_word2vec_dir, method="procrustes")
 
-    # inference
+    # feature extraction
+    graph_inputs = {
+        "nodes": [],
+        "node_types": [],
+        "node_features": [],
+        "edges": [],
+        "edge_features": [],
+        "edge_types": []
+    }
     for i, period in enumerate(periods):
         word2vec = Word2VecInference(f'{output_dir}/word2vec_aligned/word2vec_{period}_aligned.model')
         roberta = RobertaInference(f'{output_dir}/MLM_roberta_{period}')
@@ -85,24 +85,34 @@ def main(output_dir, data_path, periods, **kwargs):
         
 
 
-        node_types = [1] * len(context_nodes) + [0] * len(similar_nodes) # 1 for context, 0 for similar
-        nodes = context_nodes + similar_nodes
+        node_types = [] # 1 for context, 0 for similar
+        nodes = []
+        for node, type in zip(context_nodes + similar_nodes, [1] * len(context_nodes) + [0] * len(similar_nodes)):
+            if node not in nodes:
+                nodes.append(node)
+                node_types.append(type)
+        
+        graph_inputs['nodes'].append(nodes)
+        graph_inputs['node_types'].append(node_types)
 
-        node_features = {node: [] for node in nodes}
+
+        word_embeddings = {node: [] for node in nodes}
         for i, doc in enumerate(corpora[period]):
             for node in nodes:
                 if node in doc:
                     embedding = roberta.get_embedding(word=node, sentence=doc, mask=False)
-                    node_features[node].append(embedding)
+                    word_embeddings[node].append(embedding)
         
-        edges = []
-
+        node_features = [np.mean(v) for _,v in word_embeddings.items()]
+        graph_inputs['node_features'].append(node_features)
         
 
             
 
+
     
-    return context_words, similar_words
+    
+    return graph_inputs
              
         
         
