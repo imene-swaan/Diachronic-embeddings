@@ -1,9 +1,10 @@
 from src.data.data_loader import Loader
 from src.data.data_preprocessing import PREPROCESS
+from src.data.data_loader import split_xml
 from src.feature_extraction.roberta import RobertaTrainer, RobertaInference
 from src.feature_extraction.word2vec import Word2VecTrainer, Word2VecAlign, Word2VecInference
 import numpy as np
-import json
+from pathlib import Path
 import os
 
 
@@ -16,17 +17,43 @@ def main(output_dir, data_path, periods, **kwargs):
 
 
     for period in periods:
-        print(f'Loading data from {period} ...', '\n')
+
         # loading the data
+        print(f'Loading data from {period} ...', '\n')
         path = data_path.format(period)
-        corpora[period] = Loader.from_xml(
-            path, 
-            xml_tag
-            ).forward(
-                target_words=[target_word], 
-                max_documents=kwargs['max_documents'], 
-                shuffle=kwargs['shuffle']
-                ) # Loader.from_txt(path).forward()
+
+        try:
+            corpora[period] = Loader.from_xml(
+                path, 
+                xml_tag
+                ).forward(
+                    target_words=[target_word], 
+                    max_documents=kwargs['max_documents'], 
+                    shuffle=kwargs['shuffle']
+                    ) # Loader.from_txt(path).forward()
+        except ValueError:
+            data_dir = Path(path).parent
+            split_paths = split_xml(
+                path= path,
+                output_dir= f'{data_dir}',
+                max_children= 1000
+                )
+            
+            corpora[period] = []
+            for split_path in split_paths:
+                corpora[period].extend(
+                    Loader.from_xml(
+                        split_path, 
+                        xml_tag
+                        ).forward(
+                            target_words=[target_word], 
+                            max_documents=kwargs['max_documents'], 
+                            shuffle=kwargs['shuffle']
+                            )
+                    ) # Loader.from_txt(split_path).forward()
+            
+
+
 
         # preprocessing
         print(f'Preprocessing data from {period} ...', '\n')
@@ -39,16 +66,38 @@ def main(output_dir, data_path, periods, **kwargs):
                                 )
                             )
         #training the models
-        print(f'Training Roberta from {period} ...', '\n')
-        roberta_path = f'{output_dir}/MLM_roberta_{period}'
-        trainor = RobertaTrainer(**kwargs['mlm_options'])
-        trainor.train(data=corpora[period], output_dir= roberta_path)
+        # print(f'Training Roberta from {period} ...', '\n')
+        # roberta_path = f'{output_dir}/MLM_roberta_{period}'
+        # trainor = RobertaTrainer(**kwargs['mlm_options'])
+        # trainor.train(data=corpora[period], output_dir= roberta_path)
+
 
         print(f'Training Word2Vec from {period} ...', '\n')
-        word2vec_path = f'{output_dir}/word2vec_{period}.model'
-        word2vec_paths.append(word2vec_path)
+        word2vec_path = f'{output_dir}/word2vec'
+        if not os.path.exists(word2vec_path):
+            os.mkdir(word2vec_path)
+
+        sentences = list(map(lambda x: 
+                             PREPROCESS().forward(
+                                 x, 
+                                 remove_stopwords =True
+                                ), 
+                                corpora[period]
+                            )
+                        )
+        sentences = [sentence.split() for sentence in sentences]
         trainor = Word2VecTrainer()
-        trainor.train(data=corpora[period], output_dir=word2vec_path)
+        trainor.train(
+            data=sentences, 
+            output_dir= f'{word2vec_path}/word2vec_{period}.model',
+            epochs= 10
+            )
+        del sentences
+        word2vec_paths.append(f'{word2vec_path}/word2vec_{period}.model')
+        words = list(trainor.model.wv.key_to_index)
+        if 'office' not in words:
+            print('\n\n\n office not in vocab \n\n\n')
+            
     
 
     # aligning word2vec
@@ -78,8 +127,8 @@ def main(output_dir, data_path, periods, **kwargs):
     }
     for i, period in enumerate(periods):
         print(f'Extracting features from {period} ...', '\n')
-        word2vec = Word2VecInference(f'{output_dir}/word2vec_{period}.model')
-        roberta = RobertaInference(f'{output_dir}/MLM_roberta_{period}')
+        word2vec = Word2VecInference(f'{output_dir}/word2vec_aligned/word2vec_{period}_aligned.model')
+        # roberta = RobertaInference(f'{output_dir}/MLM_roberta_{period}')
 
         print(f'Extracting context words ...', '\n')
         context_words = word2vec.get_top_k_words(
@@ -89,49 +138,50 @@ def main(output_dir, data_path, periods, **kwargs):
         
         context_nodes = list(set(context_words))
         print('Length of context nodes: ', len(context_nodes), '\n')
+        print('Context nodes: ', context_nodes, '\n')
 
 
-        print(f'Extracting similar words ...', '\n')
-        similar_words = []
-        for i, doc in enumerate(corpora[period]):
-            top_k_words = roberta.get_top_k_words(
-                word=target_word,
-                sentence=doc,
-                k=kwargs['inference_options']['MLM_k']
-                )
-            similar_words.extend(top_k_words)
+        # print(f'Extracting similar words ...', '\n')
+        # similar_words = []
+        # for i, doc in enumerate(corpora[period]):
+        #     top_k_words = roberta.get_top_k_words(
+        #         word=target_word,
+        #         sentence=doc,
+        #         k=kwargs['inference_options']['MLM_k']
+        #         )
+        #     similar_words.extend(top_k_words)
 
-        similar_nodes = list(set(similar_words))
-        print('Length of similar nodes: ', len(similar_nodes), '\n')
+        # similar_nodes = list(set(similar_words))
+        # print('Length of similar nodes: ', len(similar_nodes), '\n')
 
         print(f'Creating graph inputs ...', '\n')
 
-        node_types = [] # 1 for context, 0 for similar
-        nodes = []
-        for node, type in zip(context_nodes + similar_nodes, [1] * len(context_nodes) + [0] * len(similar_nodes)):
-            if node not in nodes:
-                nodes.append(node)
-                node_types.append(type)
+        # node_types = [] # 1 for context, 0 for similar
+        # nodes = []
+        # for node, type in zip(context_nodes + similar_nodes, [1] * len(context_nodes) + [0] * len(similar_nodes)):
+        #     if node not in nodes:
+        #         nodes.append(node)
+        #         node_types.append(type)
         
-        graph_inputs['nodes'].append(nodes)
-        graph_inputs['node_types'].append(node_types)
+        # graph_inputs['nodes'].append(nodes)
+        # graph_inputs['node_types'].append(node_types)
 
-        print('Length of nodes: ', len(nodes), '\n')
-        print('Length of node types: ', len(node_types), '\n')
-        print('Example: ', nodes[:10], '\n', node_types[:10], '\n')
+        # print('Length of nodes: ', len(nodes), '\n')
+        # print('Length of node types: ', len(node_types), '\n')
+        # print('Example: ', nodes[:10], '\n', node_types[:10], '\n')
 
 
-        print(f'Node features ...', '\n')
-        word_embeddings = {node: [] for node in nodes}
-        for i, doc in enumerate(corpora[period]):
-            for node in nodes:
-                if node in doc:
-                    embedding = roberta.get_embedding(word=node, sentence=doc, mask=False)
-                    word_embeddings[node].append(embedding)
+        # print(f'Node features ...', '\n')
+        # word_embeddings = {node: [] for node in nodes}
+        # for i, doc in enumerate(corpora[period]):
+        #     for node in nodes:
+        #         if node in doc:
+        #             embedding = roberta.get_embedding(word=node, sentence=doc, mask=False)
+        #             word_embeddings[node].append(embedding)
         
-        node_features = [np.mean(v) for _,v in word_embeddings.items()]
-        print('Length of node features: ', len(node_features), '\n')
-        graph_inputs['node_features'].append(node_features)
+        # node_features = [np.mean(v) for _,v in word_embeddings.items()]
+        # print('Length of node features: ', len(node_features), '\n')
+        # graph_inputs['node_features'].append(node_features)
         
             
     return graph_inputs
@@ -143,25 +193,25 @@ def main(output_dir, data_path, periods, **kwargs):
 
 
 if __name__ == "__main__":
-    output_dir = 'trial1'
+    output_dir = 'output'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     periods = [
         1980,
-        # 1982,
-        # 1985,
-        # 1987,
-        # 1989,
-        # 1990,
-        # 1992,
-        # 1995,
-        # 2000,
-        # 2001,
-        # 2005,
-        # 2008,
-        # 2010,
-        # 2012,
-        # 2015,
+        1982,
+        1985,
+        1987,
+        1989,
+        1990,
+        1992,
+        1995,
+        2000,
+        2001,
+        2005,
+        2008,
+        2010,
+        2012,
+        2015,
         2017
     ]
 
@@ -188,6 +238,7 @@ if __name__ == "__main__":
         "padding": "max_length"
         }
 
+    
     inference_options = {
         "MLM_k": 3,
         "Context_k": 10,
@@ -203,15 +254,15 @@ if __name__ == "__main__":
         periods, 
         xml_tag = 'fulltext',
         target_word = target_word,
-        max_documents = 100,
+        max_documents = 25000,
         shuffle = True,
         preprocessing_options = preprocessing_options,
         mlm_options = mlm_options,
         inference_options = inference_options
         )
     
-    with open(f"{output_dir}/results.json", 'w') as f:
-        json.dump(r, f, indent=4)
+    # with open(f"{output_dir}/results.json", 'w') as f:
+    #     json.dump(r, f, indent=4)
 
 
 
