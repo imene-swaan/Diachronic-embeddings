@@ -8,10 +8,10 @@ def cleantxt(text, **kwargs):
     newtext = re.sub('\n', ' ', text) # Remove ordinary linebreaks (there shouldn't be, so this might be redundant)
 
     if kwargs.get('remove_punctuation', True):
-        newtext = re.sub(r'[^a-zA-Z0-9\s\.]', ' ', str(newtext)) # Remove anything that is not a space, a letter, a dot, or a number
+        newtext = re.sub(r'[^a-zA-Z0-9\s\.]', '', str(newtext)) # Remove anything that is not a space, a letter, a dot, or a number
     
     if kwargs.get('remove_numbers', True):
-        newtext = re.sub(r'[0-9]', ' ', str(newtext)) # Remove numbers
+        newtext = re.sub(r'[0-9]', '', str(newtext)) # Remove numbers
     
     if kwargs.get('lowercase', True):
         newtext = str(newtext).lower() # Lowercase
