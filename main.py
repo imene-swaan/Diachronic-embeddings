@@ -156,7 +156,6 @@ def main(output_dir, data_path, periods, **kwargs):
         context_nodes = list(set(context_words))
         print('Length of context nodes: ', len(context_nodes), '\n')
         print('Context nodes: ', context_nodes, '\n')
-        break
 
         # print(f'Extracting similar words ...', '\n')
         # similar_words = []
@@ -258,7 +257,7 @@ if __name__ == "__main__":
     
     inference_options = {
         "MLM_k": 3,
-        "Context_k": 10,
+        "Context_k": 30,
         }
 
     target_word = [
