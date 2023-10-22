@@ -33,27 +33,43 @@ def main(output_dir, data_path, periods, **kwargs):
                     ) # Loader.from_txt(path).forward()
         except ValueError:
             data_dir = Path(path).parent
-            split_paths = split_xml(
-                path= path,
-                output_dir= f'{data_dir}',
-                max_children= 1000
-                )
-            
+            file_name = Path(path).stem
+            i = 0
             corpora[period] = []
-            for split_path in split_paths:
+
+            while os.path.exists(f"{data_dir}/{file_name}_{i}.xml"):
                 corpora[period].extend(
                     Loader.from_xml(
-                        split_path, 
-                        xml_tag
+                        path= f"{data_dir}/{file_name}_{i}.xml", 
+                        tag= xml_tag
                         ).forward(
                             target_words=[target_word], 
                             max_documents=kwargs['max_documents'], 
                             shuffle=kwargs['shuffle']
                             )
-                    ) # Loader.from_txt(split_path).forward()
+                    )
+                i += 1
+
+            # split_paths = split_xml(
+            #     path= path,
+            #     output_dir= f'{data_dir}',
+            #     max_children= 1000
+            #     )
+               
+            # if i < len(split_paths):
+            #     corpora[period] = []
+            #     for split_path in split_paths:
+            #         corpora[period].extend(
+            #             Loader.from_xml(
+            #                 split_path, 
+            #                 xml_tag
+            #                 ).forward(
+            #                     target_words=[target_word], 
+            #                     max_documents=kwargs['max_documents'], 
+            #                     shuffle=kwargs['shuffle']
+            #                     )
+            #             ) # Loader.from_txt(split_path).forward()
             
-
-
 
         # preprocessing
         print(f'Preprocessing data from {period} ...', '\n')
@@ -72,47 +88,47 @@ def main(output_dir, data_path, periods, **kwargs):
         # trainor.train(data=corpora[period], output_dir= roberta_path)
 
 
-        print(f'Training Word2Vec from {period} ...', '\n')
-        word2vec_path = f'{output_dir}/word2vec'
-        if not os.path.exists(word2vec_path):
-            os.mkdir(word2vec_path)
+        # print(f'Training Word2Vec from {period} ...', '\n')
+        # word2vec_path = f'{output_dir}/word2vec'
+        # if not os.path.exists(word2vec_path):
+        #     os.mkdir(word2vec_path)
 
-        sentences = list(map(lambda x: 
-                             PREPROCESS().forward(
-                                 x, 
-                                 remove_stopwords =True
-                                ), 
-                                corpora[period]
-                            )
-                        )
-        sentences = [sentence.split() for sentence in sentences]
-        trainor = Word2VecTrainer()
-        trainor.train(
-            data=sentences, 
-            output_dir= f'{word2vec_path}/word2vec_{period}.model',
-            epochs= 10
-            )
-        del sentences
-        word2vec_paths.append(f'{word2vec_path}/word2vec_{period}.model')
-        words = list(trainor.model.wv.key_to_index)
-        if 'office' not in words:
-            print('\n\n\n office not in vocab \n\n\n')
+    #     sentences = list(map(lambda x: 
+    #                          PREPROCESS().forward(
+    #                              x, 
+    #                              remove_stopwords =True
+    #                             ), 
+    #                             corpora[period]
+    #                         )
+    #                     )
+    #     sentences = [sentence.split() for sentence in sentences]
+    #     trainor = Word2VecTrainer()
+    #     trainor.train(
+    #         data=sentences, 
+    #         output_dir= f'{word2vec_path}/word2vec_{period}.model',
+    #         epochs= 10
+    #         )
+    #     del sentences
+    #     word2vec_paths.append(f'{word2vec_path}/word2vec_{period}.model')
+    #     words = list(trainor.model.wv.key_to_index)
+    #     if 'office' not in words:
+    #         print('\n\n\n office not in vocab \n\n\n')
             
     
 
-    # aligning word2vec
-    print(f'Aligning Word2Vec models ...', '\n')
-    aligned_word2vec_dir = f'{output_dir}/word2vec_aligned'
-    if not os.path.exists(aligned_word2vec_dir):
-        os.mkdir(aligned_word2vec_dir)
+    # # aligning word2vec
+    # print(f'Aligning Word2Vec models ...', '\n')
+    # aligned_word2vec_dir = f'{output_dir}/word2vec_aligned'
+    # if not os.path.exists(aligned_word2vec_dir):
+    #     os.mkdir(aligned_word2vec_dir)
 
-    Word2VecAlign(
-        model_paths= word2vec_paths
-        ).align_models(
-            reference_index=-1, 
-            output_dir=aligned_word2vec_dir, 
-            method="procrustes"
-            )
+    # Word2VecAlign(
+    #     model_paths= word2vec_paths
+    #     ).align_models(
+    #         reference_index=-1, 
+    #         output_dir=aligned_word2vec_dir, 
+    #         method="procrustes"
+    #         )
 
 
     # feature extraction
@@ -125,13 +141,14 @@ def main(output_dir, data_path, periods, **kwargs):
         "edge_features": [],
         "edge_types": []
     }
+
     for i, period in enumerate(periods):
         print(f'Extracting features from {period} ...', '\n')
         word2vec = Word2VecInference(f'{output_dir}/word2vec_aligned/word2vec_{period}_aligned.model')
         # roberta = RobertaInference(f'{output_dir}/MLM_roberta_{period}')
 
         print(f'Extracting context words ...', '\n')
-        context_words = word2vec.get_top_k_words(
+        context_words, similarities = word2vec.get_top_k_words(
             word=target_word,
             k=kwargs['inference_options']['Context_k']
             )
@@ -139,7 +156,7 @@ def main(output_dir, data_path, periods, **kwargs):
         context_nodes = list(set(context_words))
         print('Length of context nodes: ', len(context_nodes), '\n')
         print('Context nodes: ', context_nodes, '\n')
-
+        break
 
         # print(f'Extracting similar words ...', '\n')
         # similar_words = []
