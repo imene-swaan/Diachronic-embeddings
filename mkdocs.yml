@@ -1,0 +1,17 @@
+site_name: Semantic Shift
+theme:
+  name: material
+  palette:
+    primary: 'blue'
+    accent: 'blue'
+    scheme: 'slate'
+    base: 'light'
+    logo: 'img/logo.png'
+    favicon: 'img/favicon.ico'
+    favicon_192: 'img/favicon-192.png'
+    favicon_512: 'img/favicon-512.png'
+    apple_touch_icon: 'img/apple-touch-icon.png'
+    canonical_url: 'https://semantic-shift.github.io'
+    social:
+      - type: 'github'
+
