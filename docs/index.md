@@ -1,6 +1,6 @@
 # Semantic Shift Detection
 
-[![license](https://img.shields.io/github/license/pydantic/pydantic.svg)](https://github.com/pydantic/pydantic/blob/main/LICENSE)
+[![license](https://img.shields.io/github/license/pydantic/pydantic.svg)](https://github.com/imene-swaan/Diachronic-embeddings/blob/main/LICENSE)
 
 <!-- {{ version }}.
 

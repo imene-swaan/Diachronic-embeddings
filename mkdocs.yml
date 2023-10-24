@@ -58,7 +58,7 @@ plugins:
 
 nav:
 - Get Started:
-  - Welcome to Semantic Shift Detector: index.md
+  - Welcome to Semantic Shift Detection: index.md
 #   - Why use Pydantic: why.md
 #   - Help with Pydantic: help_with_pydantic.md
 #   - Installation: install.md
@@ -66,7 +66,8 @@ nav:
 #   - Version Policy: version-policy.md
 #   - Contributing: contributing.md
 #   - Changelog: changelog.md
-# - Concepts:
+- Concepts:
+  - Introduction: concepts/intro.md
 #   - Models: concepts/models.md
 #   - Fields: concepts/fields.md
 #   - JSON Schema: concepts/json_schema.md
@@ -83,7 +84,21 @@ nav:
 #   - Settings Management: concepts/pydantic_settings.md
 #   - Performance: concepts/performance.md
 #   - Pydantic Plugins: concepts/plugins.md
-# - API Documentation:
+- Documentation:
+  - Data: 
+    - Load: doc/data/load.md
+    - Preprocess: doc/data/preprocess.md
+    - Graph Construction: doc/data/graph.md
+  
+  - Feature Extraction:
+    - Word2Vec: doc/feature_extraction/word2vec.md
+    - BERT: doc/feature_extraction/bert.md
+    - RoBERTa: doc/feature_extraction/roberta.md
+  
+  - utilities: 
+    - utils: utils.md
+    - components: components.md
+
 #   - Pydantic:
 #     - BaseModel: api/base_model.md
 #     - RootModel: api/root_model.md
