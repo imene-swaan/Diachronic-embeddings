@@ -50,7 +50,8 @@ class PREPROCESS():
             from nltk.corpus import wordnet 
 
             lemmatizer = WordNetLemmatizer()
-            newtext = ' '.join(list(map(lambda x: lemmatizer.lemmatize(x, wordnet.NOUN), newtext.split())))
+            newtext = ' '.join(list(map(lambda x: lemmatizer.lemmatize(x, "n"), newtext.split())))
+            # newtext = ' '.join(list(map(lambda x: lemmatizer.lemmatize(x, "v"), newtext.split())))
         
         if remove_stopwords:
             from nltk.corpus import stopwords
