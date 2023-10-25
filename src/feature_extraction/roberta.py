@@ -1,14 +1,17 @@
 import os
 import logging
 import tqdm
-from typing import Union, List
+from typing import Union, List, Optional
 from pathlib import Path
 import math
-from transformers import RobertaTokenizer, RobertaForMaskedLM, RobertaModel, DataCollatorForLanguageModeling, get_linear_schedule_with_warmup, logging as lg
+from transformers import RobertaTokenizer, RobertaForMaskedLM, RobertaModel, AutoTokenizer, DataCollatorForLanguageModeling, get_linear_schedule_with_warmup, logging as lg
 import torch
 from torch.utils.data import DataLoader, Dataset
 import torch.optim as optim
 from accelerate import Accelerator
+import numpy as np
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))) # Add src to path
 from src.utils.utils import train_test_split
 
 
@@ -204,7 +207,7 @@ class RobertaTrainer:
 
 
 
-class WordEmbeddings:
+class RobertaEmbedding:
     """
     This class is used to infer vector embeddings from a sentence.
 
@@ -247,13 +250,18 @@ class WordEmbeddings:
         This method is used to prepare the BERT model for the inference.
         """
         model_path = self.model_path if self.model_path is not None else 'roberta-base'
-        self.tokenizer = RobertaTokenizer.from_pretrained(model_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         self.model = RobertaModel.from_pretrained(
+            model_path, 
+            output_hidden_states=True
+            )
+        self.MLM = RobertaForMaskedLM.from_pretrained(
             model_path,
             output_hidden_states = True,
         )
         self.max_length = self.model.config.max_position_embeddings
         self.model.eval()
+        self.MLM.eval()
         self.vocab = True
 
     def infer_vector(self, doc:str, main_word:str):
@@ -272,57 +280,47 @@ class WordEmbeddings:
             )
         
      
-        tokenized_input = self.tokenizer(doc, return_tensors='pt', max_length=self.max_length)
-        word_tokens = self.tokenizer.tokenize(main_word)
-        print('word_tokens: ', word_tokens)
-        print('tokenized_input: ', self.tokenizer.tokenize(doc))
+        input_ids = self.tokenizer(doc, return_tensors="pt").input_ids
+        token = self.tokenizer.encode(main_word, add_special_tokens=False, max_length=self.max_length)[0]
 
-        # with torch.no_grad():
-        #     outputs = self.model(**tokenized_input)
-        #     last_hidden_states = outputs.last_hidden_state
-        
-        # word_embeddings = []
-        # token_index = 0
-
-        # for token in tokenized_input['input_ids'][0]:
-        #     current_token = self.tokenizer.decode(token)
-        #     if current_token in word_tokens:
-
-        # try:
-        #     token_index = tokenized_input.index(self.tokenizer.encode(main_word)[0])
-        #     with torch.no_grad():
-        #         outputs = self.model(**tokenized_input)
-        #         last_hidden_states = outputs.last_hidden_state
-        #         main_token_embedding = last_hidden_states[:, token_index, :]
-
-        #     return main_token_embedding
-
-        # except:
-        #     print(f'The word: "{main_word}" does not exist in the list of tokens from {doc}')
-        #     return torch.tensor([])
-    
-    def infer_logits(self, doc:str, main_word:str):
-
-        if not self.vocab:
-            raise ValueError(
-                f'The Embedding model {self.model.__class__.__name__} has not been initialized'
-            )
-
-        tokenized_input = self.tokenizer(doc, return_tensors='pt', max_length=self.max_length)
+        word_token_index = torch.where(input_ids == token)[1]
+        emb = []
 
         try:
-            token_index = tokenized_input.index(self.tokenizer.encode(main_word)[0])
-
             with torch.no_grad():
-                outputs = self.model(**tokenized_input)
-                logits = outputs.logits
-                token_logits = logits[0, token_index, :]
-                
-            return token_logits
+                embeddings = self.model(input_ids).last_hidden_state
+               
+            emb = [embeddings[0, idx] for idx in word_token_index]
+            return torch.stack(emb)
         
         except:
             print(f'The word: "{main_word}" does not exist in the list of tokens')
-            return torch.tensor([])
+            return torch.tensor(np.array(emb))
+
+
+
+    
+    def infer_mask_logits(self, doc:str) -> torch.Tensor:
+
+        if not self.vocab:
+            raise ValueError(
+                f'The Embedding model {self.MLM.__class__.__name__} has not been initialized'
+            )
+
+        input_ids = self.tokenizer(doc, return_tensors="pt", max_length=self.max_length).input_ids
+        mask_token_index = torch.where(input_ids == self.tokenizer.mask_token_id)[1]
+        l = []
+        try:
+            with torch.no_grad():
+                logits = self.MLM(input_ids).logits
+
+            l = [logits[0, idx] for idx in mask_token_index]
+            return torch.stack(l)
+        
+        except IndexError:
+            raise ValueError(f'The mask falls outside of the max length of {self.max_length}, please use a smaller sentence')
+
+        
 
 
 
@@ -369,16 +367,16 @@ class RobertaInference:
         """
         model_path = self.model_path if self.model_path is not None else 'roberta-base'
         self.tokenizer = RobertaTokenizer.from_pretrained(model_path)
-        self.word_vectorizor = WordEmbeddings(pretrained_model_path=model_path)
+        self.word_vectorizor = RobertaEmbedding(pretrained_model_path=model_path)
         self.vocab = True
 
     
     def get_embedding(
             self,
             word : str, 
-            sentence: str,
-            mask = True
-            ):
+            sentence: Union[str, List[str]] = None,
+            mask : Optional[bool] = None
+            ) -> torch.Tensor:
         
         """
         This method is used to infer the vector embeddings of a word from a sentence.
@@ -397,10 +395,15 @@ class RobertaInference:
         
         if mask:
             sentence = sentence.replace(word, self.tokenizer.mask_token)
+            print('Sentence: ', sentence, '\n')
             word = self.tokenizer.mask_token
+        
+        else:
+            word = ' ' + word.strip()
             
-        embedding = self.word_vectorizor.infer_vector(doc=sentence, main_word=word)
-        return embedding
+            
+        embeddings = self.word_vectorizor.infer_vector(doc=sentence, main_word=word)
+        return embeddings
 
     def get_top_k_words(
             self,
@@ -423,25 +426,54 @@ class RobertaInference:
                 f'The Embedding model {self.model.__class__.__name__} has not been initialized'
             )
         
+        masked_sentence = sentence.replace(word, '<mask>')
+        try:
+            logits = self.word_vectorizor.infer_mask_logits(doc=masked_sentence)
+            top_k = []
 
-        masked_sentence = sentence.replace(word, self.tokenizer.mask_token)
-        logits = self.word_vectorizor.infer_logits(doc=masked_sentence, main_word=self.tokenizer.mask_token)
-        top_k_tokens = torch.topk(logits, k, dim=1).indices[0].tolist()
+            for logit_set in logits:
+                top_k_tokens = torch.topk(logit_set, k).indices
+                top_k_words = [self.tokenizer.decode(token.item()).strip() for token in top_k_tokens]
+                
+                top_k.extend(top_k_words)
 
-        top_k_words = []
-        for token in top_k_tokens:
-            w = self.tokenizer.decode([token])
-            top_k_words.append(w)
-            
+            return top_k
         
-        return top_k_words
+        except ValueError:
+            return []
 
 
 
 
 if __name__ == "__main__":
-    pass
-        
+    # model = RobertaEmbedding(
+    #     pretrained_model_path= "../../output/MLM_roberta_1980"
+    # )
+    
+    sentence = "The brown office is very big"
+    main_word = " office"
+
+    # emb = model.infer_mask_logits(doc=sentence)
+    # print(emb.shape)
+
+    model = RobertaInference(
+        pretrained_model_path= "../../output/MLM_roberta_1980"
+    )
+
+    # top_k = model.get_top_k_words(
+    #     word="office",
+    #     sentence=sentence
+    # )
+    # print(top_k)
+
+    emb = model.get_embedding(
+        word="office",
+        sentence=sentence,
+        mask=False
+    )
+    print(emb.shape)
+
+
 
 
 
