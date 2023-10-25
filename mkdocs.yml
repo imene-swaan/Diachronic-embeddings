@@ -59,7 +59,6 @@ plugins:
 nav:
 - Get Started:
   - Welcome to Semantic Shift Detection: index.md
-  - Requirements: requirements.md
 #   - Why use Pydantic: why.md
 #   - Help with Pydantic: help_with_pydantic.md
 #   - Installation: install.md
@@ -96,9 +95,7 @@ nav:
     - BERT: doc/feature_extraction/bert.md
     - RoBERTa: doc/feature_extraction/roberta.md
   
-  - utilities: 
-    - utils: utils.md
-    - components: components.md
+  - Requirements: requirements.md
 
 #   - Pydantic:
 #     - BaseModel: api/base_model.md

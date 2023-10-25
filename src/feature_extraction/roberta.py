@@ -301,6 +301,27 @@ class RobertaEmbedding:
 
     
     def infer_mask_logits(self, doc:str) -> torch.Tensor:
+        """
+        This method is used to infer the logits of the mask token in a sentence.
+        Args:
+            doc (str): Document to process where the mask token is present.
+
+        Returns: torch.Tensor
+
+        Examples:
+            >>> model = RobertaEmbedding()
+            >>> model.infer_mask_logits(doc="The brown fox <mask> over the lazy dog")
+            tensor([[-2.1816e-01, -1.5967e-01, -1.7225e-01,  ..., -1.7064e-01,
+                    -1.7090e-01, -1.7093e-01],
+                    [-2.1816e-01, -1.5967e-01, -1.7225e-01,  ..., -1.7064e-01,
+                    -1.7090e-01, -1.7093e-01],
+                    [-2.1816e-01, -1.5967e-01, -1.7225e-01,  ..., -1.7064e-01,
+                    -1.7090e-01, -1.7093e-01],
+                    [-2.1816e-01, -1.5967e-01, -1.7225e-01,  ..., -1.7064e-01,
+                    -1.7090e-01, -1.7093e-01],
+                    [-2.1816e-01, -1.5967e-01, -1.7225e-01,  ..., -1.7064e-01,
+                    -1.7090e-01, -1.7093e-01]])
+        """
 
         if not self.vocab:
             raise ValueError(
