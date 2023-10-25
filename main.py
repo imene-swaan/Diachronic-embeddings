@@ -144,8 +144,9 @@ def main(output_dir, data_path, periods, **kwargs):
 
     for i, period in enumerate(periods):
         print(f'Extracting features from {period} ...', '\n')
+        print(f'Length of Corpus: ', len(corpora[period]), '\n')
         word2vec = Word2VecInference(f'{output_dir}/word2vec_aligned/word2vec_{period}_aligned.model')
-        # roberta = RobertaInference(f'{output_dir}/MLM_roberta_{period}')
+        roberta = RobertaInference(f'{output_dir}/MLM_roberta_{period}')
 
         print(f'Extracting context words ...', '\n')
         context_words, similarities = word2vec.get_top_k_words(
@@ -156,35 +157,40 @@ def main(output_dir, data_path, periods, **kwargs):
         context_nodes = list(set(context_words))
         print('Length of context nodes: ', len(context_nodes), '\n')
         print('Context nodes: ', context_nodes, '\n')
+        print('Similarities: ', similarities, '\n')
 
-        # print(f'Extracting similar words ...', '\n')
-        # similar_words = []
-        # for i, doc in enumerate(corpora[period]):
-        #     top_k_words = roberta.get_top_k_words(
-        #         word=target_word,
-        #         sentence=doc,
-        #         k=kwargs['inference_options']['MLM_k']
-        #         )
-        #     similar_words.extend(top_k_words)
+        print(f'Extracting similar words ...', '\n')
+        similar_words = []
+        for i, doc in enumerate(corpora[period][:20]):
+            top_k_words = roberta.get_top_k_words(
+                word=target_word,
+                sentence=doc,
+                k=kwargs['inference_options']['MLM_k']
+                )
+            
+            if len(top_k_words) > 0:
+                similar_words.extend(top_k_words) 
 
-        # similar_nodes = list(set(similar_words))
-        # print('Length of similar nodes: ', len(similar_nodes), '\n')
+        similar_nodes = list(set(similar_words))
+        print('Length of similar nodes: ', len(similar_nodes), '\n')
+        print('Similar nodes: ', similar_nodes, '\n')
+
 
         print(f'Creating graph inputs ...', '\n')
 
-        # node_types = [] # 1 for context, 0 for similar
-        # nodes = []
-        # for node, type in zip(context_nodes + similar_nodes, [1] * len(context_nodes) + [0] * len(similar_nodes)):
-        #     if node not in nodes:
-        #         nodes.append(node)
-        #         node_types.append(type)
+        node_types = [] # 1 for context, 0 for similar
+        nodes = []
+        for node, type in zip(context_nodes + similar_nodes, [1] * len(context_nodes) + [0] * len(similar_nodes)):
+            if node not in nodes:
+                nodes.append(node)
+                node_types.append(type)
         
-        # graph_inputs['nodes'].append(nodes)
-        # graph_inputs['node_types'].append(node_types)
+        graph_inputs['nodes'].append(nodes)
+        graph_inputs['node_types'].append(node_types)
 
-        # print('Length of nodes: ', len(nodes), '\n')
-        # print('Length of node types: ', len(node_types), '\n')
-        # print('Example: ', nodes[:10], '\n', node_types[:10], '\n')
+        print('Length of nodes: ', len(nodes), '\n')
+        print('Length of node types: ', len(node_types), '\n')
+        print('Example: ', nodes[:], '\n', node_types[:], '\n')
 
 
         # print(f'Node features ...', '\n')
@@ -214,21 +220,21 @@ if __name__ == "__main__":
         os.mkdir(output_dir)
     periods = [
         1980,
-        1982,
-        1985,
-        1987,
-        1989,
-        1990,
-        1992,
-        1995,
-        2000,
-        2001,
-        2005,
-        2008,
-        2010,
-        2012,
-        2015,
-        2017
+        # 1982,
+        # 1985,
+        # 1987,
+        # 1989,
+        # 1990,
+        # 1992,
+        # 1995,
+        # 2000,
+        # 2001,
+        # 2005,
+        # 2008,
+        # 2010,
+        # 2012,
+        # 2015,
+        # 2017
     ]
 
     xml_tag = 'fulltext'
@@ -270,7 +276,7 @@ if __name__ == "__main__":
         periods, 
         xml_tag = 'fulltext',
         target_word = target_word,
-        max_documents = 25000,
+        max_documents = 25,
         shuffle = True,
         preprocessing_options = preprocessing_options,
         mlm_options = mlm_options,
