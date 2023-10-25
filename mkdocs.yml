@@ -59,6 +59,7 @@ plugins:
 nav:
 - Get Started:
   - Welcome to Semantic Shift Detection: index.md
+  - Requirements: requirements.md
 #   - Why use Pydantic: why.md
 #   - Help with Pydantic: help_with_pydantic.md
 #   - Installation: install.md

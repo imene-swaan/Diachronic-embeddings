@@ -1,0 +1,18 @@
+Dependencies:
+- accelerate==0.22.0
+- gensim==4.3.1
+- nltk==3.8.1
+- numpy==1.24.2
+- numpy==1.24.3
+- pydantic==1.10.6
+- pydantic_settings==2.0.3
+- python-dotenv==1.0.0
+- PyYAML==6.0
+- PyYAML==6.0.1
+- tomli==2.0.1
+- torch==1.13.1
+- torch==2.0.0
+- tqdm==4.65.0
+- transformers==4.32.0
+
+
