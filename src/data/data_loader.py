@@ -81,7 +81,7 @@ class Loader():
         if target_words is not None:
             relevant_texts = []
             for text in self.texts:
-                if any([word in text for word in target_words]):
+                if any([' ' + word + ' ' in text for word in target_words]):
                     relevant_texts.append(text)
             
             self.texts = relevant_texts
