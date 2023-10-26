@@ -108,6 +108,15 @@ class RobertaTrainer:
         self.accelerator = Accelerator()
 
     def prepare_dataset(self, data: List[str]):
+        """
+        This method is used to prepare the dataset for training.
+        Args:
+            data: List of strings to train the model on.
+            
+        Returns:
+            train_loader: DataLoader object containing the training data.
+            dataset: CustomDataset object containing the training data.
+        """
         dataset = CustomDataset(
             data, 
             self.tokenizer, 
@@ -130,6 +139,15 @@ class RobertaTrainer:
             data: List[str],
             output_dir: Union[str, Path] = None
             ):
+        """
+        This method is used to train the model.
+        Args:
+            data: List of strings to train the model on.
+            output_dir: Path to save the model to.
+
+        Returns:
+            None
+        """
         
         train_data, test_data = train_test_split(
             data, 
@@ -219,7 +237,7 @@ class RobertaEmbedding:
             This method is used to prepare the Roberta model for the inference.
         infer_vector(doc:str, main_word:str)
             This method is used to infer the vector embeddings of a word from a sentence.
-        infer_logits(doc:str, main_word:str)
+        infer_mask_logits(doc:str)
             This method is used to infer the logits of a word from a sentence.
     """
     def __init__(
@@ -264,15 +282,24 @@ class RobertaEmbedding:
         self.MLM.eval()
         self.vocab = True
 
-    def infer_vector(self, doc:str, main_word:str):
+    def infer_vector(self, doc:str, main_word:str) -> torch.Tensor:
         """
         This method is used to infer the vector embeddings of a word from a sentence.
         Args:
             doc: Document to process
             main_word: Main work to extract the vector embeddings for.
 
-        Returns: torch.Tensor
+        Returns: 
+            embeddings: Tensor of stacked embeddings (torch.Tensor) of shape (num_embeddings, embedding_size) where num_embeddings is the number of times the main_word appears in the doc.
 
+        Examples:
+            >>> model = RobertaEmbedding()
+            >>> model.infer_vector(doc="The brown fox jumps over the lazy dog", main_word="fox")
+            tensor([[-0.2182, -0.1597, -0.1723,  ..., -0.1706, -0.1709, -0.1709],
+                    [-0.2182, -0.1597, -0.1723,  ..., -0.1706, -0.1709, -0.1709],
+                    [-0.2182, -0.1597, -0.1723,  ..., -0.1706, -0.1709, -0.1709],
+                    [-0.2182, -0.1597, -0.1723,  ..., -0.1706, -0.1709, -0.1709],
+                    [-0.2182, -0.1597, -0.1723,  ..., -0.1706, -0.1709, -0.1709]])
         """
         if not self.vocab:
             raise ValueError(
@@ -306,7 +333,8 @@ class RobertaEmbedding:
         Args:
             doc (str): Document to process where the mask token is present.
 
-        Returns: torch.Tensor
+        Returns: 
+            logits: Tensor of stacked logits (torch.Tensor) of shape (num_embeddings, logits_size) where num_embeddings is the number of times the mask token (<mask>) appears in the doc.
 
         Examples:
             >>> model = RobertaEmbedding()
@@ -406,7 +434,15 @@ class RobertaInference:
             sentence: Sentence to mask the word in
             
         Returns: 
-            mask_token_embedding: torch.Tensor
+            embeddings: Tensor of stacked embeddings (torch.Tensor) of shape (num_embeddings, embedding_size) where num_embeddings is the number of times the main_word appears in the doc, depending on the mask parameter.
+
+        Examples:
+            >>> model = RobertaInference()
+            >>> model.get_embedding(word="office", sentence="The brown office is very big")
+            Sentence:  The brown office is very big
+            
+            >>> model.get_embedding(word="office", sentence="The brown office is very big", mask=True)
+            Sentence:  The brown <mask> is very big
         """
         
         if not self.vocab:
@@ -421,7 +457,6 @@ class RobertaInference:
         
         else:
             word = ' ' + word.strip()
-            
             
         embeddings = self.word_vectorizor.infer_vector(doc=sentence, main_word=word)
         return embeddings
@@ -441,6 +476,11 @@ class RobertaInference:
 
         Returns:
             top_k_words: list
+
+        Examples:
+            >>> model = RobertaInference()
+            >>> model.get_top_k_words(word="office", sentence="The brown office is very big")
+            ['room', 'eye', 'bear']
         """
         if not self.vocab:
             raise ValueError(
