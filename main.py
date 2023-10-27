@@ -3,6 +3,7 @@ from src.data.data_preprocessing import PREPROCESS
 from src.data.data_loader import split_xml
 from src.feature_extraction.roberta import RobertaTrainer, RobertaInference
 from src.feature_extraction.word2vec import Word2VecTrainer, Word2VecAlign, Word2VecInference
+from src.graphs.temporal_graph import Nodes
 import numpy as np
 from pathlib import Path
 import os
@@ -144,27 +145,27 @@ def main(output_dir, data_path, periods, **kwargs):
 
     for i, period in enumerate(periods):
         print(f'Extracting features from {period} ...', '\n')
-        print(f'Length of Corpus: ', len(corpora[period]), '\n')
-        word2vec = Word2VecInference(f'{output_dir}/word2vec_aligned/word2vec_{period}_aligned.model')
-        roberta = RobertaInference(f'{output_dir}/MLM_roberta_{period}')
+        nodes = Nodes()
 
         print(f'Extracting context words ...', '\n')
-        context_words, similarities = word2vec.get_top_k_words(
+        context_nodes, _ = nodes.get_context_nodes(
             word=target_word,
+            model_path=f'{output_dir}/word2vec_aligned/word2vec_{period}_aligned.model',
             k=kwargs['inference_options']['Context_k']
             )
-        
-        context_nodes = list(set(context_words))
         print('Length of context nodes: ', len(context_nodes), '\n')
         print('Context nodes: ', context_nodes, '\n')
-        print('Similarities: ', similarities, '\n')
+
+
+        
 
         print(f'Extracting similar words ...', '\n')
         similar_words = []
         for i, doc in enumerate(corpora[period][:20]):
-            top_k_words = roberta.get_top_k_words(
+            top_k_words = nodes.get_similar_nodes(
                 word=target_word,
                 sentence=doc,
+                model_path=f'{output_dir}/MLM_roberta_{period}',
                 k=kwargs['inference_options']['MLM_k']
                 )
             
@@ -176,21 +177,24 @@ def main(output_dir, data_path, periods, **kwargs):
         print('Similar nodes: ', similar_nodes, '\n')
 
 
-        print(f'Creating graph inputs ...', '\n')
 
-        node_types = [] # 1 for context, 0 for similar
-        nodes = []
-        for node, type in zip(context_nodes + similar_nodes, [1] * len(context_nodes) + [0] * len(similar_nodes)):
-            if node not in nodes:
-                nodes.append(node)
-                node_types.append(type)
+
+
+        # print(f'Creating graph inputs ...', '\n')
+
+        # node_types = [] # 1 for context, 0 for similar
+        # nodes = []
+        # for node, type in zip(context_nodes + similar_nodes, [1] * len(context_nodes) + [0] * len(similar_nodes)):
+        #     if node not in nodes:
+        #         nodes.append(node)
+        #         node_types.append(type)
         
-        graph_inputs['nodes'].append(nodes)
-        graph_inputs['node_types'].append(node_types)
+        # graph_inputs['nodes'].append(nodes)
+        # graph_inputs['node_types'].append(node_types)
 
-        print('Length of nodes: ', len(nodes), '\n')
-        print('Length of node types: ', len(node_types), '\n')
-        print('Example: ', nodes[:], '\n', node_types[:], '\n')
+        # print('Length of nodes: ', len(nodes), '\n')
+        # print('Length of node types: ', len(node_types), '\n')
+        # print('Example: ', nodes[:], '\n', node_types[:], '\n')
 
 
         # print(f'Node features ...', '\n')
