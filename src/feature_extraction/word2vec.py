@@ -4,13 +4,14 @@ from gensim.models import Word2Vec
 from src.utils.utils import smart_procrustes_align_gensim
 import os
 from pathlib import Path
+from typing import List, Optional, Union
 
 
 
 class Word2VecTrainer:    
     def __init__(
             self,
-            model_path: str = None,
+            model_path: Optional[str] = None,
             min_count=0,
             window=15,
             negative=5,
@@ -66,7 +67,7 @@ class Word2VecTrainer:
     def train(
             self, 
             data: List[str],
-            output_dir: Union[str, Path] = None,
+            output_dir: Optional[Union[str, Path]] = None,
             epochs=5,
             start_alpha=0.025,
             end_alpha=0.0001,
@@ -160,7 +161,7 @@ class Word2VecAlign:
     def align_models(
             self,
             reference_index: int = -1,
-            output_dir: str = None,
+            output_dir: Optional[str] = None,
             method: str = "procrustes",
             ) -> List[Word2Vec]:
         """
@@ -200,10 +201,10 @@ class Word2VecAlign:
 
 
 
-class WordEmbeddings:
+class Word2VecEmbeddings:
     def __init__(
             self,
-            pretrained_model_path: str,
+            pretrained_model_path: Optional[str] = None,
             ):
         """
         Wrapper class for gensim.models.Word2Vec
@@ -246,7 +247,10 @@ class WordEmbeddings:
         """
         Prepare the Word2Vec model
         """
-        self.model = Word2Vec.load(self.model_path)
+        if self.model_path is None:
+            self.model = Word2Vec()
+        else:
+            self.model = Word2Vec.load(self.model_path)
         self.vocab = True
     
     def infer_vector(self, word:str, norm = False) -> List[float]:
@@ -277,7 +281,7 @@ class WordEmbeddings:
 class Word2VecInference:
     def __init__(
             self,
-            pretrained_model_path: str,
+            pretrained_model_path: Optional[str] = None,
             ):
         """
         Wrapper class for gensim.models.Word2Vec
@@ -301,7 +305,7 @@ class Word2VecInference:
         get_top_k_words(word, k)
             Get the top k most similar words to a word in the vocabulary of the model. Default k = 10  
         """
-        self.word_vectorizor = WordEmbeddings(pretrained_model_path)
+        self.word_vectorizor = Word2VecEmbeddings(pretrained_model_path)
     
     def get_embedding(self, word:str, norm: bool = False) -> List[float]:
         """
