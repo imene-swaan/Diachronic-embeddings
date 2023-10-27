@@ -1,16 +1,13 @@
 import os.path
-
 import torch
 from pathlib import Path
-from transformers import BertTokenizer, BertModel
+from transformers import BertTokenizer, BertModel, BertForMaskedLM
 from transformers import logging as lg
-from src.utils.components import OxfordAPIResponse, WordSenseEmbedding
-from src.utils.settings import FileLoader
 import logging
 from typing import Union
 
 
-class VectorEmbeddings:
+class BertEmbeddings:
     """
     This class is used to infer the vector embeddings of a word from a sentence.
 
@@ -94,104 +91,8 @@ class VectorEmbeddings:
             )
 
 
-class ExtractSenseEmbeddings():
-    """
-    Wrapper class for the Vector embeddings that is used to extract the embeddings for all the senses.
-
-    Attributes
-    ----------
-        sense: dict
-            The sense for which the embeddings are to be extracted.
-        word: str
-            The word for which the embeddings are to be extracted.
-        vector_embeddings: VectorEmbeddings
-            The class that is used to extract the embeddings.
-        api_component: OxfordAPIResponse
-            The class that is used to extract the senses.
-        all_words: list
-            The list of all the words for which the embeddings are to be extracted.
-
-    Methods
-    -------
-        __call__(sense:dict, main_w:str)
-            This method is used to initialize the object.
-        _infer_sentence_vector()
-            This method is used to infer the vector embeddings for all the sentences in the sense.
-        infer_mean_vector()
-            This method is used to infer the mean vector embeddings for all the sentences in the sense.
-        create_sense_embeddings()
-            This method is used to extract the embeddings for all the senses.
-
-    """
-    def __init__(
-            self
-        ):
-        self.sense = None
-        self.word = None
-        self.vector_embeddings = VectorEmbeddings()
-        self.api_component = OxfordAPIResponse()
-        self.all_words = FileLoader.load_files(self.__class__.__name__)
-
-    def __call__(self, sense:dict, given_word:str) -> 'ExtractSenseEmbeddings':
-        """
-        This method is used to initialize the object with the particular senses and the given word.
-        Args:
-            sense: The sense for which the embeddings are to be extracted.
-            given_word: The word to track in each examples for all senses of the word.
-
-        Returns: The self object initialized.
-
-        """
-        if not isinstance(sense, OxfordAPIResponse):
-            raise ValueError(
-                f'Expected type {OxfordAPIResponse.__class__} for the sense, but got type: {type(sense)}'
-            )
-        self.sense = sense
-        self.word = given_word
-        return self
-
-    def _infer_sentence_embedding(self) -> torch.Tensor:
-        """
-        Infer the embeddings of the give_word in each example of the sense.
-        Returns: torch.Tensor
-
-        """
-        for example in self.sense.examples:
-            yield self.vector_embeddings.infer_vector(
-                doc=example,
-                main_word=self.word
-            )
-
-    def infer_mean_vector(self) -> WordSenseEmbedding:
-        """
-        Infer the mean vector embedding for the given word across all the examples in the senses.
-        Returns: WordSenseEmbedding object.
-
-        """
-        all_token_embeddings =  torch.stack(list(self._infer_sentence_embedding()))
-        return WordSenseEmbedding(
-            id=self.sense.id,
-            definition=self.sense.definition,
-            embedding=torch.mean(all_token_embeddings, dim=0).tolist(),
-        )
-
-    def create_sense_embeddings(self) -> list:
-        """
-        Extract the averaged vector embedding for a list of polysemous words across
-        a wide range of contexts.
-        Returns:
-            list: A list of dictionaries containing the word and the sense embeddings.
-
-        """
-        all_embeddings = []
-        word_embedding = {}
-        for word_obj in self.all_words:
-            logging.info(f'{"-"*40} Embedding the word {word_obj.word} {"-"*40} ')
-            word_embedding['word'] = word_obj.word
-            word_embedding['senses'] = [self(sens, word_obj.word).infer_mean_vector() for sens in word_obj.senses]
-            all_embeddings += [word_embedding.copy()]
-
-        return all_embeddings
+class BertInference:
+    pass
 
 
 
