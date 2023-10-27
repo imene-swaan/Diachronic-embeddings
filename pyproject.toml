@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "semantics"
+version = "0.1.0"
+description = "semantic shift detection using diachronic embeddings"
+authors = ["Imene KOLLI <53266529+imene-swaan@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
+transformers = "^4.34.1"
+torch = "^2.1.0"
+accelerate = "^0.24.0"
+gensim = "^4.3.2"
+nltk = "^3.8.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

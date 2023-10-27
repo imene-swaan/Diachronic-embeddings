@@ -6,3 +6,8 @@ DS_Store
 trial1/
 *.ttf
 *.png
+.idea/
+.env
+__pycache__/
+.pytest_cache
+site/

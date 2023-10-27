@@ -88,14 +88,16 @@ nav:
   - Data: 
     - Load: doc/data/load.md
     - Preprocess: doc/data/preprocess.md
-    - Graph Construction: doc/data/graph.md
   
   - Feature Extraction:
     - Word2Vec: doc/feature_extraction/word2vec.md
     - BERT: doc/feature_extraction/bert.md
     - RoBERTa: doc/feature_extraction/roberta.md
   
-  - Requirements: requirements.md
+  - Graph Construction:
+    - Nodes: doc/graph/nodes.md
+    - Edges: doc/graph/edges.md
+    - Graph: doc/graph/graph.md
 
 #   - Pydantic:
 #     - BaseModel: api/base_model.md
