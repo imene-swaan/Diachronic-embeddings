@@ -42,7 +42,7 @@ class CustomDataset(Dataset):
             tokenizer, 
             max_length=128,
             truncation=True,
-            padding=True,
+            padding= "max_length",
             ):
         self.tokenizer = tokenizer
         self.max_length = max_length
@@ -137,13 +137,13 @@ class RobertaTrainer:
     def train(
             self, 
             data: List[str],
-            output_dir: Union[str, Path] = None
+            output_dir: Optional[Union[str, Path]] = None
             ):
         """
         This method is used to train the model.
         Args:
-            data: List of strings to train the model on.
-            output_dir: Path to save the model to.
+            data (List[str]): List of strings to train the model on.
+            output_dir (str, Path, None): Path to save the model to. Defaults to None.
 
         Returns:
             None
@@ -308,7 +308,7 @@ class RobertaEmbedding:
         
      
         input_ids = self.tokenizer(doc, return_tensors="pt").input_ids
-        token = self.tokenizer.encode(main_word, add_special_tokens=False, max_length=self.max_length)[0]
+        token = self.tokenizer.encode(main_word, add_special_tokens=False)[0]
 
         word_token_index = torch.where(input_ids == token)[1]
         emb = []
@@ -511,31 +511,43 @@ if __name__ == "__main__":
     #     pretrained_model_path= "../../output/MLM_roberta_1980"
     # )
     
-    sentence = "The brown office is very big"
-    main_word = " office"
+    # sentence = "The brown office is very big"
+    # main_word = " office"
 
-    # emb = model.infer_mask_logits(doc=sentence)
+    # # emb = model.infer_mask_logits(doc=sentence)
+    # # print(emb.shape)
+
+    # model = RobertaInference(
+    #     pretrained_model_path= "../../output/MLM_roberta_1980"
+    # )
+
+    # # top_k = model.get_top_k_words(
+    # #     word="office",
+    # #     sentence=sentence
+    # # )
+    # # print(top_k)
+
+    # emb = model.get_embedding(
+    #     word="office",
+    #     sentence=sentence,
+    #     mask=False
+    # )
     # print(emb.shape)
 
-    model = RobertaInference(
-        pretrained_model_path= "../../output/MLM_roberta_1980"
+
+    model = RobertaTrainer(
+        model_name="roberta-base",
+        max_length=128,
+        mlm_probability=0.15,
+        batch_size=4,
+        learning_rate=1e-5,
+        epochs=3,
+        warmup_steps=500,
+        split_ratio=0.8
     )
 
-    # top_k = model.get_top_k_words(
-    #     word="office",
-    #     sentence=sentence
-    # )
-    # print(top_k)
-
-    emb = model.get_embedding(
-        word="office",
-        sentence=sentence,
-        mask=False
+    model.train(
+        data=["The brown fox jumps over the lazy dog", "The brown fox jumps over the lazy dog", "Hello world!"],
+        output_dir="../../output/MLM_roberta_1980"
     )
-    print(emb.shape)
-
-
-
-
-
 

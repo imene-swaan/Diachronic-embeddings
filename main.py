@@ -12,7 +12,7 @@ import os
 
 def main(output_dir, data_path, periods, **kwargs):
     corpora = {}
-    target_word =kwargs['target_word'][0]
+    target_word = kwargs['target_word']
     xml_tag = kwargs['xml_tag']
     word2vec_paths = []
 
@@ -28,7 +28,7 @@ def main(output_dir, data_path, periods, **kwargs):
                 path, 
                 xml_tag
                 ).forward(
-                    target_words=[target_word], 
+                    target_words= target_word, 
                     max_documents=kwargs['max_documents'], 
                     shuffle=kwargs['shuffle']
                     ) # Loader.from_txt(path).forward()
@@ -44,7 +44,7 @@ def main(output_dir, data_path, periods, **kwargs):
                         path= f"{data_dir}/{file_name}_{i}.xml", 
                         tag= xml_tag
                         ).forward(
-                            target_words=[target_word], 
+                            target_words=target_word, 
                             max_documents=kwargs['max_documents'], 
                             shuffle=kwargs['shuffle']
                             )
@@ -83,10 +83,13 @@ def main(output_dir, data_path, periods, **kwargs):
                                 )
                             )
         #training the models
-        # print(f'Training Roberta from {period} ...', '\n')
-        # roberta_path = f'{output_dir}/MLM_roberta_{period}'
-        # trainor = RobertaTrainer(**kwargs['mlm_options'])
-        # trainor.train(data=corpora[period], output_dir= roberta_path)
+        print(f'Training Roberta from {period} ...', '\n')
+        roberta_path = f'{output_dir}/MLM_roberta_{period}'
+        trainor = RobertaTrainer(**kwargs['mlm_options'])
+        trainor.train(
+            data = corpora[period],
+            output_dir = roberta_path
+            )
 
 
         # print(f'Training Word2Vec from {period} ...', '\n')
@@ -133,48 +136,48 @@ def main(output_dir, data_path, periods, **kwargs):
 
 
     # feature extraction
-    print(f'Extracting features ...', '\n')
-    graph_inputs = {
-        "nodes": [],
-        "node_types": [],
-        "node_features": [],
-        "edges": [],
-        "edge_features": [],
-        "edge_types": []
-    }
+    # print(f'Extracting features ...', '\n')
+    # graph_inputs = {
+    #     "nodes": [],
+    #     "node_types": [],
+    #     "node_features": [],
+    #     "edges": [],
+    #     "edge_features": [],
+    #     "edge_types": []
+    # }
 
-    for i, period in enumerate(periods):
-        print(f'Extracting features from {period} ...', '\n')
-        nodes = Nodes()
+    # for i, period in enumerate(periods):
+    #     print(f'Extracting features from {period} ...', '\n')
+    #     nodes = Nodes()
 
-        print(f'Extracting context words ...', '\n')
-        context_nodes, _ = nodes.get_context_nodes(
-            word=target_word,
-            model_path=f'{output_dir}/word2vec_aligned/word2vec_{period}_aligned.model',
-            k=kwargs['inference_options']['Context_k']
-            )
-        print('Length of context nodes: ', len(context_nodes), '\n')
-        print('Context nodes: ', context_nodes, '\n')
+    #     print(f'Extracting context words ...', '\n')
+    #     context_nodes, _ = nodes.get_context_nodes(
+    #         word=target_word,
+    #         model_path=f'{output_dir}/word2vec_aligned/word2vec_{period}_aligned.model',
+    #         k=kwargs['inference_options']['Context_k']
+    #         )
+    #     print('Length of context nodes: ', len(context_nodes), '\n')
+    #     print('Context nodes: ', context_nodes, '\n')
 
 
         
 
-        print(f'Extracting similar words ...', '\n')
-        similar_words = []
-        for i, doc in enumerate(corpora[period][:20]):
-            top_k_words = nodes.get_similar_nodes(
-                word=target_word,
-                sentence=doc,
-                model_path=f'{output_dir}/MLM_roberta_{period}',
-                k=kwargs['inference_options']['MLM_k']
-                )
+    #     print(f'Extracting similar words ...', '\n')
+    #     similar_words = []
+    #     for i, doc in enumerate(corpora[period][:20]):
+    #         top_k_words = nodes.get_similar_nodes(
+    #             word=target_word,
+    #             sentence=doc,
+    #             model_path=f'{output_dir}/MLM_roberta_{period}',
+    #             k=kwargs['inference_options']['MLM_k']
+    #             )
             
-            if len(top_k_words) > 0:
-                similar_words.extend(top_k_words) 
+    #         if len(top_k_words) > 0:
+    #             similar_words.extend(top_k_words) 
 
-        similar_nodes = list(set(similar_words))
-        print('Length of similar nodes: ', len(similar_nodes), '\n')
-        print('Similar nodes: ', similar_nodes, '\n')
+    #     similar_nodes = list(set(similar_words))
+    #     print('Length of similar nodes: ', len(similar_nodes), '\n')
+    #     print('Similar nodes: ', similar_nodes, '\n')
 
 
 
@@ -210,7 +213,7 @@ def main(output_dir, data_path, periods, **kwargs):
         # graph_inputs['node_features'].append(node_features)
         
             
-    return graph_inputs
+    # return graph_inputs
              
         
         
@@ -219,7 +222,7 @@ def main(output_dir, data_path, periods, **kwargs):
 
 
 if __name__ == "__main__":
-    output_dir = 'output'
+    output_dir = 'trial1'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     periods = [
@@ -280,7 +283,7 @@ if __name__ == "__main__":
         periods, 
         xml_tag = 'fulltext',
         target_word = target_word,
-        max_documents = 25,
+        max_documents = 10,
         shuffle = True,
         preprocessing_options = preprocessing_options,
         mlm_options = mlm_options,

@@ -1,5 +1,5 @@
 
-from typing import Union, List
+from typing import Union, List, Optional
 from pathlib import Path
 import xml.etree.ElementTree as ET 
 from src.utils.utils import read_txt, sample_data
@@ -64,21 +64,27 @@ class Loader():
     
 
     
-    def forward(self, target_words: List[str] = None, max_documents: int = None, shuffle: bool = True, random_seed=None) -> List[str]:
+    def forward(
+            self, 
+            target_words: Optional[Union[List[str], str]] = None, 
+            max_documents: Optional[int] = None, 
+            shuffle: bool = True, 
+            random_seed: Optional[int] = None
+            ) -> List[str]:
         """
         Filters the texts based on the target words and the maximum number of documents.
 
         Args:
-            target_words (List[str], optional): List of target words. Defaults to None.
-            max_documents (int, optional): Maximum number of documents. Defaults to None.
-            shuffle (bool, optional): Whether to shuffle the data. Defaults to True.
-            random_seed ([type], optional): Random seed. Defaults to None.
+            target_words (List[str], str, None): List of target words. Defaults to None.
+            max_documents (int, None): Maximum number of documents. Defaults to None.
+            shuffle (bool): Whether to shuffle the data. Defaults to True.
+            random_seed (int, None): Random seed. Defaults to None.
 
         Returns:
             List[str]: List of texts.
         """
 
-        if target_words is not None:
+        if target_words:
             relevant_texts = []
             for text in self.texts:
                 if any([' ' + word + ' ' in text for word in target_words]):

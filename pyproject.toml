@@ -7,13 +7,15 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-
-[tool.poetry.group.dev.dependencies]
 transformers = "^4.34.1"
 torch = "^2.1.0"
 accelerate = "^0.24.0"
 gensim = "^4.3.2"
 nltk = "^3.8.1"
+tomli = "^2.0.1"
+
+[tool.poetry.group.dev.dependencies]
+
 
 [build-system]
 requires = ["poetry-core"]
