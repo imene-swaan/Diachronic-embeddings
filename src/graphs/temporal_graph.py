@@ -1,7 +1,6 @@
 from src.feature_extraction.roberta import RobertaInference
 from src.feature_extraction.bert import BertInference
 from src.feature_extraction.word2vec import Word2VecInference
-from pydantic import BaseModel, validator, Field
 from typing import List, Optional, Union
 
 
@@ -37,7 +36,9 @@ class Nodes:
             level: int,
             k: int,
             c: int,
-            model_paths: List[str]
+            word2vec_model_path: str,
+            mlm_model_path: str,
+            mlm_model_type: str = 'roberta'
             ):
         
         self.target_word = target_word
@@ -45,11 +46,43 @@ class Nodes:
         self.k = k
         self.c = c
         self.level = level
-        self.model_paths = model_paths
-
-
+        self.word2vec = Word2VecInference(word2vec_model_path)
+        self.mlm = RobertaInference(mlm_model_path) if mlm_model_type == 'roberta' else BertInference(mlm_model_path)
     
 
+    def _get_similar_nodes(self, word) -> List[str]:
+        similar_nodes = []
+        for sentence in self.dataset:
+            similar_nodes += self.mlm.get_top_k_words(word, sentence, self.k)
+        return list(set(similar_nodes))
+
+    def _get_context_nodes(self, word) -> List[str]:
+        context_nodes = []
+        for sentence in self.dataset:
+            context_nodes += self.word2vec.get_top_k_words(word, sentence, self.c)
+        return list(set(context_nodes))
+    
+    def get_nodes(self) -> List[str]:
+        nodes = {'target_node': self.target_word, 'similar_nodes': [], 'context_nodes': []}
+        for level in range(self.level):
+            if level == 0:
+                similar_nodes = self._get_similar_nodes(self.target_word)
+                context_nodes = self._get_context_nodes(self.target_word)
+
+                nodes['similar_nodes'].append(similar_nodes)
+                nodes['context_nodes'].append(context_nodes)
+
+            else:
+                similar_nodes = []
+                context_nodes = []
+                for word in nodes['similar_nodes'][level-1]:
+                    similar_nodes += self._get_similar_nodes(word)
+                    context_nodes += self._get_context_nodes(word)
+                
+                nodes['similar_nodes'].append(similar_nodes)
+                nodes['context_nodes'].append(context_nodes)
+                
+        return nodes
 
 
 
@@ -64,7 +97,15 @@ class Edges:
 
 class Graph:
     def __init__(self) -> None:
-        pass
+        self.graph = {
+            'nodes': [],
+            'node_features': [],
+            'edges': [],
+            'edge_features': []
+        }
+    
+    
+
 
 
 
