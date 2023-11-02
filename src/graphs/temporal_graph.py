@@ -27,6 +27,28 @@ from typing import List, Optional, Union
     # - model_paths: the path to the word2vec model and the MLM model
 
 
+# node features:
+# - embeddings: the embeddings of the word node
+# - frequency: the frequency of the word node in the dataset
+# - self-similarity: the similarity of the word node to itself
+
+
+# edges:
+# - target node -> similar node
+# - target node -> context node
+# - similar node -> similar node
+# - similar node -> context node
+# - context node -> context node
+
+# edge features:
+# - edge_type: the type of the edge (target-similar, target-context, similar-similar, similar-context, context-context)
+# - edge_weight: the weight of the edge (similarity or PMI between the nodes)
+# - label: 
+    # - similarity: the similarity between similar nodes
+    # - mutual information: the mutual information between context nodes
+
+
+
 
 class Nodes:
     def __init__(
