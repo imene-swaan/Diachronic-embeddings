@@ -1,23 +1,52 @@
-name: ci 
+name: Continuous Integration and Deployment
+
 on:
   push:
     branches:
-      - master 
+      - main  # Replace with your default branch
+  pull_request:
+    branches:
       - main
-permissions:
-  contents: write
+
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.x
-      - uses: actions/cache@v3
-        with:
-          key: ${{ github.ref }}
-          path: .cache
-      - run: pip install mkdocs-material
-      - run: pip install pillow cairosvg
-      - run: mkdocs gh-deploy --force
+    - uses: actions/checkout@v3
+      with:
+        persist-credentials: false
+
+    # Setup Python environment
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.10' # Specify the Python version you need for your project
+
+    # Cache Poetry installed dependencies
+    - name: Cache Poetry virtualenv
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pypoetry/virtualenvs
+        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-poetry-
+
+    # Install dependencies using Poetry
+    - name: Install dependencies
+      run: |
+        pip install poetry
+        poetry config virtualenvs.create false
+        poetry install --no-interaction --no-root
+
+    # This is where you'd put steps to build or test your project, for example:
+    # - name: Run tests
+    #   run: poetry run pytest
+
+    # Deploy to GitHub Pages
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push' # Ensures deployment runs only on push to main branch
+      run: |
+        poetry run mkdocs gh-deploy --force
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
