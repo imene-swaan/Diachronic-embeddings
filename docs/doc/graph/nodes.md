@@ -1,1 +1,1 @@
-::: src.graphs.temporal_graph.Nodes
+::: semantics.graphs.temporal_graph.Nodes

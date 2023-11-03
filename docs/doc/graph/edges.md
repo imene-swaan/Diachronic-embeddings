@@ -1,1 +1,1 @@
-::: src.graphs.temporal_graph.Edges
+::: semantics.graphs.temporal_graph.Edges

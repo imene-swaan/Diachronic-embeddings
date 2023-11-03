@@ -1,2 +1,2 @@
-::: src.feature_extraction.word2vec
+::: semantics.feature_extraction.word2vec
 
