@@ -48,5 +48,3 @@ jobs:
       if: github.ref == 'refs/heads/main' && github.event_name == 'push' # Ensures deployment runs only on push to main branch
       run: |
         poetry run mkdocs gh-deploy --force
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
