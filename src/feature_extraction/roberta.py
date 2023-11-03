@@ -85,7 +85,33 @@ class RobertaTrainer:
         train(data, output_dir: Union[str, Path] = None)
             This method is used to train the model.
     """
-    def __init__(self, model_name="roberta-base", max_length=128, mlm_probability=0.15, batch_size=4, learning_rate=1e-5, epochs=3, warmup_steps=500, split_ratio=0.8, truncation=True, padding="max_length"):
+    def __init__(
+            self, 
+            model_name: str = "roberta-base", 
+            max_length: int = 128, 
+            mlm_probability: float = 0.15, 
+            batch_size: int = 4, 
+            learning_rate: float = 1e-5, 
+            epochs: int = 3, 
+            warmup_steps: int = 500, 
+            split_ratio: float = 0.8, 
+            truncation: bool = True, 
+            padding: str = "max_length"
+            ):
+
+        """
+        Args:
+            model_name (str): Name of the model to train. Defaults to "roberta-base".
+            max_length (int): Maximum length of the input sequence. Defaults to 128.
+            mlm_probability (float): Probability of masking tokens in the input sequence. Defaults to 0.15.
+            batch_size (int): Size of the batch. Defaults to 4.
+            learning_rate (float): Learning rate of the optimizer. Defaults to 1e-5.
+            epochs (int): Number of epochs to train the model for. Defaults to 3.
+            warmup_steps (int): Number of warmup steps for the learning rate scheduler. Defaults to 500.
+            split_ratio (float): Ratio to split the data into train and test. Defaults to 0.8.
+            truncation (bool): Whether to truncate the input sequence to max_length or not. Defaults to True.
+            padding (str): Whether to pad the input sequence to max_length or not. Defaults to "max_length".
+        """
         
         
         self.tokenizer = RobertaTokenizer.from_pretrained(model_name)
@@ -362,9 +388,9 @@ class RobertaEmbedding:
         try:
             with torch.no_grad():
                 logits = self.MLM(input_ids).logits
-
+                
             l = [logits[0, idx] for idx in mask_token_index]
-            return torch.stack(l)
+            return torch.stack(l) if len(l) > 0 else torch.empty(0)
         
         except IndexError:
             raise ValueError(f'The mask falls outside of the max length of {self.max_length}, please use a smaller sentence')
@@ -424,14 +450,15 @@ class RobertaInference:
             self,
             word : str, 
             sentence: Union[str, List[str]] = None,
-            mask : Optional[bool] = None
+            mask : bool = False
             ) -> torch.Tensor:
         
         """
         This method is used to infer the vector embeddings of a word from a sentence.
         Args:
-            word: Word to mask
-            sentence: Sentence to mask the word in
+            word: Word to get the vector embeddings for
+            sentence: Sentence to get the vector embeddings from. If None, the word is assumed to be in the sentence. Defaults to None.
+            mask: Whether to mask the word in the sentence or not. Defaults to False.
             
         Returns: 
             embeddings: Tensor of stacked embeddings (torch.Tensor) of shape (num_embeddings, embedding_size) where num_embeddings is the number of times the main_word appears in the doc, depending on the mask parameter.
@@ -450,9 +477,11 @@ class RobertaInference:
                 f'The Embedding model {self.model.__class__.__name__} has not been initialized'
             )
         
+        if sentence is None:
+            sentence = ' ' + word.strip() + ' '
+            
         if mask:
             sentence = sentence.replace(word, self.tokenizer.mask_token)
-            print('Sentence: ', sentence, '\n')
             word = self.tokenizer.mask_token
         
         else:
@@ -490,6 +519,7 @@ class RobertaInference:
         masked_sentence = sentence.replace(word, '<mask>')
         try:
             logits = self.word_vectorizor.infer_mask_logits(doc=masked_sentence)
+
             top_k = []
 
             for logit_set in logits:
