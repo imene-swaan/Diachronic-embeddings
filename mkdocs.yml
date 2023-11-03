@@ -40,19 +40,6 @@ plugins:
   - autorefs
   - search:
       lang: en
-      tokenization: true
-      terms: true
-      stopwords: true
-      filters:
-        - lowercase
-        - trim
-        - stopword
-        - stemmer
-      engine: lunr
-      index-page: true
-      only-search-in-title: false
-      start-page: true
-      start-page-text: Start searching...
       
 
 
@@ -97,7 +84,9 @@ nav:
   - Graph Construction:
     - Nodes: doc/graph/nodes.md
     - Edges: doc/graph/edges.md
-    - Graph: doc/graph/graph.md
+  
+  - Extra:
+    - utilites: utils.md
 
 #   - Pydantic:
 #     - BaseModel: api/base_model.md
