@@ -1,8 +1,9 @@
 from src.feature_extraction.roberta import RobertaInference
 from src.feature_extraction.bert import BertInference
 from src.feature_extraction.word2vec import Word2VecInference
-from typing import List, Optional, Union, Dict
-
+from typing import List, Union, Dict
+import torch
+import numpy as np
 
 # nodes:
 # level 1:
@@ -32,25 +33,6 @@ from typing import List, Optional, Union, Dict
 # - node_level: the level of the node in the graph
 # - embeddings: the embeddings of the word node
 # - frequency: the frequency of the word node in the dataset
-
-
-# edge_index:
-# - target node -> similar node
-# - target node -> context node
-# - similar node -> similar node
-# - similar node -> context node
-# - context node -> context node
-
-# edge features:
-# - edge_type: the type of the edge (target-similar, target-context, similar-similar, similar-context, context-context, self-loop)
-# - similarity: the similarity between node embeddings in the current snapshot
-# - PMI: the PMI between nodes in the current snapshot
-
-# - labels: 
-    # - similarity: the similarity between similar nodes in the next snapshot
-
-
-
 
 
 class Nodes:
@@ -87,9 +69,8 @@ class Nodes:
             level (int): the level of the graph to get
             k (int): the number of similar nodes to get for each occurrence of the target word
             c (int): the number of context nodes to get for the target word
-            word2vec_model_path (str): the path to the word2vec model
-            mlm_model_path (str): the path to the MLM model
-            mlm_model_type (str, optional): the type of the MLM model. Defaults to 'roberta'.
+            word2vec_model (str): the word2vec model's Inference class
+            mlm_model (str): the MLM model's Inference class
         """
 
         self.target_word = target_word
@@ -138,26 +119,27 @@ class Nodes:
 
         
         Example:
+            >>> word2vec = Word2VecInference('word2vec.model')
+            >>> mlm = RobertaInference('MLM_roberta')
             >>> n = Nodes(
                     target_word='sentence',
                     dataset=['this is a sentence', 'this is another sentence'],
                     level=3,
                     k=2,
                     c=2,
-                    word2vec_model_path='word2vec.model',
-                    mlm_model_path='MLM_roberta',
-                    mlm_model_type='roberta'
+                    word2vec_model = word2vec,
+                    mlm_model = mlm
                 )
             >>> nodes = n.get_nodes()
             >>> print(nodes)
             {
-                'target_node': 'sentence',
-                'similar_nodes': [[], [], []] # each list contains the similar nodes of the target word at a specific level
+                'target_node': ['sentence'],
+                'similar_nodes': [[], [], []] # inner lists are the levels
                 'context_nodes': [[], [], []]
             }
         
         """
-        nodes = {'target_node': self.target_word, 'similar_nodes': [], 'context_nodes': []}
+        nodes = {'target_node': [], 'similar_nodes': [], 'context_nodes': []}
         for level in range(self.level):
             if level == 0:
                 similar_nodes = self._get_similar_nodes(self.target_word)
@@ -165,6 +147,7 @@ class Nodes:
 
                 nodes['similar_nodes'].append(similar_nodes)
                 nodes['context_nodes'].append(context_nodes)
+                nodes['target_node'].append([self.target_word])
 
             else:
                 similar_nodes = []
@@ -182,66 +165,161 @@ class Nodes:
                 nodes['context_nodes'].append(context_nodes)          
         return nodes
     
-    def node_features(self, nodes: Dict[str, List[str]]) -> List[Dict[str, Union[str, int, List[float]]]]:
-        node_features = []
-        for level in range(self.level):
-            for node_type in ['similar_nodes', 'context_nodes']:
-                for node in nodes[node_type][level]:
-                    node_feature = {
-                        'node': node,
-                        'node_type': node_type,
-                        'node_level': level,
-                        'frequency': sum(' ' + node + ' ' in s for s in self.dataset),
-                        'embeddings': self.mlm.get_embedding(word=node)
-                    }
-                    node_features.append(node_feature)
-        return node_features
+    def get_node_features(self, nodes: Dict[str, List[str]]):
+        """
+        This method is used to get the features of the nodes of the word graph.
 
+        Args:
+            nodes (Dict[str, List[str]]): the nodes of the word graph
+
+        Returns:
+            - words (List[str]): the words of the nodes
+            - node_ids (List[int]): the ids of the nodes. The target node has id 0.
+            - node_features (np.ndarray): the features of the nodes of the word graph of shape (num_nodes, 3) where num_nodes is the number of nodes in the graph. The features are:
+                - node_type: the type of the node (target: 0, similar: 1, context: 2).
+                - node_level: the level of the node in the graph. The target node is level 0.
+                - frequency: the frequency of the word node in the dataset.
+            - embeddings (np.ndarray): the embeddings of the nodes of the word graph from the MLM model, of shape (num_nodes, 768).
+
+        Example:
+            >>> word2vec = Word2VecInference('word2vec.model')
+            >>> mlm = RobertaInference('MLM_roberta')
+            >>> n = Nodes(
+                    target_word='sentence',
+                    dataset=['this is a sentence', 'this is another sentence'],
+                    level=3,
+                    k=2,
+                    c=2,
+                    word2vec_model = word2vec,
+                    mlm_model = mlm
+                )
+            >>> nodes = n.get_nodes()
+            >>> words, node_ids, node_features, embeddings = n.get_node_features(nodes)
+            >>> print(words)
+            ['sentence', 'this', 'is', 'a', 'another']
+            >>> print(node_ids)
+            [0, 1, 2, 3, 4]
+            >>> print(node_features)
+            [[0, 0, 2], [1, 1, 2], [1, 1, 2], [1, 1, 2], [2, 1, 2]]
+            >>> print(embeddings.shape)
+            (5, 768)
+        """
+        words = []
+        node_ids = []
+        node_types = []
+        node_levels = []
+        frequencies = []
+        embeddings = []
+        count = 0
+        for node_type in ['target_node', 'similar_nodes', 'context_nodes']:
+            for level in range(len(nodes[node_type])):
+                for node in nodes[node_type][level]:
+                    words.append(node)
+                    node_ids.append(count)
+                    count += 1 
+                    if node_type == 'target_node':
+                        node_types.append(0)
+                    elif node_type == 'similar_nodes':
+                        node_types.append(1)
+                    else:
+                        node_types.append(2)
+                    node_levels.append(level)
+                    frequencies.append(sum(node in s for s in self.dataset))
+                    embeddings.append(self.mlm.get_embedding(word=node).mean(axis=0))
+
+        embeddings = np.array(embeddings)
+        node_features = np.stack([node_types, node_levels, frequencies]).T
+        # node_features = np.concatenate((node_features, embeddings), axis=1)
+        return words, node_ids, node_features, embeddings
+
+
+
+# edge_index:
+# - target node -> similar node
+# - target node -> context node
+# - similar node -> similar node
+# - similar node -> context node
+# - context node -> context node
+
+# edge features:
+# - edge_type: the type of the edge (target-similar, target-context, similar-similar, similar-context, context-context, self-loop)
+# - similarity: the similarity between node embeddings in the current snapshot
+# - PMI: the PMI between nodes in the current snapshot
+
+# - labels: 
+    # - similarity: the similarity between similar nodes in the next snapshot
 
 
 
 class Edges:
-    pass
+    def __init__(
+            self,
+            node_features: np.ndarray,
+            node_embeddings: np.ndarray,
+        ):
+
+        self.node_features = node_features
+        self.node_embeddings = node_embeddings
 
 
+    def get_similarity(self, emb1: np.ndarray , emb2: np.ndarray) -> float:
+        """
+        This method is used to get the similarity between two nodes.
 
-class Graph:
-    def __init__(self) -> None:
-        self.graph = {
-            'nodes': [],
-            'node_features': [],
-            'edges': [],
-            'edge_features': []
-        }
+        Args:
+            emb1 (np.ndarray): the embedding of the first word node
+            emb2 (np.ndarray): the embedding of the second word node
+
+        Returns:
+            similarity (float): the similarity between the two embeddings
+        """
+        # np.dot(node1, node2) / (np.linalg.norm(node1) * np.linalg.norm(node2))
+        return torch.cosine_similarity(torch.tensor(emb1).reshape(1,-1), torch.tensor(emb2).reshape(1,-1)).item()
     
     
+    def get_pmi(self, node1: str, node2: str) -> float:
+        """
+        This method is used to get the PMI between two nodes.
+
+        Args:
+            node1 (str): the first node
+            node2 (str): the second node
+
+        Returns:
+            pmi (float): the PMI between the two nodes
+        """
+        
+        return 0.0
 
 
-
-
-
-class TemporalGraph:
-    pass
 
 
 
 if __name__ == '__main__':
-    # data = ['this is a sentence', 'this is another sentence']
-    # model_dir = 'output'
+    data = ['this is a sentence', 'this is another sentence']
+    model_dir = 'output'
 
-    # word2vec = Word2VecInference(f'{model_dir}/word2vec_aligned/word2vec_1980_aligned.model')
-    # mlm = RobertaInference(f'{model_dir}/MLM_roberta_1980')
-    # n = Nodes(
-    #     target_word='sentence',
-    #     dataset=data,
-    #     level=3,
-    #     k=2,
-    #     c=2,
-    #     word2vec_model = word2vec,
-    #     mlm_model = mlm
-    # )
+    word2vec = Word2VecInference(f'{model_dir}/word2vec_aligned/word2vec_1980_aligned.model')
+    mlm = RobertaInference(f'{model_dir}/MLM_roberta_1980')
+    n = Nodes(
+        target_word='sentence',
+        dataset=data,
+        level=3,
+        k=2,
+        c=2,
+        word2vec_model = word2vec,
+        mlm_model = mlm
+    )
 
-    # nodes = n.get_nodes()
-    # node_features = n.node_features(nodes)
+    nodes = n.get_nodes()
+    words, ids, features, embeddings = n.get_node_features(nodes)
+
+    e = Edges(
+        node_features=features,
+        node_embeddings=embeddings
+    )
+    
+    sim = e.get_similarity(embeddings[0], embeddings[1])
+    print(sim)
 
 
