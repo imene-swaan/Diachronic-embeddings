@@ -1,6 +1,6 @@
-from src.feature_extraction.roberta import RobertaInference
-from src.feature_extraction.bert import BertInference
-from src.feature_extraction.word2vec import Word2VecInference
+from semantics.feature_extraction.roberta import RobertaInference
+from semantics.feature_extraction.bert import BertInference
+from semantics.feature_extraction.word2vec import Word2VecInference
 from typing import List, Union, Dict
 import torch
 import numpy as np

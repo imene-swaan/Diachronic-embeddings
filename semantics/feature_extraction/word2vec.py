@@ -1,7 +1,7 @@
 from typing import List, Union
 from pathlib import Path
 from gensim.models import Word2Vec
-from src.utils.utils import smart_procrustes_align_gensim
+from semantics.utils.utils import smart_procrustes_align_gensim
 import os
 from pathlib import Path
 from typing import List, Optional, Union

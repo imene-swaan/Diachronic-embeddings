@@ -12,7 +12,7 @@ from accelerate import Accelerator
 import numpy as np
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))) # Add src to path
-from src.utils.utils import train_test_split
+from semantics.utils.utils import train_test_split
 
 
 

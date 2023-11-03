@@ -1,7 +1,7 @@
 from unittest.mock import patch, MagicMock
 from typing import List
 import unittest
-from src.graphs.temporal_graph import Nodes
+from semantics.graphs.temporal_graph import Nodes
 
 # Your test class
 class TestNodes(unittest.TestCase):

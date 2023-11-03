@@ -2,7 +2,7 @@
 from typing import Union, List, Optional
 from pathlib import Path
 import xml.etree.ElementTree as ET 
-from src.utils.utils import read_txt, sample_data
+from semantics.utils.utils import read_txt, sample_data
 import os
 
 

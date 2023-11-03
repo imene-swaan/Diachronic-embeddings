@@ -1,5 +1,5 @@
 import unittest
-from src.data.data_loader import split_xml
+from semantics.data.data_loader import split_xml
 import xml.etree.ElementTree as ET 
 import os
 import shutil

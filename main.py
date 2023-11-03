@@ -1,9 +1,9 @@
-from src.data.data_loader import Loader
-from src.data.data_preprocessing import PREPROCESS
-from src.data.data_loader import split_xml
-from src.feature_extraction.roberta import RobertaTrainer, RobertaInference
-from src.feature_extraction.word2vec import Word2VecTrainer, Word2VecAlign, Word2VecInference
-from src.graphs.temporal_graph import Nodes
+from semantics.data.data_loader import Loader
+from semantics.data.data_preprocessing import PREPROCESS
+from semantics.data.data_loader import split_xml
+from semantics.feature_extraction.roberta import RobertaTrainer, RobertaInference
+from semantics.feature_extraction.word2vec import Word2VecTrainer, Word2VecAlign, Word2VecInference
+from semantics.graphs.temporal_graph import Nodes
 import numpy as np
 from pathlib import Path
 import os
