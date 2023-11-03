@@ -10,17 +10,23 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    stategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.10']  # Add additional Python versions here if needed
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    # Setup Python environment
-    - name: Set up Python
-      uses: actions/setup-python@v3
+    # Set up Python
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
       with:
-        python-version: '3.10' # Specify the Python version you need for your project
+        python-version: ${{ matrix.python-version }}
 
+        
     # Cache Poetry installed dependencies
     - name: Cache Poetry virtualenv
       uses: actions/cache@v3
