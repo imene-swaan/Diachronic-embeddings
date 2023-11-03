@@ -9,5 +9,5 @@ trial1/
 .idea/
 .env
 __pycache__/
-.pytest_cache
+.pytest_cache/
 site/
