@@ -333,7 +333,7 @@ class RobertaEmbedding:
             )
         
      
-        input_ids = self.tokenizer(doc, return_tensors="pt").input_ids
+        input_ids = self.tokenizer(doc, return_tensors="pt", max_length=self.max_length).input_ids
         token = self.tokenizer.encode(main_word, add_special_tokens=False)[0]
 
         word_token_index = torch.where(input_ids == token)[1]
