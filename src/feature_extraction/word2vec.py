@@ -373,7 +373,7 @@ class Word2VecInference:
         
         except KeyError:
             print("The word in the input is not in the model vocabulary.")
-            return []
+            return [], []
         
 
 
