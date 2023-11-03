@@ -69,8 +69,8 @@ class Nodes:
             level (int): the level of the graph to get
             k (int): the number of similar nodes to get for each occurrence of the target word
             c (int): the number of context nodes to get for the target word
-            word2vec_model (str): the word2vec model's Inference class
-            mlm_model (str): the MLM model's Inference class
+            word2vec_model (Word2VecInference): the word2vec model's Inference class
+            mlm_model (RobertaInference, BertInference): the MLM model's Inference class
         """
 
         self.target_word = target_word
@@ -116,28 +116,6 @@ class Nodes:
 
         Returns:
             nodes (Dict[str, List[str]]): the nodes of the word graph
-
-        
-        Example:
-            >>> word2vec = Word2VecInference('word2vec.model')
-            >>> mlm = RobertaInference('MLM_roberta')
-            >>> n = Nodes(
-                    target_word='sentence',
-                    dataset=['this is a sentence', 'this is another sentence'],
-                    level=3,
-                    k=2,
-                    c=2,
-                    word2vec_model = word2vec,
-                    mlm_model = mlm
-                )
-            >>> nodes = n.get_nodes()
-            >>> print(nodes)
-            {
-                'target_node': ['sentence'],
-                'similar_nodes': [[], [], []] # inner lists are the levels
-                'context_nodes': [[], [], []]
-            }
-        
         """
         nodes = {'target_node': [], 'similar_nodes': [], 'context_nodes': []}
         for level in range(self.level):
@@ -181,19 +159,10 @@ class Nodes:
                 - frequency: the frequency of the word node in the dataset.
             - embeddings (np.ndarray): the embeddings of the nodes of the word graph from the MLM model, of shape (num_nodes, 768).
 
-        Example:
+        Examples:
             >>> word2vec = Word2VecInference('word2vec.model')
             >>> mlm = RobertaInference('MLM_roberta')
-            >>> n = Nodes(
-                    target_word='sentence',
-                    dataset=['this is a sentence', 'this is another sentence'],
-                    level=3,
-                    k=2,
-                    c=2,
-                    word2vec_model = word2vec,
-                    mlm_model = mlm
-                )
-            >>> nodes = n.get_nodes()
+            >>> nodes = Nodes(target_word='sentence', dataset=['this is a sentence', 'this is another sentence'], level=3, k=2, c=2, word2vec_model = word2vec, mlm_model = mlm).get_nodes()
             >>> words, node_ids, node_features, embeddings = n.get_node_features(nodes)
             >>> print(words)
             ['sentence', 'this', 'is', 'a', 'another']

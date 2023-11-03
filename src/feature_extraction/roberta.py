@@ -59,7 +59,7 @@ class CustomDataset(Dataset):
             idx (int): Index of the item to retrieve.
 
         Returns:
-            dict: Dictionary containing the input_ids, attention_mask, and labels.
+            tokenized_data (dict): Dictionary containing the input_ids, attention_mask, and labels.
         """
         # Get the tokenized inputs at the specified index
         input_ids = self.tokenized_data.input_ids[idx]
@@ -140,8 +140,8 @@ class RobertaTrainer:
             data: List of strings to train the model on.
             
         Returns:
-            train_loader: DataLoader object containing the training data.
-            dataset: CustomDataset object containing the training data.
+            train_loader (DataLoader): DataLoader object containing the training data.
+            dataset (CustomDataset): CustomDataset object containing the training data.
         """
         dataset = CustomDataset(
             data, 
@@ -164,15 +164,12 @@ class RobertaTrainer:
             self, 
             data: List[str],
             output_dir: Optional[Union[str, Path]] = None
-            ):
+            ) -> None:
         """
         This method is used to train the model.
         Args:
             data (List[str]): List of strings to train the model on.
             output_dir (str, Path, None): Path to save the model to. Defaults to None.
-
-        Returns:
-            None
         """
         
         train_data, test_data = train_test_split(
@@ -495,7 +492,7 @@ class RobertaInference:
             word : str,
             sentence: str,
             k: int = 3
-            ):
+            ) -> List[str]:
         """
         This method is used to infer the vector embeddings of a word from a sentence.
         Args:
@@ -504,7 +501,7 @@ class RobertaInference:
             k: Number of top words to return
 
         Returns:
-            top_k_words: list
+            top_k_words (List[str]): List of top k words
 
         Examples:
             >>> model = RobertaInference()
