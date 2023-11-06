@@ -37,11 +37,11 @@ jobs:
         poetry install --no-dev
 
     # This is where you'd put steps to build or test your project, for example:
-    # - name: Run tests
-    #   run: poetry run pytest
+    - name: Run tests
+      run: poetry run unittest discover
 
-    # Deploy to GitHub Pages
-    - name: Deploy to GitHub Pages
-      run: poetry run mkdocs gh-deploy --force
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # # Deploy to GitHub Pages
+    # - name: Deploy to GitHub Pages
+    #   run: poetry run mkdocs gh-deploy --force
+    #   env:
+    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
