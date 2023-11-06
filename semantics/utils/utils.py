@@ -46,7 +46,7 @@ def read_txt(file_path: str) -> list:
         return f.readlines()
     
 
-def train_test_split(data: List[str], test_ratio=0.2, random_seed=None) -> tuple(List[str], List[str]):
+def train_test_split(data: List[str], test_ratio=0.2, random_seed=None):
     """
     Split the data into train and test sets.
 
