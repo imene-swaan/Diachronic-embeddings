@@ -2,7 +2,7 @@ import yaml
 import tomli
 import random
 import numpy as np
-from typing import List
+from typing import List, Union, Optional
 
 def read_toml(config_path: str) -> dict:
     """
@@ -88,6 +88,39 @@ def sample_data(data: list, sample_size: int, random_seed=None):
     data_copy = data[:]
     random.shuffle(data_copy)
     return data_copy[:sample_size]
+
+
+def count_occurence(data: List[str], word: Optional[Union[List[str], str]] = None) -> int:
+    """
+    Count the occurence of one, multiple, or all words in a list of strings (data).
+
+    Args:
+        data (List[str]): The list of strings.
+        word (Union[List[str], str]): The word or list of words to count. if a list of words is provided, the function will count the co-occurence of the words in each data string. if word is None, the function return the count of all words in the data.
+
+    Returns:
+        count (int): The count of occurences.
+    """
+
+    if word is None:
+        return sum([len(sentence.split()) for sentence in data])
+
+    if isinstance(word, str):
+        word = [word]
+
+    if len(word) == 1:
+        return sum([1 for w in data if word[0] in w])
+    
+    else:
+        counts = 0
+        for sentence in data:
+            if all([w in sentence for w in word]):
+                counts += 1
+        return counts
+            
+        
+
+    
 
 
 # ------------------- smart_procrustes_align_gensim --------------------
