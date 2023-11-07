@@ -348,10 +348,23 @@ class Edges:
 
 
 class TemporalGraph:
+    """
+    This class is used to get the temporal graph of a word.
+
+    methods:
+        __init__(self)
+            The constructor of the TemporalGraph class.
+        __getitem__(self, idx)
+            Retrieves the snapshot at the specified index.
+        add_snapshot(self, target_word: str, level: int, k: int, c: int, dataset: List[str], word2vec_model: Word2VecInference, mlm_model: Union[RobertaInference, BertInference])
+            This method is used to add a snapshot to the temporal graph.
+        label_snapshot(self, current_snapshot: int, label_feature_idx: int = 1)
+            This method is used to label the edges of the current snapshot.
+    """
     def __init__(
             self
             ):
-
+        
         self.snapshots = []
         self.xs = []
         self.edge_indices = []
@@ -390,6 +403,19 @@ class TemporalGraph:
             word2vec_model: Word2VecInference, 
             mlm_model: Union[RobertaInference, BertInference]
             ) -> None:
+        """
+        This method is used to add a snapshot to the temporal graph.
+
+        Args:
+            target_word (str): the word to get the nodes for
+            level (int): the level of the graph to get
+            k (int): the number of similar nodes to get for each occurrence of the target word
+            c (int): the number of context nodes to get for the target word
+            dataset (List[str]): the sentences to get the nodes from
+            word2vec_model (Word2VecInference): the word2vec model's Inference class
+            mlm_model (RobertaInference, BertInference): the MLM model's Inference class
+        """
+
         
         nodes = Nodes(
             target_word= target_word,
@@ -420,6 +446,16 @@ class TemporalGraph:
         
     
     def label_snapshot(self, current_snapshot: int, label_feature_idx: int = 1) -> None:
+        """
+        This method is used to label the edges of the current snapshot.
+
+        Args:
+            current_snapshot (int): the index of the current snapshot
+            label_feature_idx (int): the index of the feature to use as labels
+
+        Raises:
+            ValueError: if the labels of the current snapshot do not exist.
+        """
         if current_snapshot >= len(self.snapshots) - 1:
             raise ValueError('The labels of the current snapshot do not exist.')
         
@@ -442,7 +478,7 @@ class TemporalGraph:
 
             dynamic_nodes = next_keys.difference(current_keys)
             dynamic_nodes_idx = [next_snapshot_index['key_to_index'][key] for key in dynamic_nodes]
-            
+
 
 
 

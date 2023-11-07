@@ -37,8 +37,8 @@ jobs:
         poetry install --no-dev
 
     # This is where you'd put steps to build or test your project, for example:
-    # - name: Run tests
-    #   run: poetry run python -m unittest discover
+    - name: Run tests
+      run: poetry run python -m unittest discover -s tests
 
     # # Deploy to GitHub Pages
     # - name: Deploy to GitHub Pages
