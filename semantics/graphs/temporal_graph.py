@@ -337,8 +337,6 @@ class Edges:
                     similarities.append(similarity)
                     pmis.append(pmi)
 
-        print('Similarities: ', similarities, '\n')
-        print('PMIs: ', pmis)
         edge_index = np.stack([edge_index_1, edge_index_2])
         edge_features = np.stack([edge_types, similarities, pmis]).T
 
@@ -387,10 +385,10 @@ class TemporalGraph:
         node_features = self.xs[idx]
         edge_index = self.edge_indices[idx]
         edge_feature = self.edge_features[idx]
-        labels = self.ys[idx]
-        labels_mask = self.y_indices[idx]
+        # labels = self.ys[idx]
+        # labels_mask = self.y_indices[idx]
 
-        return snapshot, node_features, edge_index, edge_feature, labels, labels_mask
+        return snapshot, node_features, edge_index, edge_feature #, labels, labels_mask
 
 
     def add_snapshot(
@@ -425,9 +423,10 @@ class TemporalGraph:
             c= c,
             word2vec_model = word2vec_model,
             mlm_model = mlm_model
-            ).get_nodes()
-        
-        index, node_feature_matrix, embbeddings = Nodes.get_node_features(nodes)
+            )
+
+        nds = nodes.get_nodes()
+        index, node_feature_matrix, embbeddings = nodes.get_node_features(nds)
 
         edges = Edges(
             index_to_key=index['index_to_key'],
@@ -435,16 +434,56 @@ class TemporalGraph:
             node_embeddings=embbeddings
         )
         edge_index, edge_feature_matrix = edges.get_edge_features(dataset)
-        labels, labels_mask = self.label_snapshot(len(self.snapshots)-1)
+        # labels, labels_mask = self.label_snapshot(len(self.snapshots)-1)
 
         self.snapshots.append(index)
         self.xs.append(node_feature_matrix)
         self.edge_indices.append(edge_index)
         self.edge_features.append(edge_feature_matrix)
-        self.ys.append(labels)
-        self.y_indices.append(labels_mask)
+        # self.ys.append(labels)
+        # self.y_indices.append(labels_mask)
         
     
+    def align_snapshots(self, current_snapshot: dict, next_snapshot: dict) -> dict:
+
+        current_words = set(current_snapshot['key_to_index'].keys())
+        print('Length of current words: ', current_snapshot['key_to_index'].keys())
+        next_words = set(next_snapshot['key_to_index'].keys())
+        print('Length of next words: ', next_snapshot['key_to_index'].keys())
+    
+
+        dynamic_graph = current_words != next_words
+
+        if not dynamic_graph:
+            return next_snapshot
+        
+        else:
+            static_nodes = current_words.intersection(next_words)
+            print('static nodes: ', static_nodes)
+            static_nodes_current_idx = [current_snapshot['key_to_index'][key] for key in static_nodes]
+            static_nodes_next_idx = [next_snapshot['key_to_index'][key] for key in static_nodes]
+
+          
+            
+            dynamic_old_nodes = current_words.difference(next_words)
+            print('dynamic old nodes: ', dynamic_old_nodes)
+            dynamic_new_nodes = next_words.difference(current_words)
+            print('dynamic new nodes: ', dynamic_new_nodes)
+
+            print('Lengths: ', len(static_nodes_current_idx), len(dynamic_old_nodes), len(dynamic_new_nodes))
+
+            dynamic_old_nodes_idx = [current_snapshot['key_to_index'][key] for key in dynamic_old_nodes] if len(dynamic_old_nodes) > 0 else []
+            
+            dynamic_new_nodes_idx = [next_snapshot['key_to_index'][key] for key in dynamic_new_nodes] if len(dynamic_new_nodes) > 0 else []
+            
+
+            # test
+            assert len(static_nodes_current_idx) + len(dynamic_old_nodes_idx) == len(current_snapshot['key_to_index'].keys())
+            assert len(static_nodes_next_idx) + len(dynamic_new_nodes_idx) == len(next_snapshot['key_to_index'].keys())
+            
+        
+   
+
     def label_snapshot(self, current_snapshot: int, label_feature_idx: int = 1) -> None:
         """
         This method is used to label the edges of the current snapshot.
@@ -496,35 +535,63 @@ class TemporalGraph:
 
 
 if __name__ == '__main__':
-    data = ['this is a sentence', 'this is another sentence']
+    data1 = ['this is a sentence', 'this is another sentence']
+    data2 = ['this is a sentence', 'this is another sentence', 'this is a third sentence']
     model_dir = 'output'
 
     word2vec = Word2VecInference(f'{model_dir}/word2vec_aligned/word2vec_1980_aligned.model')
     mlm = RobertaInference(f'{model_dir}/MLM_roberta_1980')
-    n = Nodes(
-        target_word='sentence',
-        dataset=data,
-        level=3,
-        k=2,
-        c=2,
-        word2vec_model = word2vec,
-        mlm_model = mlm
-    )
+    # n = Nodes(
+    #     target_word='sentence',
+    #     dataset=data,
+    #     level=3,
+    #     k=2,
+    #     c=2,
+    #     word2vec_model = word2vec,
+    #     mlm_model = mlm
+    # )
 
-    nodes = n.get_nodes()
-    words_ids, features, embeddings = n.get_node_features(nodes)
+    # nodes = n.get_nodes()
+    # words_ids, features, embeddings = n.get_node_features(nodes)
 
-    e = Edges(
-        word_ids=words_ids,
-        node_features=features,
-        node_embeddings=embeddings
-    )
+    # e = Edges(
+    #     word_ids=words_ids,
+    #     node_features=features,
+    #     node_embeddings=embeddings
+    # )
     
-    edge_index, edge_features = e.get_edge_features(dataset=data)
+    # edge_index, edge_features = e.get_edge_features(dataset=data)
 
     # print('Words:', words_ids, '\n')
     # print('Edge index:', edge_index, '\n')
     # print('Edge features:', edge_features, '\n')
     # print('Shape edge_features: ', edge_features.shape)
 
+    tg = TemporalGraph()
 
+    tg.add_snapshot(
+        target_word='sentence',
+        level=3,
+        k=2,
+        c=2,
+        dataset=data1,
+        word2vec_model=word2vec,
+        mlm_model=mlm
+    )
+
+    tg.add_snapshot(
+        target_word='sentence',
+        level=3,
+        k=2,
+        c=2,
+        dataset=data2,
+        word2vec_model=word2vec,
+        mlm_model=mlm
+    )
+    
+    current_snapshot, _, _, _ = tg[0]
+    next_snapshot, _, _, _ = tg[1]
+
+
+
+    tg.align_snapshots(current_snapshot=current_snapshot, next_snapshot=next_snapshot)
