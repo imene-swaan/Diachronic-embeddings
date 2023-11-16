@@ -4,10 +4,14 @@ import re
 
 
 class PREPROCESS():
+    """
+    This class is used to preprocess text data.
+
+    Methods
+    -------
+        forward: Preprocesses text data.
+    """
     def __init__(self):
-        """
-        This class is used to preprocess text data.
-        """
         pass
 
     def forward(self,
@@ -32,6 +36,14 @@ class PREPROCESS():
         
         Returns:
             newtext (str): Preprocessed text.
+
+        Examples:
+            >>> from semantics.data.data_preprocessing import PREPROCESS
+            >>> text = 'This is a test. 1234'
+            >>> print('Original text: ', text)
+            >>> print('Preprocessed text: ', PREPROCESS().forward(text, remove_punctuation=True, remove_numbers=True, lowercase=True, lemmatize=True, remove_stopwords=True))
+            Original text:  This is a test. 1234
+            Preprocessed text:  test
         """
     
         newtext = re.sub('\n', ' ', text) # Remove ordinary linebreaks (there shouldn't be, so this might be redundant)

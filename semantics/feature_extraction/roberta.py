@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class CustomDataset(Dataset):
     """
-    This class is used to create a custom dataset for the Roberta model.
+    This class is used to create a custom dataset for the Roberta model. It inherits from torch.utils.data.Dataset.
     
     Methods
     -------
@@ -44,6 +44,19 @@ class CustomDataset(Dataset):
             truncation=True,
             padding= "max_length",
             ):
+        """
+        Args:
+            data (List[str]): List of strings to create a dataset from.
+            tokenizer: Tokenizer to tokenize the data with.
+            max_length (int): Maximum length of the input sequence. Defaults to 128.
+            truncation (bool): Whether to truncate the input sequence to max_length or not. Defaults to True.
+            padding (str): Whether to pad the input sequence to max_length or not. Defaults to "max_length".
+        
+        Attributes:
+            tokenizer: Tokenizer to tokenize the data with.
+            max_length (int): Maximum length of the input sequence. Defaults to 128.
+            tokenized_data (dict): Dictionary containing the input_ids, attention_mask, and labels. 
+        """
         self.tokenizer = tokenizer
         self.max_length = max_length
         self.tokenized_data = tokenizer(data, truncation=truncation, padding=padding, max_length=max_length)
@@ -111,6 +124,20 @@ class RobertaTrainer:
             split_ratio (float): Ratio to split the data into train and test. Defaults to 0.8.
             truncation (bool): Whether to truncate the input sequence to max_length or not. Defaults to True.
             padding (str): Whether to pad the input sequence to max_length or not. Defaults to "max_length".
+        
+        Attributes:
+            tokenizer (transformers.RobertaTokenizer): Tokenizer to tokenize the data with.
+            model (transformers.RobertaForMaskedLM): Model to train.
+            data_collator (transformers.DataCollatorForLanguageModeling): DataCollatorForLanguageModeling object to collate the data.
+            split_ratio (float): Ratio to split the data into train and test. Defaults to 0.8.
+            truncation (bool): Whether to truncate the input sequence to max_length or not. Defaults to True.
+            padding (str): Whether to pad the input sequence to max_length or not. Defaults to "max_length".
+            max_length (int): Maximum length of the input sequence. Defaults to 128.
+            batch_size (int): Size of the batch. Defaults to 4.
+            learning_rate (float): Learning rate of the optimizer. Defaults to 1e-5.
+            epochs (int): Number of epochs to train the model for. Defaults to 3.
+            warmup_steps (int): Number of warmup steps for the learning rate scheduler. Defaults to 500.
+            accelerator (accelerate.Accelerator): Accelerator object to distribute the training across multiple GPUs.
         """
         
         
@@ -140,7 +167,7 @@ class RobertaTrainer:
             data: List of strings to train the model on.
             
         Returns:
-            train_loader (DataLoader): DataLoader object containing the training data.
+            train_loader (torch.utils.data.DataLoader): DataLoader object containing the training data.
             dataset (CustomDataset): CustomDataset object containing the training data.
         """
         dataset = CustomDataset(
@@ -167,9 +194,18 @@ class RobertaTrainer:
             ) -> None:
         """
         This method is used to train the model.
+
         Args:
             data (List[str]): List of strings to train the model on.
             output_dir (str, Path, None): Path to save the model to. Defaults to None.
+        
+
+        Examples:
+            >>> model = RobertaTrainer(epoch=3)
+            >>> model.train(data=["The brown fox jumps over the lazy dog", "The brown fox jumps over the lazy dog", "Hello world!"], output_dir="../../output/MLM_roberta")
+            Epoch: 0 | Loss: 1.1637206077575684 | Perplexity: 3.2020153999328613
+            Epoch: 1 | Loss: 0.6941609382629395 | Perplexity: 2.0011680126190186
+            Epoch: 2 | Loss: 0.4749067425727844 | Perplexity: 1.608262062072754  
         """
         
         train_data, test_data = train_test_split(
@@ -250,7 +286,7 @@ class RobertaTrainer:
 
 class RobertaEmbedding:
     """
-    This class is used to infer vector embeddings from a sentence.
+    This class is used to infer vector embeddings from a document.
 
     Methods
     -------
@@ -259,14 +295,26 @@ class RobertaEmbedding:
         _roberta_case_preparation()
             This method is used to prepare the Roberta model for the inference.
         infer_vector(doc:str, main_word:str)
-            This method is used to infer the vector embeddings of a word from a sentence.
+            This method is used to infer the vector embeddings of a word from a document.
         infer_mask_logits(doc:str)
-            This method is used to infer the logits of a word from a sentence.
+            This method is used to infer the logits of a word from a document.
     """
     def __init__(
         self,
-        pretrained_model_path:Union[str, Path] = None,
+        pretrained_model_path: Optional[Union[str, Path]] = None,
     ):
+        """
+        Args:
+            pretrained_model_path (str, Path, None): Path to the pretrained model. Defaults to None.
+
+        Attributes:
+            model_path (str, Path, None): Path to the pretrained model. Defaults to None.
+            model (transformers.RobertaModel): RobertaModel object to infer vector embeddings from.
+            MLM (transformers.RobertaForMaskedLM): RobertaForMaskedLM object to infer vector embeddings from.
+            tokenizer (transformers.RobertaTokenizer): Tokenizer to tokenize the data with.
+            max_length (int): Maximum length of the input sequence. Defaults to 128.
+            vocab (bool): Whether the model has been initialized or not.
+        """
         self.model_path = pretrained_model_path
         if pretrained_model_path is not None:
             if not os.path.exists(pretrained_model_path):
@@ -307,22 +355,21 @@ class RobertaEmbedding:
 
     def infer_vector(self, doc:str, main_word:str) -> torch.Tensor:
         """
-        This method is used to infer the vector embeddings of a word from a sentence.
+        This method is used to infer the vector embeddings of a word from a document.
+
         Args:
-            doc: Document to process
-            main_word: Main work to extract the vector embeddings for.
+            doc (str): Document to process
+            main_word (str): Main work to extract the vector embeddings for.
 
         Returns: 
-            embeddings: Tensor of stacked embeddings (torch.Tensor) of shape (num_embeddings, embedding_size) where num_embeddings is the number of times the main_word appears in the doc.
+            embeddings (torch.Tensor): Tensor of stacked embeddings of shape (num_embeddings, embedding_size) where num_embeddings is the number of times the main_word appears in the doc.
 
         Examples:
             >>> model = RobertaEmbedding()
             >>> model.infer_vector(doc="The brown fox jumps over the lazy dog", main_word="fox")
-            tensor([[-0.2182, -0.1597, -0.1723,  ..., -0.1706, -0.1709, -0.1709],
-                    [-0.2182, -0.1597, -0.1723,  ..., -0.1706, -0.1709, -0.1709],
-                    [-0.2182, -0.1597, -0.1723,  ..., -0.1706, -0.1709, -0.1709],
-                    [-0.2182, -0.1597, -0.1723,  ..., -0.1706, -0.1709, -0.1709],
-                    [-0.2182, -0.1597, -0.1723,  ..., -0.1706, -0.1709, -0.1709]])
+            tensor([[-0.2182, ..., -0.1709],
+                    ...,
+                    [-0.2182, ..., -0.1706]])
         """
         if not self.vocab:
             raise ValueError(
@@ -352,26 +399,20 @@ class RobertaEmbedding:
     
     def infer_mask_logits(self, doc:str) -> torch.Tensor:
         """
-        This method is used to infer the logits of the mask token in a sentence.
+        This method is used to infer the logits of the mask token in a document.
+
         Args:
             doc (str): Document to process where the mask token is present.
 
         Returns: 
-            logits: Tensor of stacked logits (torch.Tensor) of shape (num_embeddings, logits_size) where num_embeddings is the number of times the mask token (<mask>) appears in the doc.
+            logits (torch.Tensor): Tensor of stacked logits of shape (num_embeddings, logits_size) where num_embeddings is the number of times the mask token appears in the doc withing the max_length.
 
         Examples:
             >>> model = RobertaEmbedding()
             >>> model.infer_mask_logits(doc="The brown fox <mask> over the lazy dog")
-            tensor([[-2.1816e-01, -1.5967e-01, -1.7225e-01,  ..., -1.7064e-01,
-                    -1.7090e-01, -1.7093e-01],
-                    [-2.1816e-01, -1.5967e-01, -1.7225e-01,  ..., -1.7064e-01,
-                    -1.7090e-01, -1.7093e-01],
-                    [-2.1816e-01, -1.5967e-01, -1.7225e-01,  ..., -1.7064e-01,
-                    -1.7090e-01, -1.7093e-01],
-                    [-2.1816e-01, -1.5967e-01, -1.7225e-01,  ..., -1.7064e-01,
-                    -1.7090e-01, -1.7093e-01],
-                    [-2.1816e-01, -1.5967e-01, -1.7225e-01,  ..., -1.7064e-01,
-                    -1.7090e-01, -1.7093e-01]])
+            tensor([[-2.1816e-01,  ..., -1.7064e-01],
+                    ...,
+                    [-2.1816e-01, ..., -1.7093e-01]])
         """
 
         if not self.vocab:
@@ -390,7 +431,7 @@ class RobertaEmbedding:
             return torch.stack(l) if len(l) > 0 else torch.empty(0)
         
         except IndexError:
-            raise ValueError(f'The mask falls outside of the max length of {self.max_length}, please use a smaller sentence')
+            raise ValueError(f'The mask falls outside of the max length of {self.max_length}, please use a smaller document')
 
         
 
@@ -399,7 +440,7 @@ class RobertaEmbedding:
 
 class RobertaInference:
     """
-    This class is used to infer vector embeddings from a sentence.
+    Wrapper class for the RobertaEmbedding class for inference.
 
     Methods
     -------
@@ -407,16 +448,25 @@ class RobertaInference:
             The constructor for the VectorEmbeddings class.
         _roberta_case_preparation()
             This method is used to prepare the Roberta model for the inference.
-        get_embedding(word:str, sentence:str)
-            This method is used to infer the vector embeddings of a word from a sentence.
-        get_top_k_words(word:str, sentence:str, k:int=3)
-            This method is used to infer the vector embeddings of a word from a sentence.
+        get_embedding(word:str, doc: Optional[Union[str, List[str]]] = None,, mask:bool=False)
+            This method is used to infer the vector embeddings of a word from a document.
+        get_top_k_words(word:str, doc:str, k:int=3)
+            This method is used to infer the vector embeddings of a word from a document.
     """
 
     def __init__(
             self,
             pretrained_model_path:Union[str, Path] = None,
     ):
+        """
+        Args:
+            pretrained_model_path (str, Path, None): Path to the pretrained model. Defaults to None.
+        
+        Attributes:
+            model_path (str, Path, None): Path to the pretrained model. Defaults to None.
+            word_vectorizor (RobertaEmbedding): RobertaEmbedding object to infer vector embeddings from.
+            vocab (bool): Whether the model has been initialized or not.
+        """
         self.model_path = pretrained_model_path
         if pretrained_model_path is not None:
             if not os.path.exists(pretrained_model_path):
@@ -445,28 +495,28 @@ class RobertaInference:
     
     def get_embedding(
             self,
-            word : str, 
-            sentence: Union[str, List[str]] = None,
+            main_word : str, 
+            doc: Optional[Union[str, List[str]]] = None,
             mask : bool = False
             ) -> torch.Tensor:
         
         """
-        This method is used to infer the vector embeddings of a word from a sentence.
+        This method is used to infer the vector embeddings of a word from a document.
+
         Args:
-            word: Word to get the vector embeddings for
-            sentence: Sentence to get the vector embeddings from. If None, the word is assumed to be in the sentence. Defaults to None.
-            mask: Whether to mask the word in the sentence or not. Defaults to False.
+            main_word (str): Word to get the vector embeddings for
+            doc (str, List[str], None): Documents to get the vector embeddings of the main_word from. If None, the document is the main_word itself. Defaults to None.
+            mask: Whether to mask the main_word in the documents or not. Defaults to False.
             
         Returns: 
-            embeddings: Tensor of stacked embeddings (torch.Tensor) of shape (num_embeddings, embedding_size) where num_embeddings is the number of times the main_word appears in the doc, depending on the mask parameter.
+            embeddings (torch.Tensor): Tensor of stacked embeddings of shape (num_embeddings, embedding_size) where num_embeddings is the number of times the main_word appears in the doc, depending on the mask parameter.
 
         Examples:
             >>> model = RobertaInference()
-            >>> model.get_embedding(word="office", sentence="The brown office is very big")
-            Sentence:  The brown office is very big
-            
-            >>> model.get_embedding(word="office", sentence="The brown office is very big", mask=True)
-            Sentence:  The brown <mask> is very big
+            >>> model.get_embedding(main_word="office", doc="The brown office is very big", mask=False)
+            tensor([[-0.2182, ..., -0.1709],
+                    ...,
+                    [-0.2182, ..., -0.1706]])
         """
         
         if not self.vocab:
@@ -474,30 +524,30 @@ class RobertaInference:
                 f'The Embedding model {self.model.__class__.__name__} has not been initialized'
             )
         
-        if sentence is None:
-            sentence = ' ' + word.strip() + ' '
+        if doc is None:
+            doc = ' ' + main_word.strip() + ' '
             
         if mask:
-            sentence = sentence.replace(word, self.tokenizer.mask_token)
-            word = self.tokenizer.mask_token
+            doc = doc.replace(main_word, self.tokenizer.mask_token)
+            main_word = self.tokenizer.mask_token
         
         else:
-            word = ' ' + word.strip()
+            main_word = ' ' + main_word.strip()
             
-        embeddings = self.word_vectorizor.infer_vector(doc=sentence, main_word=word)
+        embeddings = self.word_vectorizor.infer_vector(doc=doc, main_word=main_word)
         return embeddings
 
     def get_top_k_words(
             self,
-            word : str,
-            sentence: str,
+            main_word : str,
+            doc: str,
             k: int = 3
             ) -> List[str]:
         """
-        This method is used to infer the vector embeddings of a word from a sentence.
+        This method is used to infer the vector embeddings of a main_word from a document.
         Args:
-            word: Word to mask
-            sentence: Sentence to mask the word in
+            main_word: Word to mask
+            doc: Document to infer the top k words of the main_word from
             k: Number of top words to return
 
         Returns:
@@ -505,7 +555,7 @@ class RobertaInference:
 
         Examples:
             >>> model = RobertaInference()
-            >>> model.get_top_k_words(word="office", sentence="The brown office is very big")
+            >>> model.get_top_k_words(main_word="office", doc="The brown office is very big")
             ['room', 'eye', 'bear']
         """
         if not self.vocab:
@@ -513,9 +563,9 @@ class RobertaInference:
                 f'The Embedding model {self.model.__class__.__name__} has not been initialized'
             )
         
-        masked_sentence = sentence.replace(word, '<mask>')
+        masked_doc = doc.replace(main_word, '<mask>')
         try:
-            logits = self.word_vectorizor.infer_mask_logits(doc=masked_sentence)
+            logits = self.word_vectorizor.infer_mask_logits(doc=masked_doc)
 
             top_k = []
 

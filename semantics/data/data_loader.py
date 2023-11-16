@@ -7,21 +7,25 @@ import os
 
 
 class Loader():
+    """
+    Class for loading data.
+
+    Methods
+    -------
+        from_txt: Reads texts from a text file.
+        from_xml: Reads texts from an XML file.
+        forward: Filters the texts based on the target words and the maximum number of documents.
+    """
     def __init__(
             self,
             texts: List[str]
             ):
         """
-        Class for loading data.
-
         Args:
             texts (List[str]): List of texts.
         
-        Methods:
-            from_txt: Reads texts from a text file.
-            from_xml: Reads texts from an XML file.
-            forward: Filters the texts based on the target words and the maximum number of documents.
-            split_xml: Splits an XML file into multiple XML files with a maximum number of children.
+        Attributes:
+            texts (List[str]): List of texts.
         """
         
         self.texts = texts
@@ -32,7 +36,7 @@ class Loader():
                  path: Union[str, Path]
                  ):
         """
-        Reads texts from a text file.
+        Class method to read texts from a text file.
 
         Args:
             path (Union[str, Path]): Path to the text file.
@@ -45,11 +49,11 @@ class Loader():
                  tag: str
                  ):
         """
-        Reads texts from an XML file.
+        Class method to read texts from an XML file.
         
         Args:
             path (Union[str, Path]): Path to the XML file.
-            tag (str): Tag of the XML file.
+            tag (str): Tag of the XML file to extract the texts from.
         """
         size = os.path.getsize(path)
         if size > 1e8:
@@ -81,7 +85,16 @@ class Loader():
             random_seed (int, None): Random seed. Defaults to None.
 
         Returns:
-            List[str]: List of texts.
+            texts (List[str]): List of texts.
+        
+        
+        Examples:
+            >>> from semantics.data.data_loader import Loader
+            >>> texts = ['This is a test.', 'This is another test.', 'This is a third test.']
+            >>> print('Original texts: ', texts)
+            >>> print('Filtered texts: ', Loader(texts).forward(target_words=['third'], max_documents=1, shuffle=False))
+            Original texts:  ['This is a test.', 'This is another test.', 'This is a third test.
+            Filtered texts:  ['This is a third test.']
         """
 
         if target_words:
@@ -117,7 +130,7 @@ def split_xml(path:str, output_dir:str, max_children:int = 1000) -> List[str]:
         max_children (int, optional): Maximum number of children. Defaults to 1000.
 
     Returns:
-        List[str]: List of paths to the new XML files.
+        paths (List[str]): List of paths to the new XML files.
     """
 
     # Parse the XML

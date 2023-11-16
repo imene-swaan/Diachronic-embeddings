@@ -8,7 +8,18 @@ from typing import List, Optional, Union
 
 
 
-class Word2VecTrainer:    
+class Word2VecTrainer:  
+    """
+    Wrapper class for gensim.models.Word2Vec to train a Word2Vec model.
+
+    Methods
+    -------
+        __init__(model_path, min_count, window, negative, ns_exponent, vector_size, workers, sg, **kwargs)
+            Initialize the Word2Vec model
+        train(data, output_path, epochs, start_alpha, end_alpha, compute_loss, **kwargs)
+            Train the Word2Vec model on the given data
+    """  
+
     def __init__(
             self,
             model_path: Optional[str] = None,
@@ -22,32 +33,19 @@ class Word2VecTrainer:
             **kwargs
             ):
         """
-        Wrapper class for gensim.models.Word2Vec
-        
-        Parameters
-        ----------
-        model_path : str, optional
-            Path to a pretrained model, by default None
-            min_count : int, optional
-            window : int, optional
-            negative : int, optional
-            ns_exponent : float, optional
-            vector_size : int, optional
-            workers : int, optional
-            sg : int, optional
-            **kwargs : optional
-                Additional parameters for gensim.models.Word2Vec
+        Args:
+            model_path (str, optional): Path to a pretrained model, by default None.
+            min_count (int, optional): Ignores all words with total frequency lower than this, by default 0
+            window (int, optional): The maximum distance between the current and predicted word within a sentence, by default 15
+            negative (int, optional): If > 0, negative sampling will be used, by default 5
+            ns_exponent (float, optional): The exponent used to shape the negative sampling distribution, by default 0.75
+            vector_size (int, optional): Dimensionality of the word vectors, by default 100
+            workers (int, optional): Number of worker threads to train the model, by default 1
+            sg (int, optional): Training algorithm: 1 for skip-gram; otherwise CBOW, by default 1
+            **kwargs (optional): Additional arguments to pass to the gensim.models.Word2Vec constructor
 
-        Attributes
-        ----------
-        model : gensim.models.Word2Vec
-            The Word2Vec model
-
-        Methods
-        -------
-        train(data, output_path, epochs, alpha, min_alpha, compute_loss, **kwargs)
-            Train the Word2Vec model on the given data
-
+        Attributes:
+            model (gensim.models.Word2Vec): The Word2Vec model
         """
         
         if model_path:
@@ -77,22 +75,21 @@ class Word2VecTrainer:
         """
         Train the Word2Vec model on the given data
         
-        Parameters
-        ----------
-        data : List[str]
-            List of documents
-        output_path : Union[str, Path], optional
-            Path to save the trained model, by default None
-        epochs : int, optional
-            Number of epochs, by default 5
-        start_alpha : float, optional
-            Learning rate, by default 0.025
-        end_alpha : float, optional
-            Minimum learning rate, by default 0.0001
-        compute_loss : bool, optional
-            Whether to compute the loss, by default True
-        **kwargs : optional
-            Additional parameters for gensim.models.Word2Vec.train
+        Args:
+            data (List[str]): List of documents
+            output_dir (Union[str, Path], None): Path to save the trained model, by default None
+            epochs (int, optional): Number of epochs, by default 5
+            start_alpha (float, optional): Learning rate, by default 0.025
+            end_alpha (float, optional): Minimum learning rate, by default 0.0001
+            compute_loss (bool, optional): Whether to compute the loss, by default True
+            **kwargs : optional
+
+        Examples:
+            >>> from semantics.feature_extraction.word2vec import Word2VecTrainer
+            >>> texts = ['This is a test.', 'This is another test.', 'This is a third test.']
+            >>> Word2VecTrainer().train(texts, epochs=1)
+            >>> print('Trained model: ', Word2VecTrainer().model)
+            Trained model:  Word2Vec(vocab=5, vector_size=100, alpha=0.025)
         """
         self.model.build_vocab(data)
         total_examples = self.model.corpus_count
@@ -110,38 +107,33 @@ class Word2VecTrainer:
 
 
 class Word2VecAlign:
+    """
+    Wrapper class for gensim.models.Word2Vec to align Word2Vec models.
+
+    Methods
+    -------
+        __init__(model_paths)
+            Initialize the Word2VecAlign object with a list of paths to the Word2Vec models.
+        load_models()
+            Load the models
+        align_models(reference_index, output_dir, method)
+            Align the models
+    """
     def __init__(
             self, 
             model_paths: List[str],
             
             ):
         """
-        Aligns multiple Word2Vec models.
-        
-        Parameters
-        ----------
-        model_paths : List[str]
-            List of paths to the models
-        
-        Attributes
-        ----------
-        model_paths : List[str]
-            List of paths to the models
-        reference_model : gensim.models.Word2Vec
-            The reference model
-        models : List[gensim.models.Word2Vec]
-            List of models
-        model_names : List[str]
-            List of model names
-        aligned_models : List[gensim.models.Word2Vec]
-            List of aligned models
-            
-        Methods
-        -------
-        load_models()
-            Load the models
-        align_models(reference_index, output_dir, method)
-            Align the models        
+        Args:
+            model_paths (List[str]): List of paths to the models 
+
+        Attributes:
+            model_paths (List[str]): List of paths to the models 
+            reference_model (gensim.models.Word2Vec): The reference model
+            models (List[gensim.models.Word2Vec]): List of models
+            model_names (List[str]): List of model names
+            aligned_models (List[gensim.models.Word2Vec]): List of aligned models     
         """
         self.model_paths = model_paths
         self.reference_model = None
@@ -167,19 +159,20 @@ class Word2VecAlign:
         """
         Align the models
 
-        Parameters
-        ----------
-        reference_index : int, optional
-            Index of the reference model, by default -1
-        output_dir : str, optional
-            Path to save the aligned models, by default None
-        method : str, optional
-            Alignment method, by default "procrustes"
+        Args: 
+            reference_index (int, optional): Index of the reference model, by default -1
+            output_dir (str, optional): Path to save the aligned models, by default None
+            method (str, optional): Alignment method, by default "procrustes"
+      
+        Returns:
+            aligned_models (List[gensim.models.Word2Vec]): List of aligned models
 
-        Returns
-        -------
-        List[Word2Vec]
-            List of aligned models
+        Examples:
+            >>> from semantics.feature_extraction.word2vec import Word2VecAlign
+            >>> model_paths = ['model1.model', 'model2.model']
+            >>> Word2VecAlign(model_paths).align_models(reference_index=0, output_dir='aligned_models')
+            >>> print('Aligned models: ', Word2VecAlign(model_paths).aligned_models)
+            Aligned models:  [Word2Vec(vocab=5, vector_size=100, alpha=0.025), Word2Vec(vocab=5, vector_size=100, alpha=0.025)]
         """
         
         if method != "procrustes":
@@ -202,33 +195,30 @@ class Word2VecAlign:
 
 
 class Word2VecEmbeddings:
+    """
+    Wrapper class for gensim.models.Word2Vec to infer word vectors.
+
+    Methods
+    -------
+        __init__(pretrained_model_path)
+            Initialize the Word2VecEmbeddings object with a pretrained model.
+        _word2vec_case_preparation()
+            Prepare the Word2Vec model
+        infer_vector(word, norm)
+            Infer the vector of a word
+    """
     def __init__(
             self,
             pretrained_model_path: Optional[str] = None,
             ):
         """
-        Wrapper class for gensim.models.Word2Vec
+        Args: 
+            pretrained_model_path (str, optional): Path to a pretrained model, by default None
         
-        Parameters
-        ----------
-        pretrained_model_path : str
-            Path to a pretrained model, by default None
-
-        Attributes
-        ----------
-        model_path : str
-            Path to the pretrained model
-        model : gensim.models.Word2Vec
-            The Word2Vec model
-        vocab : bool
-            Whether the model has been initialized
-
-        Methods
-        -------
-        _word2vec_case_preparation()
-            Prepare the Word2Vec model
-        infer_vector(word, norm)
-            Infer the vector of a word
+        Attributes:
+            model_path (str, optional): Path to a pretrained model, by default None
+            model (gensim.models.Word2Vec): The Word2Vec model
+            vocab (bool): Whether the model has been initialized
         """
         self.model_path = pretrained_model_path
         if pretrained_model_path is not None:
@@ -245,7 +235,7 @@ class Word2VecEmbeddings:
     
     def _word2vec_case_preparation(self) -> None:
         """
-        Prepare the Word2Vec model
+        Initialize the Word2Vec model
         """
         if self.model_path is None:
             self.model = Word2Vec()
@@ -257,17 +247,12 @@ class Word2VecEmbeddings:
         """
         Infer the vector of a word
 
-        Parameters
-        ----------
-        word : str
-            The word
-        norm : bool, optional
-            Whether to normalize the vector, by default False
+        Args:
+            word (str): The word to infer the embedding vector of
+            norm (bool, optional): Whether to normalize the vector, by default False
 
-        Returns
-        -------
-        List[float]
-            The vector of the word
+        Returns:
+            embedding (List[float]): The embedding vector of the word
         """
         if not self.vocab:
             raise ValueError(
@@ -279,31 +264,30 @@ class Word2VecEmbeddings:
 
 
 class Word2VecInference:
-    def __init__(
-            self,
-            pretrained_model_path: Optional[str] = None,
-            ):
-        """
-        Wrapper class for gensim.models.Word2Vec
+    """
+    Wrapper class for gensim.models.Word2Vec for Inference.
 
-        Parameters
-        ----------
-        pretrained_model_path : str
-            Path to a pretrained model, by default None
-
-        Attributes
-        ----------
-        word_vectorizor : WordEmbeddings
-            The Word2Vec model
-
-        Methods
-        -------
+    Methods
+    -------
+        __init__(pretrained_model_path)
+            Initialize the Word2VecInference object with a pretrained model.
         get_embedding(word, norm)
             Infer the vector of a word
         get_similarity(word1, word2)
             Get the cosine similarity between two words
         get_top_k_words(word, k)
-            Get the top k most similar words to a word in the vocabulary of the model. Default k = 10  
+            Get the top k most similar words to a word in the vocabulary of the model.
+    """
+    def __init__(
+            self,
+            pretrained_model_path: Optional[str] = None,
+            ):
+        """
+        Args:
+            pretrained_model_path (str, optional): Path to a pretrained model, by default None  
+
+        Attributes:
+            word_vectorizor (Word2VecEmbeddings): The Word2VecEmbeddings object
         """
         self.word_vectorizor = Word2VecEmbeddings(pretrained_model_path)
     
@@ -311,35 +295,35 @@ class Word2VecInference:
         """
         Infer the vector of a word
         
-        Parameters
-        ----------
-        word : str
-            The word
-        norm : bool, optional
-            Whether to normalize the vector, by default False
+        Args:
+            word (str): The word to infer the embedding vector of
+            norm (bool, optional): Whether to normalize the vector, by default False
+        
+        Returns:
+            embedding (List[float]): The embedding vector of the word
 
-        Returns
-        -------
-        List[float]
-            The vector of the word
+        Examples:
+            >>> from semantics.feature_extraction.word2vec import Word2VecInference
+            >>> Word2VecInference('model.model').get_embedding('test', norm=False)
+            array([-0.00460768, -0.00460768, ..., -0.00460768, -0.00460768])
         """
         return self.word_vectorizor.infer_vector(word= word, norm = norm)
     
     def get_similarity(self, word1: str, word2: str) -> float:
         """
-        Get the cosine similarity between two words
+        Get the cosine similarity between two words' embedding vectors
 
-        Parameters
-        ----------
-        word1 : str
-            The first word
-        word2 : str
-            The second word
-
-        Returns
-        -------
-        float
-            The cosine similarity between the two words
+        Args:
+            word1 (str): The first word
+            word2 (str): The second word
+        
+        Returns:
+            similarity (float): The cosine similarity between the two words
+        
+        Examples:
+            >>> from semantics.feature_extraction.word2vec import Word2VecInference
+            >>> Word2VecInference('model.model').get_similarity('test', 'another')
+            0.99999994
         """
         return self.word_vectorizor.model.wv.similarity(word1, word2)
     
@@ -351,17 +335,17 @@ class Word2VecInference:
         """
         Get the top k most similar words to a word in the vocabulary of the model. Default k = 10
 
-        Parameters
-        ----------
-        word : str
-            The word
-        k : int, optional
-            The number of similar words to return, by default 10
-
-        Returns
-        -------
-        List[str]
-            List of similar words
+        Args:
+            word (str): The word to get the top k most similar words of
+            k (int, optional): The number of words to return, by default 10
+        
+        Returns:
+            topk (Tuple[List[str], List[float]]): Tuple of lists of the top k most similar words and their cosine similarities
+        
+        Examples:
+            >>> from semantics.feature_extraction.word2vec import Word2VecInference
+            >>> Word2VecInference('model.model').get_top_k_words('test', k=1)
+            (['another'], [0.9999999403953552])
         """
 
         try:
