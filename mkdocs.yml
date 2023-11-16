@@ -84,6 +84,7 @@ nav:
   - Graph Construction:
     - Nodes: doc/graph/nodes.md
     - Edges: doc/graph/edges.md
+    - Temporal Graph: doc/graph/temporal_graph.md
   
   - Extra:
     - utilites: utils.md
