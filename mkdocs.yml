@@ -40,6 +40,8 @@ plugins:
   - autorefs
   - search:
       lang: en
+  - bibtex:
+      bib_file: docs/concepts/references.bib
       
 
 
@@ -55,6 +57,9 @@ nav:
 #   - Changelog: changelog.md
 - Concepts:
   - Introduction: concepts/intro.md
+  - Literature Review: concepts/literature_review.md
+  - Problem Statement: concepts/problem_statement.md
+  - Research Methodology: concepts/research_methodology.md
 #   - Models: concepts/models.md
 #   - Fields: concepts/fields.md
 #   - JSON Schema: concepts/json_schema.md
