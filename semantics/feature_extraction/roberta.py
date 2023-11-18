@@ -339,16 +339,16 @@ class RobertaEmbedding:
         This method is used to prepare the BERT model for the inference.
         """
         model_path = self.model_path if self.model_path is not None else 'roberta-base'
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+        self.tokenizer = RobertaTokenizer.from_pretrained(model_path)
         self.model = RobertaModel.from_pretrained(
             model_path, 
             output_hidden_states=True
             )
         self.MLM = RobertaForMaskedLM.from_pretrained(
-            model_path,
-            output_hidden_states = True,
+            model_path
         )
-        self.max_length = self.model.config.max_position_embeddings
+        # self.model_max_length = self.model.config.max_position_embeddings
+        # self.mlm_max_length = self.MLM.config.max_position_embeddings
         self.model.eval()
         self.MLM.eval()
         self.vocab = True
@@ -377,7 +377,7 @@ class RobertaEmbedding:
             )
         
      
-        input_ids = self.tokenizer(doc, return_tensors="pt", max_length=self.max_length).input_ids
+        input_ids = self.tokenizer(doc, return_tensors="pt", max_length=512, truncation=True).input_ids
         token = self.tokenizer.encode(main_word, add_special_tokens=False)[0]
 
         word_token_index = torch.where(input_ids == token)[1]
@@ -420,7 +420,7 @@ class RobertaEmbedding:
                 f'The Embedding model {self.MLM.__class__.__name__} has not been initialized'
             )
 
-        input_ids = self.tokenizer(doc, return_tensors="pt", max_length=self.max_length).input_ids
+        input_ids = self.tokenizer(doc, return_tensors="pt", max_length= 512, truncation=True).input_ids
         mask_token_index = torch.where(input_ids == self.tokenizer.mask_token_id)[1]
         l = []
         try:
@@ -431,7 +431,7 @@ class RobertaEmbedding:
             return torch.stack(l) if len(l) > 0 else torch.empty(0)
         
         except IndexError:
-            raise ValueError(f'The mask falls outside of the max length of {self.max_length}, please use a smaller document')
+            raise ValueError(f'The mask falls outside of the max length of {512}, please use a smaller document')
 
         
 
@@ -566,7 +566,6 @@ class RobertaInference:
         masked_doc = doc.replace(main_word, '<mask>')
         try:
             logits = self.word_vectorizor.infer_mask_logits(doc=masked_doc)
-
             top_k = []
 
             for logit_set in logits:
@@ -578,6 +577,7 @@ class RobertaInference:
             return top_k
         
         except ValueError:
+            print(f'The word: "{main_word}" does not exist in the list of tokens')
             return []
 
 
