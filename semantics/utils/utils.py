@@ -5,6 +5,26 @@ import numpy as np
 from typing import List, Union, Optional
 from collections import Counter
 
+
+
+def generate_pastel_colors(num_colors=3):
+    """
+    Generate random pastel colors.
+
+    Args:
+        num_colors (int): The number of colors to generate.
+    
+    Returns:
+        List[str]: A list of colors in hex format.
+    """
+    return ['#{:02x}{:02x}{:02x}'.format(
+        int(random.uniform(0.6, 1.0) * 255),
+        int(random.uniform(0.6, 1.0) * 255),
+        int(random.uniform(0.6, 1.0) * 255)
+    ) for _ in range(num_colors)]
+
+
+
 def read_toml(config_path: str) -> dict:
     """
     Read in a config file and return a dictionary.
