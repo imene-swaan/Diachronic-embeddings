@@ -1,4 +1,5 @@
 from semantics.data.data_loader import Loader
+from semantics.data.data_loader import split_xml
 from semantics.data.data_preprocessing import PREPROCESS
 from semantics.feature_extraction.roberta import  RobertaInference
 from semantics.feature_extraction.word2vec import Word2VecInference
@@ -68,6 +69,8 @@ def main(output_dir, data_path, periods, **kwargs):
             #                     shuffle=kwargs['shuffle']
             #                     )
             #             ) # Loader.from_txt(split_path).forward()
+            #         os.remove(split_path)
+               
             
 
         # preprocessing
@@ -175,21 +178,21 @@ if __name__ == "__main__":
         os.mkdir(output_dir)
     periods = [
         1980,
-        1982,
-        1985,
-        1987,
-        1989,
-        1990,
-        1992,
-        1995,
-        2000,
-        2001,
-        2005,
-        2008,
-        2010,
-        2012,
-        2015,
-        2017
+        # 1982,
+        # 1985,
+        # 1987,
+        # 1989,
+        # 1990,
+        # 1992,
+        # 1995,
+        # 2000,
+        # 2001,
+        # 2005,
+        # 2008,
+        # 2010,
+        # 2012,
+        # 2015,
+        # 2017
     ]
 
     xml_tag = 'fulltext'
@@ -219,7 +222,7 @@ if __name__ == "__main__":
     inference_options = {
         "MLM_k": 3,
         "Context_k": 30,
-        "level": 3,
+        "level": 2,
         }
 
     target_word = [
@@ -232,7 +235,7 @@ if __name__ == "__main__":
         periods, 
         xml_tag = 'fulltext',
         target_word = target_word,
-        max_documents = 10,
+        max_documents = 25000,
         shuffle = True,
         preprocessing_options = preprocessing_options,
         mlm_options = mlm_options,
@@ -252,6 +255,26 @@ if __name__ == "__main__":
       """)
 
 
+    xs = np.array(tg.xs)
+    edge_indices = np.array(tg.edge_indices)
+    edge_features = np.array(tg.edge_features)
+    ys = np.array(tg.ys)
+    y_indices = np.array(tg.y_indices)
+
+    with open(f'{output_dir}/xs.npy', 'wb') as f:
+        np.save(f, xs)
+    
+    with open(f'{output_dir}/edge_indices.npy', 'wb') as f:
+        np.save(f, edge_indices)
+
+    with open(f'{output_dir}/edge_features.npy', 'wb') as f:
+        np.save(f, edge_features)
+
+    with open(f'{output_dir}/ys.npy', 'wb') as f:
+        np.save(f, ys)
+
+    with open(f'{output_dir}/y_indices.npy', 'wb') as f:
+        np.save(f, y_indices)
 
 
 
