@@ -221,7 +221,7 @@ if __name__ == "__main__":
     
     inference_options = {
         "MLM_k": 3,
-        "Context_k": 30,
+        "Context_k": 2,
         "level": 2,
         }
 

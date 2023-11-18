@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 transformers = "^4.34.1"
-torch = "^2.1.0"
+torch = "^2.1.0+cpu"
 accelerate = "^0.24.0"
 gensim = "^4.3.2"
 nltk = "^3.8.1"
@@ -18,9 +18,21 @@ mkdocs = "^1.5.3"
 mkdocstrings = "^0.23.0"
 mkdocstrings-python = "^1.7.3"
 mkdocs-bibtex = "^2.11.0"
+torch-geometric = "^2.4.0"
+torch-geometric-temporal = "^0.54.0"
+networkx = "^3.2.1"
+matplotlib = "^3.8.2"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^6.2.5"
+[tool.poetry.dev-dependencies]
+poethepoet = "^0.24.3"
+
+
+
+[tool.poe.tasks]
+torch-scatter = "python -m pip install torch-scatter -f https://data.pyg.org/whl/torch-2.1.0+cpu.html"
+torch-sparse = "python -m pip install torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.1.0+cpu.html"
+
+
 
 
 [build-system]
