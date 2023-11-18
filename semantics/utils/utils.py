@@ -3,6 +3,7 @@ import tomli
 import random
 import numpy as np
 from typing import List, Union, Optional
+from collections import Counter
 
 def read_toml(config_path: str) -> dict:
     """
@@ -119,8 +120,20 @@ def count_occurence(data: List[str], word: Optional[Union[List[str], str]] = Non
         return counts
             
         
-
+ 
+def most_frequent(my_list: List[str], n: int = 1):
+    """
+    Return the n most frequent words in a list.
     
+    Args:
+        my_list (List[str]): The list of words.
+        n (int): The number of most frequent words to return.
+        
+    Returns:
+        List[str]: The n most frequent words.
+    """
+    occurence_count = Counter(my_list)
+    return [w for w, _ in occurence_count.most_common(n)]
 
 
 # ------------------- smart_procrustes_align_gensim --------------------
