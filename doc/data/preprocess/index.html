@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.7">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.9">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.4b4a2bd9.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.78cf6014.min.css">
       
         
         <link rel="stylesheet" href="../../../assets/stylesheets/palette.356b1318.min.css">
@@ -453,6 +453,66 @@
 
               
             
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/literature_review/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Literature Review
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/problem_statement/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Problem Statement
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/research_methodology/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Research Methodology
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -611,29 +671,37 @@
       
         <li class="md-nav__item">
   <a href="#semantics.data.data_preprocessing" class="md-nav__link">
-    data_preprocessing
+    <span class="md-ellipsis">
+      data_preprocessing
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#semantics.data.data_preprocessing.PREPROCESS" class="md-nav__link">
-    PREPROCESS
+    <span class="md-ellipsis">
+      PREPROCESS
+    </span>
   </a>
   
     <nav class="md-nav" aria-label="PREPROCESS">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#semantics.data.data_preprocessing.PREPROCESS.__init__" class="md-nav__link">
-    __init__()
+  <a href="#semantics.data.data_preprocessing.PREPROCESS--methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Methods
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#semantics.data.data_preprocessing.PREPROCESS.forward" class="md-nav__link">
-    forward()
+    <span class="md-ellipsis">
+      forward()
+    </span>
   </a>
   
 </li>
@@ -846,6 +914,26 @@
 
               
             
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../graph/temporal_graph/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Temporal Graph
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -977,6 +1065,11 @@
 
   <div class="doc doc-contents ">
 
+  
+      <p>This class is used to preprocess text data.</p>
+<h4 id="semantics.data.data_preprocessing.PREPROCESS--methods">Methods</h4>
+<div class="highlight"><pre><span></span><code>forward: Preprocesses text data.
+</code></pre></div>
 
             <details class="quote">
               <summary>Source code in <code>semantics/data/data_preprocessing.py</code></summary>
@@ -1035,62 +1128,86 @@
 <span class="normal"><a href="#__codelineno-0-58">58</a></span>
 <span class="normal"><a href="#__codelineno-0-59">59</a></span>
 <span class="normal"><a href="#__codelineno-0-60">60</a></span>
-<span class="normal"><a href="#__codelineno-0-61">61</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="k">class</span> <span class="nc">PREPROCESS</span><span class="p">():</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="sd">        This class is used to preprocess text data.</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11"></a>        <span class="k">pass</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12"></a>
-<a id="__codelineno-0-13" name="__codelineno-0-13"></a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14"></a>                <span class="n">text</span><span class="p">,</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15"></a>                <span class="n">remove_punctuation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16"></a>                <span class="n">remove_numbers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17"></a>                <span class="n">lowercase</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18"></a>                <span class="n">lemmatize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19"></a>                <span class="n">remove_stopwords</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>            
-<a id="__codelineno-0-20" name="__codelineno-0-20"></a>        <span class="p">):</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21"></a>
-<a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="sd">        This function preprocesses text data.</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24"></a>
-<a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="sd">        Args:</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="sd">            text (str): Text to be preprocessed.</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">            remove_punctuation (bool): Whether to remove punctuation. Defaults to True.</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="sd">            remove_numbers (bool): Whether to remove numbers. Defaults to True.</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="sd">            lowercase (bool): Whether to lowercase. Defaults to True.</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="sd">            lemmatize (bool): Whether to lemmatize. Defaults to True.</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31"></a><span class="sd">            remove_stopwords (bool): Whether to remove stopwords. Defaults to True.</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32"></a>
-<a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="sd">        Returns:</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">            newtext (str): Preprocessed text.</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">        &quot;&quot;&quot;</span>
+<span class="normal"><a href="#__codelineno-0-61">61</a></span>
+<span class="normal"><a href="#__codelineno-0-62">62</a></span>
+<span class="normal"><a href="#__codelineno-0-63">63</a></span>
+<span class="normal"><a href="#__codelineno-0-64">64</a></span>
+<span class="normal"><a href="#__codelineno-0-65">65</a></span>
+<span class="normal"><a href="#__codelineno-0-66">66</a></span>
+<span class="normal"><a href="#__codelineno-0-67">67</a></span>
+<span class="normal"><a href="#__codelineno-0-68">68</a></span>
+<span class="normal"><a href="#__codelineno-0-69">69</a></span>
+<span class="normal"><a href="#__codelineno-0-70">70</a></span>
+<span class="normal"><a href="#__codelineno-0-71">71</a></span>
+<span class="normal"><a href="#__codelineno-0-72">72</a></span>
+<span class="normal"><a href="#__codelineno-0-73">73</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="k">class</span> <span class="nc">PREPROCESS</span><span class="p">():</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="sd">    This class is used to preprocess text data.</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10"></a><span class="sd">    Methods</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11"></a><span class="sd">    -------</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12"></a><span class="sd">        forward: Preprocesses text data.</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15"></a>        <span class="k">pass</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16"></a>
+<a id="__codelineno-0-17" name="__codelineno-0-17"></a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18"></a>                <span class="n">text</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19"></a>                <span class="n">remove_punctuation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20"></a>                <span class="n">remove_numbers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21"></a>                <span class="n">lowercase</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22"></a>                <span class="n">lemmatize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23"></a>                <span class="n">remove_stopwords</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>            
+<a id="__codelineno-0-24" name="__codelineno-0-24"></a>        <span class="p">):</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25"></a>
+<a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">        This function preprocesses text data.</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28"></a>
+<a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="sd">        Args:</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="sd">            text (str): Text to be preprocessed.</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31"></a><span class="sd">            remove_punctuation (bool): Whether to remove punctuation. Defaults to True.</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="sd">            remove_numbers (bool): Whether to remove numbers. Defaults to True.</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="sd">            lowercase (bool): Whether to lowercase. Defaults to True.</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">            lemmatize (bool): Whether to lemmatize. Defaults to True.</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">            remove_stopwords (bool): Whether to remove stopwords. Defaults to True.</span>
 <a id="__codelineno-0-36" name="__codelineno-0-36"></a>
-<a id="__codelineno-0-37" name="__codelineno-0-37"></a>        <span class="n">newtext</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span> <span class="c1"># Remove ordinary linebreaks (there shouldn&#39;t be, so this might be redundant)</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38"></a>
-<a id="__codelineno-0-39" name="__codelineno-0-39"></a>        <span class="k">if</span> <span class="n">remove_punctuation</span><span class="p">:</span>
-<a id="__codelineno-0-40" name="__codelineno-0-40"></a>            <span class="n">newtext</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^a-zA-Z0-9\s\.]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">newtext</span><span class="p">))</span> <span class="c1"># Remove anything that is not a space, a letter, a dot, or a number</span>
-<a id="__codelineno-0-41" name="__codelineno-0-41"></a>
-<a id="__codelineno-0-42" name="__codelineno-0-42"></a>        <span class="k">if</span> <span class="n">remove_numbers</span><span class="p">:</span>
-<a id="__codelineno-0-43" name="__codelineno-0-43"></a>            <span class="n">newtext</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">newtext</span><span class="p">))</span> <span class="c1"># Remove numbers</span>
-<a id="__codelineno-0-44" name="__codelineno-0-44"></a>
-<a id="__codelineno-0-45" name="__codelineno-0-45"></a>        <span class="k">if</span> <span class="n">lowercase</span><span class="p">:</span>
-<a id="__codelineno-0-46" name="__codelineno-0-46"></a>            <span class="n">newtext</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">newtext</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="c1"># Lowercase</span>
-<a id="__codelineno-0-47" name="__codelineno-0-47"></a>
-<a id="__codelineno-0-48" name="__codelineno-0-48"></a>        <span class="k">if</span> <span class="n">lemmatize</span><span class="p">:</span>
-<a id="__codelineno-0-49" name="__codelineno-0-49"></a>            <span class="kn">from</span> <span class="nn">nltk.stem</span> <span class="kn">import</span> <span class="n">WordNetLemmatizer</span>
-<a id="__codelineno-0-50" name="__codelineno-0-50"></a>            <span class="kn">from</span> <span class="nn">nltk.corpus</span> <span class="kn">import</span> <span class="n">wordnet</span> 
-<a id="__codelineno-0-51" name="__codelineno-0-51"></a>
-<a id="__codelineno-0-52" name="__codelineno-0-52"></a>            <span class="n">lemmatizer</span> <span class="o">=</span> <span class="n">WordNetLemmatizer</span><span class="p">()</span>
-<a id="__codelineno-0-53" name="__codelineno-0-53"></a>            <span class="n">newtext</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">lemmatizer</span><span class="o">.</span><span class="n">lemmatize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">),</span> <span class="n">newtext</span><span class="o">.</span><span class="n">split</span><span class="p">())))</span>
-<a id="__codelineno-0-54" name="__codelineno-0-54"></a>            <span class="c1"># newtext = &#39; &#39;.join(list(map(lambda x: lemmatizer.lemmatize(x, &quot;v&quot;), newtext.split())))</span>
-<a id="__codelineno-0-55" name="__codelineno-0-55"></a>
-<a id="__codelineno-0-56" name="__codelineno-0-56"></a>        <span class="k">if</span> <span class="n">remove_stopwords</span><span class="p">:</span>
-<a id="__codelineno-0-57" name="__codelineno-0-57"></a>            <span class="kn">from</span> <span class="nn">nltk.corpus</span> <span class="kn">import</span> <span class="n">stopwords</span>
-<a id="__codelineno-0-58" name="__codelineno-0-58"></a>            <span class="n">stop_words</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">stopwords</span><span class="o">.</span><span class="n">words</span><span class="p">(</span><span class="s1">&#39;english&#39;</span><span class="p">))</span>
-<a id="__codelineno-0-59" name="__codelineno-0-59"></a>            <span class="n">newtext</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stop_words</span><span class="p">,</span> <span class="n">newtext</span><span class="o">.</span><span class="n">split</span><span class="p">())))</span>
-<a id="__codelineno-0-60" name="__codelineno-0-60"></a>
-<a id="__codelineno-0-61" name="__codelineno-0-61"></a>        <span class="k">return</span> <span class="n">newtext</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37"></a><span class="sd">        Returns:</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38"></a><span class="sd">            newtext (str): Preprocessed text.</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39"></a>
+<a id="__codelineno-0-40" name="__codelineno-0-40"></a><span class="sd">        Examples:</span>
+<a id="__codelineno-0-41" name="__codelineno-0-41"></a><span class="sd">            &gt;&gt;&gt; from semantics.data.data_preprocessing import PREPROCESS</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="sd">            &gt;&gt;&gt; text = &#39;This is a test. 1234&#39;</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43"></a><span class="sd">            &gt;&gt;&gt; print(&#39;Original text: &#39;, text)</span>
+<a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="sd">            &gt;&gt;&gt; print(&#39;Preprocessed text: &#39;, PREPROCESS().forward(text, remove_punctuation=True, remove_numbers=True, lowercase=True, lemmatize=True, remove_stopwords=True))</span>
+<a id="__codelineno-0-45" name="__codelineno-0-45"></a><span class="sd">            Original text:  This is a test. 1234</span>
+<a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="sd">            Preprocessed text:  test</span>
+<a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-48" name="__codelineno-0-48"></a>
+<a id="__codelineno-0-49" name="__codelineno-0-49"></a>        <span class="n">newtext</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span> <span class="c1"># Remove ordinary linebreaks (there shouldn&#39;t be, so this might be redundant)</span>
+<a id="__codelineno-0-50" name="__codelineno-0-50"></a>
+<a id="__codelineno-0-51" name="__codelineno-0-51"></a>        <span class="k">if</span> <span class="n">remove_punctuation</span><span class="p">:</span>
+<a id="__codelineno-0-52" name="__codelineno-0-52"></a>            <span class="n">newtext</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^a-zA-Z0-9\s\.]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">newtext</span><span class="p">))</span> <span class="c1"># Remove anything that is not a space, a letter, a dot, or a number</span>
+<a id="__codelineno-0-53" name="__codelineno-0-53"></a>
+<a id="__codelineno-0-54" name="__codelineno-0-54"></a>        <span class="k">if</span> <span class="n">remove_numbers</span><span class="p">:</span>
+<a id="__codelineno-0-55" name="__codelineno-0-55"></a>            <span class="n">newtext</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">newtext</span><span class="p">))</span> <span class="c1"># Remove numbers</span>
+<a id="__codelineno-0-56" name="__codelineno-0-56"></a>
+<a id="__codelineno-0-57" name="__codelineno-0-57"></a>        <span class="k">if</span> <span class="n">lowercase</span><span class="p">:</span>
+<a id="__codelineno-0-58" name="__codelineno-0-58"></a>            <span class="n">newtext</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">newtext</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="c1"># Lowercase</span>
+<a id="__codelineno-0-59" name="__codelineno-0-59"></a>
+<a id="__codelineno-0-60" name="__codelineno-0-60"></a>        <span class="k">if</span> <span class="n">lemmatize</span><span class="p">:</span>
+<a id="__codelineno-0-61" name="__codelineno-0-61"></a>            <span class="kn">from</span> <span class="nn">nltk.stem</span> <span class="kn">import</span> <span class="n">WordNetLemmatizer</span>
+<a id="__codelineno-0-62" name="__codelineno-0-62"></a>            <span class="kn">from</span> <span class="nn">nltk.corpus</span> <span class="kn">import</span> <span class="n">wordnet</span> 
+<a id="__codelineno-0-63" name="__codelineno-0-63"></a>
+<a id="__codelineno-0-64" name="__codelineno-0-64"></a>            <span class="n">lemmatizer</span> <span class="o">=</span> <span class="n">WordNetLemmatizer</span><span class="p">()</span>
+<a id="__codelineno-0-65" name="__codelineno-0-65"></a>            <span class="n">newtext</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">lemmatizer</span><span class="o">.</span><span class="n">lemmatize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">),</span> <span class="n">newtext</span><span class="o">.</span><span class="n">split</span><span class="p">())))</span>
+<a id="__codelineno-0-66" name="__codelineno-0-66"></a>            <span class="c1"># newtext = &#39; &#39;.join(list(map(lambda x: lemmatizer.lemmatize(x, &quot;v&quot;), newtext.split())))</span>
+<a id="__codelineno-0-67" name="__codelineno-0-67"></a>
+<a id="__codelineno-0-68" name="__codelineno-0-68"></a>        <span class="k">if</span> <span class="n">remove_stopwords</span><span class="p">:</span>
+<a id="__codelineno-0-69" name="__codelineno-0-69"></a>            <span class="kn">from</span> <span class="nn">nltk.corpus</span> <span class="kn">import</span> <span class="n">stopwords</span>
+<a id="__codelineno-0-70" name="__codelineno-0-70"></a>            <span class="n">stop_words</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">stopwords</span><span class="o">.</span><span class="n">words</span><span class="p">(</span><span class="s1">&#39;english&#39;</span><span class="p">))</span>
+<a id="__codelineno-0-71" name="__codelineno-0-71"></a>            <span class="n">newtext</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stop_words</span><span class="p">,</span> <span class="n">newtext</span><span class="o">.</span><span class="n">split</span><span class="p">())))</span>
+<a id="__codelineno-0-72" name="__codelineno-0-72"></a>
+<a id="__codelineno-0-73" name="__codelineno-0-73"></a>        <span class="k">return</span> <span class="n">newtext</span>
 </code></pre></div></td></tr></table></div>
             </details>
 
@@ -1105,39 +1222,6 @@
 
 
 
-
-
-<div class="doc doc-object doc-function">
-
-
-
-
-<h3 id="semantics.data.data_preprocessing.PREPROCESS.__init__" class="doc doc-heading">
-          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">()</span></code>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>This class is used to preprocess text data.</p>
-
-          <details class="quote">
-            <summary>Source code in <code>semantics/data/data_preprocessing.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
-<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
-<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
-<span class="normal"><a href="#__codelineno-0-10">10</a></span>
-<span class="normal"><a href="#__codelineno-0-11">11</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-7" name="__codelineno-0-7"></a><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="sd">    This class is used to preprocess text data.</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11"></a>    <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
-          </details>
-  </div>
-
-</div>
 
 
 <div class="doc doc-object doc-function">
@@ -1279,13 +1363,20 @@
     </tbody>
   </table>
 
+
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">semantics.data.data_preprocessing</span> <span class="kn">import</span> <span class="n">PREPROCESS</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="gp">&gt;&gt;&gt; </span><span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;This is a test. 1234&#39;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Original text: &#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Preprocessed text: &#39;</span><span class="p">,</span> <span class="n">PREPROCESS</span><span class="p">()</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">remove_punctuation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">remove_numbers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lowercase</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lemmatize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">remove_stopwords</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="go">Original text:  This is a test. 1234</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="go">Preprocessed text:  test</span>
+</code></pre></div>
+
           <details class="quote">
             <summary>Source code in <code>semantics/data/data_preprocessing.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-13">13</a></span>
-<span class="normal"><a href="#__codelineno-0-14">14</a></span>
-<span class="normal"><a href="#__codelineno-0-15">15</a></span>
-<span class="normal"><a href="#__codelineno-0-16">16</a></span>
-<span class="normal"><a href="#__codelineno-0-17">17</a></span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-17">17</a></span>
 <span class="normal"><a href="#__codelineno-0-18">18</a></span>
 <span class="normal"><a href="#__codelineno-0-19">19</a></span>
 <span class="normal"><a href="#__codelineno-0-20">20</a></span>
@@ -1329,55 +1420,75 @@
 <span class="normal"><a href="#__codelineno-0-58">58</a></span>
 <span class="normal"><a href="#__codelineno-0-59">59</a></span>
 <span class="normal"><a href="#__codelineno-0-60">60</a></span>
-<span class="normal"><a href="#__codelineno-0-61">61</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14"></a>            <span class="n">text</span><span class="p">,</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15"></a>            <span class="n">remove_punctuation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16"></a>            <span class="n">remove_numbers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17"></a>            <span class="n">lowercase</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18"></a>            <span class="n">lemmatize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19"></a>            <span class="n">remove_stopwords</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>            
-<a id="__codelineno-0-20" name="__codelineno-0-20"></a>    <span class="p">):</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21"></a>
-<a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="sd">    This function preprocesses text data.</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24"></a>
-<a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="sd">    Args:</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="sd">        text (str): Text to be preprocessed.</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">        remove_punctuation (bool): Whether to remove punctuation. Defaults to True.</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="sd">        remove_numbers (bool): Whether to remove numbers. Defaults to True.</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="sd">        lowercase (bool): Whether to lowercase. Defaults to True.</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="sd">        lemmatize (bool): Whether to lemmatize. Defaults to True.</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31"></a><span class="sd">        remove_stopwords (bool): Whether to remove stopwords. Defaults to True.</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32"></a>
-<a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">        newtext (str): Preprocessed text.</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">    &quot;&quot;&quot;</span>
+<span class="normal"><a href="#__codelineno-0-61">61</a></span>
+<span class="normal"><a href="#__codelineno-0-62">62</a></span>
+<span class="normal"><a href="#__codelineno-0-63">63</a></span>
+<span class="normal"><a href="#__codelineno-0-64">64</a></span>
+<span class="normal"><a href="#__codelineno-0-65">65</a></span>
+<span class="normal"><a href="#__codelineno-0-66">66</a></span>
+<span class="normal"><a href="#__codelineno-0-67">67</a></span>
+<span class="normal"><a href="#__codelineno-0-68">68</a></span>
+<span class="normal"><a href="#__codelineno-0-69">69</a></span>
+<span class="normal"><a href="#__codelineno-0-70">70</a></span>
+<span class="normal"><a href="#__codelineno-0-71">71</a></span>
+<span class="normal"><a href="#__codelineno-0-72">72</a></span>
+<span class="normal"><a href="#__codelineno-0-73">73</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-17" name="__codelineno-0-17"></a><span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18"></a>            <span class="n">text</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19"></a>            <span class="n">remove_punctuation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20"></a>            <span class="n">remove_numbers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21"></a>            <span class="n">lowercase</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22"></a>            <span class="n">lemmatize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23"></a>            <span class="n">remove_stopwords</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>            
+<a id="__codelineno-0-24" name="__codelineno-0-24"></a>    <span class="p">):</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25"></a>
+<a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">    This function preprocesses text data.</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28"></a>
+<a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="sd">        text (str): Text to be preprocessed.</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31"></a><span class="sd">        remove_punctuation (bool): Whether to remove punctuation. Defaults to True.</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="sd">        remove_numbers (bool): Whether to remove numbers. Defaults to True.</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="sd">        lowercase (bool): Whether to lowercase. Defaults to True.</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">        lemmatize (bool): Whether to lemmatize. Defaults to True.</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">        remove_stopwords (bool): Whether to remove stopwords. Defaults to True.</span>
 <a id="__codelineno-0-36" name="__codelineno-0-36"></a>
-<a id="__codelineno-0-37" name="__codelineno-0-37"></a>    <span class="n">newtext</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span> <span class="c1"># Remove ordinary linebreaks (there shouldn&#39;t be, so this might be redundant)</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38"></a>
-<a id="__codelineno-0-39" name="__codelineno-0-39"></a>    <span class="k">if</span> <span class="n">remove_punctuation</span><span class="p">:</span>
-<a id="__codelineno-0-40" name="__codelineno-0-40"></a>        <span class="n">newtext</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^a-zA-Z0-9\s\.]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">newtext</span><span class="p">))</span> <span class="c1"># Remove anything that is not a space, a letter, a dot, or a number</span>
-<a id="__codelineno-0-41" name="__codelineno-0-41"></a>
-<a id="__codelineno-0-42" name="__codelineno-0-42"></a>    <span class="k">if</span> <span class="n">remove_numbers</span><span class="p">:</span>
-<a id="__codelineno-0-43" name="__codelineno-0-43"></a>        <span class="n">newtext</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">newtext</span><span class="p">))</span> <span class="c1"># Remove numbers</span>
-<a id="__codelineno-0-44" name="__codelineno-0-44"></a>
-<a id="__codelineno-0-45" name="__codelineno-0-45"></a>    <span class="k">if</span> <span class="n">lowercase</span><span class="p">:</span>
-<a id="__codelineno-0-46" name="__codelineno-0-46"></a>        <span class="n">newtext</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">newtext</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="c1"># Lowercase</span>
-<a id="__codelineno-0-47" name="__codelineno-0-47"></a>
-<a id="__codelineno-0-48" name="__codelineno-0-48"></a>    <span class="k">if</span> <span class="n">lemmatize</span><span class="p">:</span>
-<a id="__codelineno-0-49" name="__codelineno-0-49"></a>        <span class="kn">from</span> <span class="nn">nltk.stem</span> <span class="kn">import</span> <span class="n">WordNetLemmatizer</span>
-<a id="__codelineno-0-50" name="__codelineno-0-50"></a>        <span class="kn">from</span> <span class="nn">nltk.corpus</span> <span class="kn">import</span> <span class="n">wordnet</span> 
-<a id="__codelineno-0-51" name="__codelineno-0-51"></a>
-<a id="__codelineno-0-52" name="__codelineno-0-52"></a>        <span class="n">lemmatizer</span> <span class="o">=</span> <span class="n">WordNetLemmatizer</span><span class="p">()</span>
-<a id="__codelineno-0-53" name="__codelineno-0-53"></a>        <span class="n">newtext</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">lemmatizer</span><span class="o">.</span><span class="n">lemmatize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">),</span> <span class="n">newtext</span><span class="o">.</span><span class="n">split</span><span class="p">())))</span>
-<a id="__codelineno-0-54" name="__codelineno-0-54"></a>        <span class="c1"># newtext = &#39; &#39;.join(list(map(lambda x: lemmatizer.lemmatize(x, &quot;v&quot;), newtext.split())))</span>
-<a id="__codelineno-0-55" name="__codelineno-0-55"></a>
-<a id="__codelineno-0-56" name="__codelineno-0-56"></a>    <span class="k">if</span> <span class="n">remove_stopwords</span><span class="p">:</span>
-<a id="__codelineno-0-57" name="__codelineno-0-57"></a>        <span class="kn">from</span> <span class="nn">nltk.corpus</span> <span class="kn">import</span> <span class="n">stopwords</span>
-<a id="__codelineno-0-58" name="__codelineno-0-58"></a>        <span class="n">stop_words</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">stopwords</span><span class="o">.</span><span class="n">words</span><span class="p">(</span><span class="s1">&#39;english&#39;</span><span class="p">))</span>
-<a id="__codelineno-0-59" name="__codelineno-0-59"></a>        <span class="n">newtext</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stop_words</span><span class="p">,</span> <span class="n">newtext</span><span class="o">.</span><span class="n">split</span><span class="p">())))</span>
-<a id="__codelineno-0-60" name="__codelineno-0-60"></a>
-<a id="__codelineno-0-61" name="__codelineno-0-61"></a>    <span class="k">return</span> <span class="n">newtext</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38"></a><span class="sd">        newtext (str): Preprocessed text.</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39"></a>
+<a id="__codelineno-0-40" name="__codelineno-0-40"></a><span class="sd">    Examples:</span>
+<a id="__codelineno-0-41" name="__codelineno-0-41"></a><span class="sd">        &gt;&gt;&gt; from semantics.data.data_preprocessing import PREPROCESS</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="sd">        &gt;&gt;&gt; text = &#39;This is a test. 1234&#39;</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43"></a><span class="sd">        &gt;&gt;&gt; print(&#39;Original text: &#39;, text)</span>
+<a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="sd">        &gt;&gt;&gt; print(&#39;Preprocessed text: &#39;, PREPROCESS().forward(text, remove_punctuation=True, remove_numbers=True, lowercase=True, lemmatize=True, remove_stopwords=True))</span>
+<a id="__codelineno-0-45" name="__codelineno-0-45"></a><span class="sd">        Original text:  This is a test. 1234</span>
+<a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="sd">        Preprocessed text:  test</span>
+<a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-48" name="__codelineno-0-48"></a>
+<a id="__codelineno-0-49" name="__codelineno-0-49"></a>    <span class="n">newtext</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span> <span class="c1"># Remove ordinary linebreaks (there shouldn&#39;t be, so this might be redundant)</span>
+<a id="__codelineno-0-50" name="__codelineno-0-50"></a>
+<a id="__codelineno-0-51" name="__codelineno-0-51"></a>    <span class="k">if</span> <span class="n">remove_punctuation</span><span class="p">:</span>
+<a id="__codelineno-0-52" name="__codelineno-0-52"></a>        <span class="n">newtext</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^a-zA-Z0-9\s\.]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">newtext</span><span class="p">))</span> <span class="c1"># Remove anything that is not a space, a letter, a dot, or a number</span>
+<a id="__codelineno-0-53" name="__codelineno-0-53"></a>
+<a id="__codelineno-0-54" name="__codelineno-0-54"></a>    <span class="k">if</span> <span class="n">remove_numbers</span><span class="p">:</span>
+<a id="__codelineno-0-55" name="__codelineno-0-55"></a>        <span class="n">newtext</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">newtext</span><span class="p">))</span> <span class="c1"># Remove numbers</span>
+<a id="__codelineno-0-56" name="__codelineno-0-56"></a>
+<a id="__codelineno-0-57" name="__codelineno-0-57"></a>    <span class="k">if</span> <span class="n">lowercase</span><span class="p">:</span>
+<a id="__codelineno-0-58" name="__codelineno-0-58"></a>        <span class="n">newtext</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">newtext</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="c1"># Lowercase</span>
+<a id="__codelineno-0-59" name="__codelineno-0-59"></a>
+<a id="__codelineno-0-60" name="__codelineno-0-60"></a>    <span class="k">if</span> <span class="n">lemmatize</span><span class="p">:</span>
+<a id="__codelineno-0-61" name="__codelineno-0-61"></a>        <span class="kn">from</span> <span class="nn">nltk.stem</span> <span class="kn">import</span> <span class="n">WordNetLemmatizer</span>
+<a id="__codelineno-0-62" name="__codelineno-0-62"></a>        <span class="kn">from</span> <span class="nn">nltk.corpus</span> <span class="kn">import</span> <span class="n">wordnet</span> 
+<a id="__codelineno-0-63" name="__codelineno-0-63"></a>
+<a id="__codelineno-0-64" name="__codelineno-0-64"></a>        <span class="n">lemmatizer</span> <span class="o">=</span> <span class="n">WordNetLemmatizer</span><span class="p">()</span>
+<a id="__codelineno-0-65" name="__codelineno-0-65"></a>        <span class="n">newtext</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">lemmatizer</span><span class="o">.</span><span class="n">lemmatize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">),</span> <span class="n">newtext</span><span class="o">.</span><span class="n">split</span><span class="p">())))</span>
+<a id="__codelineno-0-66" name="__codelineno-0-66"></a>        <span class="c1"># newtext = &#39; &#39;.join(list(map(lambda x: lemmatizer.lemmatize(x, &quot;v&quot;), newtext.split())))</span>
+<a id="__codelineno-0-67" name="__codelineno-0-67"></a>
+<a id="__codelineno-0-68" name="__codelineno-0-68"></a>    <span class="k">if</span> <span class="n">remove_stopwords</span><span class="p">:</span>
+<a id="__codelineno-0-69" name="__codelineno-0-69"></a>        <span class="kn">from</span> <span class="nn">nltk.corpus</span> <span class="kn">import</span> <span class="n">stopwords</span>
+<a id="__codelineno-0-70" name="__codelineno-0-70"></a>        <span class="n">stop_words</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">stopwords</span><span class="o">.</span><span class="n">words</span><span class="p">(</span><span class="s1">&#39;english&#39;</span><span class="p">))</span>
+<a id="__codelineno-0-71" name="__codelineno-0-71"></a>        <span class="n">newtext</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stop_words</span><span class="p">,</span> <span class="n">newtext</span><span class="o">.</span><span class="n">split</span><span class="p">())))</span>
+<a id="__codelineno-0-72" name="__codelineno-0-72"></a>
+<a id="__codelineno-0-73" name="__codelineno-0-73"></a>    <span class="k">return</span> <span class="n">newtext</span>
 </code></pre></div></td></tr></table></div>
           </details>
   </div>
@@ -1480,7 +1591,7 @@
     <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "search", "content.tabs.link", "content.code.annotation", "content.code.copy", "content.code.tabbed", "content.image.figure", "content.image.lightbox", "content.image.zoom", "content.video", "content.iframe", "content.math"], "search": "../../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.aecac24b.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.6c14ae12.min.js"></script>
       
     
   </body>

@@ -12,11 +12,11 @@
         <link rel="prev" href="../nodes/">
       
       
-        <link rel="next" href="../../../utils/">
+        <link rel="next" href="../temporal_graph/">
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.7">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.9">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.4b4a2bd9.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.78cf6014.min.css">
       
         
         <link rel="stylesheet" href="../../../assets/stylesheets/palette.356b1318.min.css">
@@ -453,6 +453,66 @@
 
               
             
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/literature_review/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Literature Review
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/problem_statement/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Problem Statement
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/research_methodology/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Research Methodology
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -805,21 +865,45 @@
       
         <li class="md-nav__item">
   <a href="#semantics.graphs.temporal_graph.Edges" class="md-nav__link">
-    Edges
+    <span class="md-ellipsis">
+      Edges
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#semantics.graphs.temporal_graph.Edges.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__()
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#semantics.graphs.temporal_graph.Edges.get_edge_features" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_edge_features()
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#semantics.graphs.temporal_graph.Edges.get_pmi" class="md-nav__link">
-    get_pmi()
+    <span class="md-ellipsis">
+      get_pmi()
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#semantics.graphs.temporal_graph.Edges.get_similarity" class="md-nav__link">
-    get_similarity()
+    <span class="md-ellipsis">
+      get_similarity()
+    </span>
   </a>
   
 </li>
@@ -828,6 +912,26 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../temporal_graph/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Temporal Graph
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -939,32 +1043,62 @@
 <a id="semantics.graphs.temporal_graph.Edges"></a>
   <div class="doc doc-contents first">
 
+  
+      <p>This class is used to get the edges of the word graph.</p>
+
+
+
+  <p><strong>Methods:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+          <tr>
+            <td><code>__init__</code></td>
+            <td>
+              <div class="doc-md-description">
+                <p>Dict[int, str], node_features: np.ndarray, node_embeddings: np.ndarray)
+The constructor of the Edges class.</p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><code>get_similarity</code></td>
+            <td>
+              <div class="doc-md-description">
+                <p>int, emb2: int) -&gt; float
+This method is used to get the similarity between two nodes.</p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><code>get_pmi</code></td>
+            <td>
+              <div class="doc-md-description">
+                <p>List[str], word1: str, word2: str) -&gt; float
+This method is used to get the PMI between two nodes.</p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><code>get_edge_features</code></td>
+            <td>
+              <div class="doc-md-description">
+                <p>List[str])
+This method is used to get the edge features of the word graph.</p>
+              </div>
+            </td>
+          </tr>
+    </tbody>
+  </table>
 
             <details class="quote">
               <summary>Source code in <code>semantics/graphs/temporal_graph.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-223">223</a></span>
-<span class="normal"><a href="#__codelineno-0-224">224</a></span>
-<span class="normal"><a href="#__codelineno-0-225">225</a></span>
-<span class="normal"><a href="#__codelineno-0-226">226</a></span>
-<span class="normal"><a href="#__codelineno-0-227">227</a></span>
-<span class="normal"><a href="#__codelineno-0-228">228</a></span>
-<span class="normal"><a href="#__codelineno-0-229">229</a></span>
-<span class="normal"><a href="#__codelineno-0-230">230</a></span>
-<span class="normal"><a href="#__codelineno-0-231">231</a></span>
-<span class="normal"><a href="#__codelineno-0-232">232</a></span>
-<span class="normal"><a href="#__codelineno-0-233">233</a></span>
-<span class="normal"><a href="#__codelineno-0-234">234</a></span>
-<span class="normal"><a href="#__codelineno-0-235">235</a></span>
-<span class="normal"><a href="#__codelineno-0-236">236</a></span>
-<span class="normal"><a href="#__codelineno-0-237">237</a></span>
-<span class="normal"><a href="#__codelineno-0-238">238</a></span>
-<span class="normal"><a href="#__codelineno-0-239">239</a></span>
-<span class="normal"><a href="#__codelineno-0-240">240</a></span>
-<span class="normal"><a href="#__codelineno-0-241">241</a></span>
-<span class="normal"><a href="#__codelineno-0-242">242</a></span>
-<span class="normal"><a href="#__codelineno-0-243">243</a></span>
-<span class="normal"><a href="#__codelineno-0-244">244</a></span>
-<span class="normal"><a href="#__codelineno-0-245">245</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-245">245</a></span>
 <span class="normal"><a href="#__codelineno-0-246">246</a></span>
 <span class="normal"><a href="#__codelineno-0-247">247</a></span>
 <span class="normal"><a href="#__codelineno-0-248">248</a></span>
@@ -980,45 +1114,249 @@
 <span class="normal"><a href="#__codelineno-0-258">258</a></span>
 <span class="normal"><a href="#__codelineno-0-259">259</a></span>
 <span class="normal"><a href="#__codelineno-0-260">260</a></span>
-<span class="normal"><a href="#__codelineno-0-261">261</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-223" name="__codelineno-0-223"></a><span class="k">class</span> <span class="nc">Edges</span><span class="p">:</span>
-<a id="__codelineno-0-224" name="__codelineno-0-224"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-<a id="__codelineno-0-225" name="__codelineno-0-225"></a>            <span class="bp">self</span><span class="p">,</span>
-<a id="__codelineno-0-226" name="__codelineno-0-226"></a>            <span class="n">node_features</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-<a id="__codelineno-0-227" name="__codelineno-0-227"></a>            <span class="n">node_embeddings</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-<a id="__codelineno-0-228" name="__codelineno-0-228"></a>        <span class="p">):</span>
-<a id="__codelineno-0-229" name="__codelineno-0-229"></a>
-<a id="__codelineno-0-230" name="__codelineno-0-230"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span> <span class="o">=</span> <span class="n">node_features</span>
-<a id="__codelineno-0-231" name="__codelineno-0-231"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">node_embeddings</span> <span class="o">=</span> <span class="n">node_embeddings</span>
-<a id="__codelineno-0-232" name="__codelineno-0-232"></a>
-<a id="__codelineno-0-233" name="__codelineno-0-233"></a>
-<a id="__codelineno-0-234" name="__codelineno-0-234"></a>    <span class="k">def</span> <span class="nf">get_similarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emb1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="p">,</span> <span class="n">emb2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<a id="__codelineno-0-235" name="__codelineno-0-235"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-236" name="__codelineno-0-236"></a><span class="sd">        This method is used to get the similarity between two nodes.</span>
-<a id="__codelineno-0-237" name="__codelineno-0-237"></a>
-<a id="__codelineno-0-238" name="__codelineno-0-238"></a><span class="sd">        Args:</span>
-<a id="__codelineno-0-239" name="__codelineno-0-239"></a><span class="sd">            emb1 (np.ndarray): the embedding of the first word node</span>
-<a id="__codelineno-0-240" name="__codelineno-0-240"></a><span class="sd">            emb2 (np.ndarray): the embedding of the second word node</span>
-<a id="__codelineno-0-241" name="__codelineno-0-241"></a>
-<a id="__codelineno-0-242" name="__codelineno-0-242"></a><span class="sd">        Returns:</span>
-<a id="__codelineno-0-243" name="__codelineno-0-243"></a><span class="sd">            similarity (float): the similarity between the two embeddings</span>
-<a id="__codelineno-0-244" name="__codelineno-0-244"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-0-245" name="__codelineno-0-245"></a>        <span class="c1"># np.dot(node1, node2) / (np.linalg.norm(node1) * np.linalg.norm(node2))</span>
-<a id="__codelineno-0-246" name="__codelineno-0-246"></a>        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cosine_similarity</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">emb1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">emb2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-<a id="__codelineno-0-247" name="__codelineno-0-247"></a>
+<span class="normal"><a href="#__codelineno-0-261">261</a></span>
+<span class="normal"><a href="#__codelineno-0-262">262</a></span>
+<span class="normal"><a href="#__codelineno-0-263">263</a></span>
+<span class="normal"><a href="#__codelineno-0-264">264</a></span>
+<span class="normal"><a href="#__codelineno-0-265">265</a></span>
+<span class="normal"><a href="#__codelineno-0-266">266</a></span>
+<span class="normal"><a href="#__codelineno-0-267">267</a></span>
+<span class="normal"><a href="#__codelineno-0-268">268</a></span>
+<span class="normal"><a href="#__codelineno-0-269">269</a></span>
+<span class="normal"><a href="#__codelineno-0-270">270</a></span>
+<span class="normal"><a href="#__codelineno-0-271">271</a></span>
+<span class="normal"><a href="#__codelineno-0-272">272</a></span>
+<span class="normal"><a href="#__codelineno-0-273">273</a></span>
+<span class="normal"><a href="#__codelineno-0-274">274</a></span>
+<span class="normal"><a href="#__codelineno-0-275">275</a></span>
+<span class="normal"><a href="#__codelineno-0-276">276</a></span>
+<span class="normal"><a href="#__codelineno-0-277">277</a></span>
+<span class="normal"><a href="#__codelineno-0-278">278</a></span>
+<span class="normal"><a href="#__codelineno-0-279">279</a></span>
+<span class="normal"><a href="#__codelineno-0-280">280</a></span>
+<span class="normal"><a href="#__codelineno-0-281">281</a></span>
+<span class="normal"><a href="#__codelineno-0-282">282</a></span>
+<span class="normal"><a href="#__codelineno-0-283">283</a></span>
+<span class="normal"><a href="#__codelineno-0-284">284</a></span>
+<span class="normal"><a href="#__codelineno-0-285">285</a></span>
+<span class="normal"><a href="#__codelineno-0-286">286</a></span>
+<span class="normal"><a href="#__codelineno-0-287">287</a></span>
+<span class="normal"><a href="#__codelineno-0-288">288</a></span>
+<span class="normal"><a href="#__codelineno-0-289">289</a></span>
+<span class="normal"><a href="#__codelineno-0-290">290</a></span>
+<span class="normal"><a href="#__codelineno-0-291">291</a></span>
+<span class="normal"><a href="#__codelineno-0-292">292</a></span>
+<span class="normal"><a href="#__codelineno-0-293">293</a></span>
+<span class="normal"><a href="#__codelineno-0-294">294</a></span>
+<span class="normal"><a href="#__codelineno-0-295">295</a></span>
+<span class="normal"><a href="#__codelineno-0-296">296</a></span>
+<span class="normal"><a href="#__codelineno-0-297">297</a></span>
+<span class="normal"><a href="#__codelineno-0-298">298</a></span>
+<span class="normal"><a href="#__codelineno-0-299">299</a></span>
+<span class="normal"><a href="#__codelineno-0-300">300</a></span>
+<span class="normal"><a href="#__codelineno-0-301">301</a></span>
+<span class="normal"><a href="#__codelineno-0-302">302</a></span>
+<span class="normal"><a href="#__codelineno-0-303">303</a></span>
+<span class="normal"><a href="#__codelineno-0-304">304</a></span>
+<span class="normal"><a href="#__codelineno-0-305">305</a></span>
+<span class="normal"><a href="#__codelineno-0-306">306</a></span>
+<span class="normal"><a href="#__codelineno-0-307">307</a></span>
+<span class="normal"><a href="#__codelineno-0-308">308</a></span>
+<span class="normal"><a href="#__codelineno-0-309">309</a></span>
+<span class="normal"><a href="#__codelineno-0-310">310</a></span>
+<span class="normal"><a href="#__codelineno-0-311">311</a></span>
+<span class="normal"><a href="#__codelineno-0-312">312</a></span>
+<span class="normal"><a href="#__codelineno-0-313">313</a></span>
+<span class="normal"><a href="#__codelineno-0-314">314</a></span>
+<span class="normal"><a href="#__codelineno-0-315">315</a></span>
+<span class="normal"><a href="#__codelineno-0-316">316</a></span>
+<span class="normal"><a href="#__codelineno-0-317">317</a></span>
+<span class="normal"><a href="#__codelineno-0-318">318</a></span>
+<span class="normal"><a href="#__codelineno-0-319">319</a></span>
+<span class="normal"><a href="#__codelineno-0-320">320</a></span>
+<span class="normal"><a href="#__codelineno-0-321">321</a></span>
+<span class="normal"><a href="#__codelineno-0-322">322</a></span>
+<span class="normal"><a href="#__codelineno-0-323">323</a></span>
+<span class="normal"><a href="#__codelineno-0-324">324</a></span>
+<span class="normal"><a href="#__codelineno-0-325">325</a></span>
+<span class="normal"><a href="#__codelineno-0-326">326</a></span>
+<span class="normal"><a href="#__codelineno-0-327">327</a></span>
+<span class="normal"><a href="#__codelineno-0-328">328</a></span>
+<span class="normal"><a href="#__codelineno-0-329">329</a></span>
+<span class="normal"><a href="#__codelineno-0-330">330</a></span>
+<span class="normal"><a href="#__codelineno-0-331">331</a></span>
+<span class="normal"><a href="#__codelineno-0-332">332</a></span>
+<span class="normal"><a href="#__codelineno-0-333">333</a></span>
+<span class="normal"><a href="#__codelineno-0-334">334</a></span>
+<span class="normal"><a href="#__codelineno-0-335">335</a></span>
+<span class="normal"><a href="#__codelineno-0-336">336</a></span>
+<span class="normal"><a href="#__codelineno-0-337">337</a></span>
+<span class="normal"><a href="#__codelineno-0-338">338</a></span>
+<span class="normal"><a href="#__codelineno-0-339">339</a></span>
+<span class="normal"><a href="#__codelineno-0-340">340</a></span>
+<span class="normal"><a href="#__codelineno-0-341">341</a></span>
+<span class="normal"><a href="#__codelineno-0-342">342</a></span>
+<span class="normal"><a href="#__codelineno-0-343">343</a></span>
+<span class="normal"><a href="#__codelineno-0-344">344</a></span>
+<span class="normal"><a href="#__codelineno-0-345">345</a></span>
+<span class="normal"><a href="#__codelineno-0-346">346</a></span>
+<span class="normal"><a href="#__codelineno-0-347">347</a></span>
+<span class="normal"><a href="#__codelineno-0-348">348</a></span>
+<span class="normal"><a href="#__codelineno-0-349">349</a></span>
+<span class="normal"><a href="#__codelineno-0-350">350</a></span>
+<span class="normal"><a href="#__codelineno-0-351">351</a></span>
+<span class="normal"><a href="#__codelineno-0-352">352</a></span>
+<span class="normal"><a href="#__codelineno-0-353">353</a></span>
+<span class="normal"><a href="#__codelineno-0-354">354</a></span>
+<span class="normal"><a href="#__codelineno-0-355">355</a></span>
+<span class="normal"><a href="#__codelineno-0-356">356</a></span>
+<span class="normal"><a href="#__codelineno-0-357">357</a></span>
+<span class="normal"><a href="#__codelineno-0-358">358</a></span>
+<span class="normal"><a href="#__codelineno-0-359">359</a></span>
+<span class="normal"><a href="#__codelineno-0-360">360</a></span>
+<span class="normal"><a href="#__codelineno-0-361">361</a></span>
+<span class="normal"><a href="#__codelineno-0-362">362</a></span>
+<span class="normal"><a href="#__codelineno-0-363">363</a></span>
+<span class="normal"><a href="#__codelineno-0-364">364</a></span>
+<span class="normal"><a href="#__codelineno-0-365">365</a></span>
+<span class="normal"><a href="#__codelineno-0-366">366</a></span>
+<span class="normal"><a href="#__codelineno-0-367">367</a></span>
+<span class="normal"><a href="#__codelineno-0-368">368</a></span>
+<span class="normal"><a href="#__codelineno-0-369">369</a></span>
+<span class="normal"><a href="#__codelineno-0-370">370</a></span>
+<span class="normal"><a href="#__codelineno-0-371">371</a></span>
+<span class="normal"><a href="#__codelineno-0-372">372</a></span>
+<span class="normal"><a href="#__codelineno-0-373">373</a></span>
+<span class="normal"><a href="#__codelineno-0-374">374</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-245" name="__codelineno-0-245"></a><span class="k">class</span> <span class="nc">Edges</span><span class="p">:</span>
+<a id="__codelineno-0-246" name="__codelineno-0-246"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-247" name="__codelineno-0-247"></a><span class="sd">    This class is used to get the edges of the word graph.</span>
 <a id="__codelineno-0-248" name="__codelineno-0-248"></a>
-<a id="__codelineno-0-249" name="__codelineno-0-249"></a>    <span class="k">def</span> <span class="nf">get_pmi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">node2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<a id="__codelineno-0-250" name="__codelineno-0-250"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-251" name="__codelineno-0-251"></a><span class="sd">        This method is used to get the PMI between two nodes.</span>
-<a id="__codelineno-0-252" name="__codelineno-0-252"></a>
-<a id="__codelineno-0-253" name="__codelineno-0-253"></a><span class="sd">        Args:</span>
-<a id="__codelineno-0-254" name="__codelineno-0-254"></a><span class="sd">            node1 (str): the first node</span>
-<a id="__codelineno-0-255" name="__codelineno-0-255"></a><span class="sd">            node2 (str): the second node</span>
-<a id="__codelineno-0-256" name="__codelineno-0-256"></a>
-<a id="__codelineno-0-257" name="__codelineno-0-257"></a><span class="sd">        Returns:</span>
-<a id="__codelineno-0-258" name="__codelineno-0-258"></a><span class="sd">            pmi (float): the PMI between the two nodes</span>
-<a id="__codelineno-0-259" name="__codelineno-0-259"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-0-260" name="__codelineno-0-260"></a>
-<a id="__codelineno-0-261" name="__codelineno-0-261"></a>        <span class="k">return</span> <span class="mf">0.0</span>
+<a id="__codelineno-0-249" name="__codelineno-0-249"></a><span class="sd">    methods:</span>
+<a id="__codelineno-0-250" name="__codelineno-0-250"></a><span class="sd">        __init__(self, word_ids: Dict[int, str], node_features: np.ndarray, node_embeddings: np.ndarray)</span>
+<a id="__codelineno-0-251" name="__codelineno-0-251"></a><span class="sd">            The constructor of the Edges class.</span>
+<a id="__codelineno-0-252" name="__codelineno-0-252"></a><span class="sd">        get_similarity(self, emb1: int, emb2: int) -&gt; float</span>
+<a id="__codelineno-0-253" name="__codelineno-0-253"></a><span class="sd">            This method is used to get the similarity between two nodes.</span>
+<a id="__codelineno-0-254" name="__codelineno-0-254"></a><span class="sd">        get_pmi(self, data: List[str], word1: str, word2: str) -&gt; float</span>
+<a id="__codelineno-0-255" name="__codelineno-0-255"></a><span class="sd">            This method is used to get the PMI between two nodes.</span>
+<a id="__codelineno-0-256" name="__codelineno-0-256"></a><span class="sd">        get_edge_features(self, dataset: List[str])</span>
+<a id="__codelineno-0-257" name="__codelineno-0-257"></a><span class="sd">            This method is used to get the edge features of the word graph.</span>
+<a id="__codelineno-0-258" name="__codelineno-0-258"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-259" name="__codelineno-0-259"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<a id="__codelineno-0-260" name="__codelineno-0-260"></a>            <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-0-261" name="__codelineno-0-261"></a>            <span class="n">index_to_key</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+<a id="__codelineno-0-262" name="__codelineno-0-262"></a>            <span class="n">node_features</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+<a id="__codelineno-0-263" name="__codelineno-0-263"></a>            <span class="n">node_embeddings</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+<a id="__codelineno-0-264" name="__codelineno-0-264"></a>        <span class="p">):</span>
+<a id="__codelineno-0-265" name="__codelineno-0-265"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-266" name="__codelineno-0-266"></a><span class="sd">        Args:</span>
+<a id="__codelineno-0-267" name="__codelineno-0-267"></a><span class="sd">            index_to_key (Dict[int, str]): the index of the nodes of the word graph. The keys are the indices of the nodes and the values are the words of the nodes.</span>
+<a id="__codelineno-0-268" name="__codelineno-0-268"></a><span class="sd">            node_features (np.ndarray): the features of the nodes of the word graph of shape (num_nodes, 3) where num_nodes is the number of nodes in the graph.</span>
+<a id="__codelineno-0-269" name="__codelineno-0-269"></a><span class="sd">            node_embeddings (np.ndarray): the embeddings of the nodes of the word graph from the MLM model, of shape (num_nodes, 768).</span>
+<a id="__codelineno-0-270" name="__codelineno-0-270"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-271" name="__codelineno-0-271"></a>
+<a id="__codelineno-0-272" name="__codelineno-0-272"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">index_to_key</span> <span class="o">=</span> <span class="n">index_to_key</span>
+<a id="__codelineno-0-273" name="__codelineno-0-273"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span> <span class="o">=</span> <span class="n">node_features</span>
+<a id="__codelineno-0-274" name="__codelineno-0-274"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">node_embeddings</span> <span class="o">=</span> <span class="n">node_embeddings</span>
+<a id="__codelineno-0-275" name="__codelineno-0-275"></a>
+<a id="__codelineno-0-276" name="__codelineno-0-276"></a>
+<a id="__codelineno-0-277" name="__codelineno-0-277"></a>    <span class="k">def</span> <span class="nf">get_similarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emb1</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">emb2</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<a id="__codelineno-0-278" name="__codelineno-0-278"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-279" name="__codelineno-0-279"></a><span class="sd">        This method is used to get the similarity between two nodes.</span>
+<a id="__codelineno-0-280" name="__codelineno-0-280"></a>
+<a id="__codelineno-0-281" name="__codelineno-0-281"></a><span class="sd">        Args:</span>
+<a id="__codelineno-0-282" name="__codelineno-0-282"></a><span class="sd">            emb1 (int): the first index of the embedding in node_embeddings</span>
+<a id="__codelineno-0-283" name="__codelineno-0-283"></a><span class="sd">            emb2 (int): the second index of the embedding in node_embeddings</span>
+<a id="__codelineno-0-284" name="__codelineno-0-284"></a>
+<a id="__codelineno-0-285" name="__codelineno-0-285"></a><span class="sd">        Returns:</span>
+<a id="__codelineno-0-286" name="__codelineno-0-286"></a><span class="sd">            similarity (float): the similarity between the two embeddings</span>
+<a id="__codelineno-0-287" name="__codelineno-0-287"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-288" name="__codelineno-0-288"></a>        <span class="c1"># np.dot(node1, node2) / (np.linalg.norm(node1) * np.linalg.norm(node2))</span>
+<a id="__codelineno-0-289" name="__codelineno-0-289"></a>        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cosine_similarity</span><span class="p">(</span>
+<a id="__codelineno-0-290" name="__codelineno-0-290"></a>            <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_embeddings</span><span class="p">[</span><span class="n">emb1</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> 
+<a id="__codelineno-0-291" name="__codelineno-0-291"></a>            <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_embeddings</span><span class="p">[</span><span class="n">emb2</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-0-292" name="__codelineno-0-292"></a>            <span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+<a id="__codelineno-0-293" name="__codelineno-0-293"></a>
+<a id="__codelineno-0-294" name="__codelineno-0-294"></a>
+<a id="__codelineno-0-295" name="__codelineno-0-295"></a>    <span class="k">def</span> <span class="nf">get_pmi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">word1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<a id="__codelineno-0-296" name="__codelineno-0-296"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-297" name="__codelineno-0-297"></a><span class="sd">        This method is used to get the PMI between two nodes.</span>
+<a id="__codelineno-0-298" name="__codelineno-0-298"></a>
+<a id="__codelineno-0-299" name="__codelineno-0-299"></a><span class="sd">        Args:</span>
+<a id="__codelineno-0-300" name="__codelineno-0-300"></a><span class="sd">            word1 (str): the first node (word)</span>
+<a id="__codelineno-0-301" name="__codelineno-0-301"></a><span class="sd">            word2 (str): the second node (word)</span>
+<a id="__codelineno-0-302" name="__codelineno-0-302"></a>
+<a id="__codelineno-0-303" name="__codelineno-0-303"></a><span class="sd">        Returns:</span>
+<a id="__codelineno-0-304" name="__codelineno-0-304"></a><span class="sd">            pmi (float): the PMI between the two words in the dataset</span>
+<a id="__codelineno-0-305" name="__codelineno-0-305"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-306" name="__codelineno-0-306"></a>        <span class="c1"># Replace these methods with actual methods to get the word count, </span>
+<a id="__codelineno-0-307" name="__codelineno-0-307"></a>        <span class="c1"># the co-occurrence count, and the total count.</span>
+<a id="__codelineno-0-308" name="__codelineno-0-308"></a>        <span class="n">word1_count</span> <span class="o">=</span> <span class="n">count_occurence</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">word1</span><span class="p">)</span>
+<a id="__codelineno-0-309" name="__codelineno-0-309"></a>        <span class="n">word2_count</span> <span class="o">=</span> <span class="n">count_occurence</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">word2</span><span class="p">)</span>
+<a id="__codelineno-0-310" name="__codelineno-0-310"></a>        <span class="n">co_occurrence_count</span> <span class="o">=</span> <span class="n">count_occurence</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">[</span><span class="n">word1</span><span class="p">,</span> <span class="n">word2</span><span class="p">])</span>
+<a id="__codelineno-0-311" name="__codelineno-0-311"></a>        <span class="n">total_count</span> <span class="o">=</span> <span class="n">count_occurence</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<a id="__codelineno-0-312" name="__codelineno-0-312"></a>
+<a id="__codelineno-0-313" name="__codelineno-0-313"></a>        <span class="c1"># Calculate probabilities</span>
+<a id="__codelineno-0-314" name="__codelineno-0-314"></a>        <span class="n">p_word1</span> <span class="o">=</span> <span class="n">word1_count</span> <span class="o">/</span> <span class="n">total_count</span>
+<a id="__codelineno-0-315" name="__codelineno-0-315"></a>        <span class="n">p_word2</span> <span class="o">=</span> <span class="n">word2_count</span> <span class="o">/</span> <span class="n">total_count</span>
+<a id="__codelineno-0-316" name="__codelineno-0-316"></a>        <span class="n">p_co_occurrence</span> <span class="o">=</span> <span class="n">co_occurrence_count</span> <span class="o">/</span> <span class="n">total_count</span>
+<a id="__codelineno-0-317" name="__codelineno-0-317"></a>
+<a id="__codelineno-0-318" name="__codelineno-0-318"></a>        <span class="c1"># Calculate PMI</span>
+<a id="__codelineno-0-319" name="__codelineno-0-319"></a>        <span class="n">pmi</span> <span class="o">=</span> <span class="n">log</span><span class="p">(</span><span class="n">p_co_occurrence</span> <span class="o">/</span> <span class="p">(</span><span class="n">p_word1</span> <span class="o">*</span> <span class="n">p_word2</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="n">p_co_occurrence</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+<a id="__codelineno-0-320" name="__codelineno-0-320"></a>        <span class="k">return</span> <span class="n">pmi</span>
+<a id="__codelineno-0-321" name="__codelineno-0-321"></a>
+<a id="__codelineno-0-322" name="__codelineno-0-322"></a>    <span class="k">def</span> <span class="nf">get_edge_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">sim_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">):</span>
+<a id="__codelineno-0-323" name="__codelineno-0-323"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-324" name="__codelineno-0-324"></a><span class="sd">        This method is used to get the edge features of the word graph.</span>
+<a id="__codelineno-0-325" name="__codelineno-0-325"></a>
+<a id="__codelineno-0-326" name="__codelineno-0-326"></a><span class="sd">        Args:</span>
+<a id="__codelineno-0-327" name="__codelineno-0-327"></a><span class="sd">            dataset (List[str]): the dataset to get the edge features from</span>
+<a id="__codelineno-0-328" name="__codelineno-0-328"></a><span class="sd">            sim_threshold (float): the similarity threshold to create an edge between two nodes. Default: 0.5.</span>
+<a id="__codelineno-0-329" name="__codelineno-0-329"></a>
+<a id="__codelineno-0-330" name="__codelineno-0-330"></a><span class="sd">        Returns:</span>
+<a id="__codelineno-0-331" name="__codelineno-0-331"></a><span class="sd">            edge_index (np.ndarray): the edge index of the word graph of shape (2, num_edges) where num_edges is the number of edges in the graph. The first row contains the indices of the first node of the edge and the second row contains the indices of the second node of the edge. An edge is created if the similarity between the two nodes is greater than sim_threshold.</span>
+<a id="__codelineno-0-332" name="__codelineno-0-332"></a><span class="sd">            edge_features (np.ndarray): the edge features of the word graph of shape (num_edges, 3) where num_edges is the number of edges in the graph. The features are:</span>
+<a id="__codelineno-0-333" name="__codelineno-0-333"></a>
+<a id="__codelineno-0-334" name="__codelineno-0-334"></a><span class="sd">                - edge_type: the type of the edge (target-similar (1), target-context(2), similar-similar(3), similar-context(4), context-context(5), self-loop(0))</span>
+<a id="__codelineno-0-335" name="__codelineno-0-335"></a>
+<a id="__codelineno-0-336" name="__codelineno-0-336"></a><span class="sd">                - similarity: the similarity between node embeddings in the current snapshot</span>
+<a id="__codelineno-0-337" name="__codelineno-0-337"></a>
+<a id="__codelineno-0-338" name="__codelineno-0-338"></a><span class="sd">                - PMI: the PMI between nodes in the current snapshot</span>
+<a id="__codelineno-0-339" name="__codelineno-0-339"></a>
+<a id="__codelineno-0-340" name="__codelineno-0-340"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-0-341" name="__codelineno-0-341"></a>        <span class="n">edge_index_1</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-342" name="__codelineno-0-342"></a>        <span class="n">edge_index_2</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-343" name="__codelineno-0-343"></a>        <span class="n">edge_types</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-344" name="__codelineno-0-344"></a>        <span class="n">similarities</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-345" name="__codelineno-0-345"></a>        <span class="n">pmis</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-346" name="__codelineno-0-346"></a>        <span class="k">for</span> <span class="n">word_idx1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+<a id="__codelineno-0-347" name="__codelineno-0-347"></a>            <span class="k">for</span> <span class="n">word_idx2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">word_idx1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+<a id="__codelineno-0-348" name="__codelineno-0-348"></a>                <span class="k">if</span> <span class="n">word_idx1</span> <span class="o">==</span> <span class="n">word_idx2</span><span class="p">:</span>
+<a id="__codelineno-0-349" name="__codelineno-0-349"></a>                    <span class="n">edge_type</span> <span class="o">=</span> <span class="mi">0</span>
+<a id="__codelineno-0-350" name="__codelineno-0-350"></a>                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-0-351" name="__codelineno-0-351"></a>                    <span class="n">edge_type</span> <span class="o">=</span> <span class="mi">1</span>
+<a id="__codelineno-0-352" name="__codelineno-0-352"></a>                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+<a id="__codelineno-0-353" name="__codelineno-0-353"></a>                    <span class="n">edge_type</span> <span class="o">=</span> <span class="mi">2</span>
+<a id="__codelineno-0-354" name="__codelineno-0-354"></a>                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-0-355" name="__codelineno-0-355"></a>                    <span class="n">edge_type</span> <span class="o">=</span> <span class="mi">3</span>
+<a id="__codelineno-0-356" name="__codelineno-0-356"></a>                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+<a id="__codelineno-0-357" name="__codelineno-0-357"></a>                    <span class="n">edge_type</span> <span class="o">=</span> <span class="mi">4</span>
+<a id="__codelineno-0-358" name="__codelineno-0-358"></a>                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+<a id="__codelineno-0-359" name="__codelineno-0-359"></a>                    <span class="n">edge_type</span> <span class="o">=</span> <span class="mi">5</span>
+<a id="__codelineno-0-360" name="__codelineno-0-360"></a>
+<a id="__codelineno-0-361" name="__codelineno-0-361"></a>                <span class="n">similarity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_similarity</span><span class="p">(</span><span class="n">word_idx1</span><span class="p">,</span> <span class="n">word_idx2</span><span class="p">)</span>
+<a id="__codelineno-0-362" name="__codelineno-0-362"></a>                <span class="n">pmi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pmi</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_to_key</span><span class="p">[</span><span class="n">word_idx1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_to_key</span><span class="p">[</span><span class="n">word_idx2</span><span class="p">])</span>
+<a id="__codelineno-0-363" name="__codelineno-0-363"></a>
+<a id="__codelineno-0-364" name="__codelineno-0-364"></a>                <span class="k">if</span> <span class="n">similarity</span> <span class="o">&gt;</span> <span class="n">sim_threshold</span><span class="p">:</span>
+<a id="__codelineno-0-365" name="__codelineno-0-365"></a>                    <span class="n">edge_index_1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word_idx1</span><span class="p">)</span>
+<a id="__codelineno-0-366" name="__codelineno-0-366"></a>                    <span class="n">edge_index_2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word_idx2</span><span class="p">)</span>
+<a id="__codelineno-0-367" name="__codelineno-0-367"></a>                    <span class="n">edge_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge_type</span><span class="p">)</span>
+<a id="__codelineno-0-368" name="__codelineno-0-368"></a>                    <span class="n">similarities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">similarity</span><span class="p">)</span>
+<a id="__codelineno-0-369" name="__codelineno-0-369"></a>                    <span class="n">pmis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pmi</span><span class="p">)</span>
+<a id="__codelineno-0-370" name="__codelineno-0-370"></a>
+<a id="__codelineno-0-371" name="__codelineno-0-371"></a>        <span class="n">edge_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">edge_index_1</span><span class="p">,</span> <span class="n">edge_index_2</span><span class="p">])</span>
+<a id="__codelineno-0-372" name="__codelineno-0-372"></a>        <span class="n">edge_features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">edge_types</span><span class="p">,</span> <span class="n">similarities</span><span class="p">,</span> <span class="n">pmis</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+<a id="__codelineno-0-373" name="__codelineno-0-373"></a>
+<a id="__codelineno-0-374" name="__codelineno-0-374"></a>        <span class="k">return</span> <span class="n">edge_index</span><span class="p">,</span> <span class="n">edge_features</span>
 </code></pre></div></td></tr></table></div>
             </details>
 
@@ -1040,8 +1378,338 @@
 
 
 
+<h2 id="semantics.graphs.temporal_graph.Edges.__init__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">index_to_key</span><span class="p">,</span> <span class="n">node_features</span><span class="p">,</span> <span class="n">node_embeddings</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>index_to_key</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[int, str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the index of the nodes of the word graph. The keys are the indices of the nodes and the values are the words of the nodes.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>node_features</code></td>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the features of the nodes of the word graph of shape (num_nodes, 3) where num_nodes is the number of nodes in the graph.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>node_embeddings</code></td>
+          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the embeddings of the nodes of the word graph from the MLM model, of shape (num_nodes, 768).</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>semantics/graphs/temporal_graph.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-259">259</a></span>
+<span class="normal"><a href="#__codelineno-0-260">260</a></span>
+<span class="normal"><a href="#__codelineno-0-261">261</a></span>
+<span class="normal"><a href="#__codelineno-0-262">262</a></span>
+<span class="normal"><a href="#__codelineno-0-263">263</a></span>
+<span class="normal"><a href="#__codelineno-0-264">264</a></span>
+<span class="normal"><a href="#__codelineno-0-265">265</a></span>
+<span class="normal"><a href="#__codelineno-0-266">266</a></span>
+<span class="normal"><a href="#__codelineno-0-267">267</a></span>
+<span class="normal"><a href="#__codelineno-0-268">268</a></span>
+<span class="normal"><a href="#__codelineno-0-269">269</a></span>
+<span class="normal"><a href="#__codelineno-0-270">270</a></span>
+<span class="normal"><a href="#__codelineno-0-271">271</a></span>
+<span class="normal"><a href="#__codelineno-0-272">272</a></span>
+<span class="normal"><a href="#__codelineno-0-273">273</a></span>
+<span class="normal"><a href="#__codelineno-0-274">274</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-259" name="__codelineno-0-259"></a><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<a id="__codelineno-0-260" name="__codelineno-0-260"></a>        <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-0-261" name="__codelineno-0-261"></a>        <span class="n">index_to_key</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+<a id="__codelineno-0-262" name="__codelineno-0-262"></a>        <span class="n">node_features</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+<a id="__codelineno-0-263" name="__codelineno-0-263"></a>        <span class="n">node_embeddings</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+<a id="__codelineno-0-264" name="__codelineno-0-264"></a>    <span class="p">):</span>
+<a id="__codelineno-0-265" name="__codelineno-0-265"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-266" name="__codelineno-0-266"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-267" name="__codelineno-0-267"></a><span class="sd">        index_to_key (Dict[int, str]): the index of the nodes of the word graph. The keys are the indices of the nodes and the values are the words of the nodes.</span>
+<a id="__codelineno-0-268" name="__codelineno-0-268"></a><span class="sd">        node_features (np.ndarray): the features of the nodes of the word graph of shape (num_nodes, 3) where num_nodes is the number of nodes in the graph.</span>
+<a id="__codelineno-0-269" name="__codelineno-0-269"></a><span class="sd">        node_embeddings (np.ndarray): the embeddings of the nodes of the word graph from the MLM model, of shape (num_nodes, 768).</span>
+<a id="__codelineno-0-270" name="__codelineno-0-270"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-271" name="__codelineno-0-271"></a>
+<a id="__codelineno-0-272" name="__codelineno-0-272"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">index_to_key</span> <span class="o">=</span> <span class="n">index_to_key</span>
+<a id="__codelineno-0-273" name="__codelineno-0-273"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span> <span class="o">=</span> <span class="n">node_features</span>
+<a id="__codelineno-0-274" name="__codelineno-0-274"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">node_embeddings</span> <span class="o">=</span> <span class="n">node_embeddings</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h2 id="semantics.graphs.temporal_graph.Edges.get_edge_features" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">get_edge_features</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">sim_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>This method is used to get the edge features of the word graph.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>dataset</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the dataset to get the edge features from</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>sim_threshold</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the similarity threshold to create an edge between two nodes. Default: 0.5.</p>
+            </div>
+          </td>
+          <td>
+                <code>0.5</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>edge_index</code></td>          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the edge index of the word graph of shape (2, num_edges) where num_edges is the number of edges in the graph. The first row contains the indices of the first node of the edge and the second row contains the indices of the second node of the edge. An edge is created if the similarity between the two nodes is greater than sim_threshold.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+<td><code>edge_features</code></td>          <td>
+                <code><span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the edge features of the word graph of shape (num_edges, 3) where num_edges is the number of edges in the graph. The features are:</p>
+<ul>
+<li>
+<p>edge_type: the type of the edge (target-similar (1), target-context(2), similar-similar(3), similar-context(4), context-context(5), self-loop(0))</p>
+</li>
+<li>
+<p>similarity: the similarity between node embeddings in the current snapshot</p>
+</li>
+<li>
+<p>PMI: the PMI between nodes in the current snapshot</p>
+</li>
+</ul>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>semantics/graphs/temporal_graph.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-322">322</a></span>
+<span class="normal"><a href="#__codelineno-0-323">323</a></span>
+<span class="normal"><a href="#__codelineno-0-324">324</a></span>
+<span class="normal"><a href="#__codelineno-0-325">325</a></span>
+<span class="normal"><a href="#__codelineno-0-326">326</a></span>
+<span class="normal"><a href="#__codelineno-0-327">327</a></span>
+<span class="normal"><a href="#__codelineno-0-328">328</a></span>
+<span class="normal"><a href="#__codelineno-0-329">329</a></span>
+<span class="normal"><a href="#__codelineno-0-330">330</a></span>
+<span class="normal"><a href="#__codelineno-0-331">331</a></span>
+<span class="normal"><a href="#__codelineno-0-332">332</a></span>
+<span class="normal"><a href="#__codelineno-0-333">333</a></span>
+<span class="normal"><a href="#__codelineno-0-334">334</a></span>
+<span class="normal"><a href="#__codelineno-0-335">335</a></span>
+<span class="normal"><a href="#__codelineno-0-336">336</a></span>
+<span class="normal"><a href="#__codelineno-0-337">337</a></span>
+<span class="normal"><a href="#__codelineno-0-338">338</a></span>
+<span class="normal"><a href="#__codelineno-0-339">339</a></span>
+<span class="normal"><a href="#__codelineno-0-340">340</a></span>
+<span class="normal"><a href="#__codelineno-0-341">341</a></span>
+<span class="normal"><a href="#__codelineno-0-342">342</a></span>
+<span class="normal"><a href="#__codelineno-0-343">343</a></span>
+<span class="normal"><a href="#__codelineno-0-344">344</a></span>
+<span class="normal"><a href="#__codelineno-0-345">345</a></span>
+<span class="normal"><a href="#__codelineno-0-346">346</a></span>
+<span class="normal"><a href="#__codelineno-0-347">347</a></span>
+<span class="normal"><a href="#__codelineno-0-348">348</a></span>
+<span class="normal"><a href="#__codelineno-0-349">349</a></span>
+<span class="normal"><a href="#__codelineno-0-350">350</a></span>
+<span class="normal"><a href="#__codelineno-0-351">351</a></span>
+<span class="normal"><a href="#__codelineno-0-352">352</a></span>
+<span class="normal"><a href="#__codelineno-0-353">353</a></span>
+<span class="normal"><a href="#__codelineno-0-354">354</a></span>
+<span class="normal"><a href="#__codelineno-0-355">355</a></span>
+<span class="normal"><a href="#__codelineno-0-356">356</a></span>
+<span class="normal"><a href="#__codelineno-0-357">357</a></span>
+<span class="normal"><a href="#__codelineno-0-358">358</a></span>
+<span class="normal"><a href="#__codelineno-0-359">359</a></span>
+<span class="normal"><a href="#__codelineno-0-360">360</a></span>
+<span class="normal"><a href="#__codelineno-0-361">361</a></span>
+<span class="normal"><a href="#__codelineno-0-362">362</a></span>
+<span class="normal"><a href="#__codelineno-0-363">363</a></span>
+<span class="normal"><a href="#__codelineno-0-364">364</a></span>
+<span class="normal"><a href="#__codelineno-0-365">365</a></span>
+<span class="normal"><a href="#__codelineno-0-366">366</a></span>
+<span class="normal"><a href="#__codelineno-0-367">367</a></span>
+<span class="normal"><a href="#__codelineno-0-368">368</a></span>
+<span class="normal"><a href="#__codelineno-0-369">369</a></span>
+<span class="normal"><a href="#__codelineno-0-370">370</a></span>
+<span class="normal"><a href="#__codelineno-0-371">371</a></span>
+<span class="normal"><a href="#__codelineno-0-372">372</a></span>
+<span class="normal"><a href="#__codelineno-0-373">373</a></span>
+<span class="normal"><a href="#__codelineno-0-374">374</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-322" name="__codelineno-0-322"></a><span class="k">def</span> <span class="nf">get_edge_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">sim_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">):</span>
+<a id="__codelineno-0-323" name="__codelineno-0-323"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-324" name="__codelineno-0-324"></a><span class="sd">    This method is used to get the edge features of the word graph.</span>
+<a id="__codelineno-0-325" name="__codelineno-0-325"></a>
+<a id="__codelineno-0-326" name="__codelineno-0-326"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-327" name="__codelineno-0-327"></a><span class="sd">        dataset (List[str]): the dataset to get the edge features from</span>
+<a id="__codelineno-0-328" name="__codelineno-0-328"></a><span class="sd">        sim_threshold (float): the similarity threshold to create an edge between two nodes. Default: 0.5.</span>
+<a id="__codelineno-0-329" name="__codelineno-0-329"></a>
+<a id="__codelineno-0-330" name="__codelineno-0-330"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-331" name="__codelineno-0-331"></a><span class="sd">        edge_index (np.ndarray): the edge index of the word graph of shape (2, num_edges) where num_edges is the number of edges in the graph. The first row contains the indices of the first node of the edge and the second row contains the indices of the second node of the edge. An edge is created if the similarity between the two nodes is greater than sim_threshold.</span>
+<a id="__codelineno-0-332" name="__codelineno-0-332"></a><span class="sd">        edge_features (np.ndarray): the edge features of the word graph of shape (num_edges, 3) where num_edges is the number of edges in the graph. The features are:</span>
+<a id="__codelineno-0-333" name="__codelineno-0-333"></a>
+<a id="__codelineno-0-334" name="__codelineno-0-334"></a><span class="sd">            - edge_type: the type of the edge (target-similar (1), target-context(2), similar-similar(3), similar-context(4), context-context(5), self-loop(0))</span>
+<a id="__codelineno-0-335" name="__codelineno-0-335"></a>
+<a id="__codelineno-0-336" name="__codelineno-0-336"></a><span class="sd">            - similarity: the similarity between node embeddings in the current snapshot</span>
+<a id="__codelineno-0-337" name="__codelineno-0-337"></a>
+<a id="__codelineno-0-338" name="__codelineno-0-338"></a><span class="sd">            - PMI: the PMI between nodes in the current snapshot</span>
+<a id="__codelineno-0-339" name="__codelineno-0-339"></a>
+<a id="__codelineno-0-340" name="__codelineno-0-340"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-341" name="__codelineno-0-341"></a>    <span class="n">edge_index_1</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-342" name="__codelineno-0-342"></a>    <span class="n">edge_index_2</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-343" name="__codelineno-0-343"></a>    <span class="n">edge_types</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-344" name="__codelineno-0-344"></a>    <span class="n">similarities</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-345" name="__codelineno-0-345"></a>    <span class="n">pmis</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-346" name="__codelineno-0-346"></a>    <span class="k">for</span> <span class="n">word_idx1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+<a id="__codelineno-0-347" name="__codelineno-0-347"></a>        <span class="k">for</span> <span class="n">word_idx2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">word_idx1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+<a id="__codelineno-0-348" name="__codelineno-0-348"></a>            <span class="k">if</span> <span class="n">word_idx1</span> <span class="o">==</span> <span class="n">word_idx2</span><span class="p">:</span>
+<a id="__codelineno-0-349" name="__codelineno-0-349"></a>                <span class="n">edge_type</span> <span class="o">=</span> <span class="mi">0</span>
+<a id="__codelineno-0-350" name="__codelineno-0-350"></a>            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-0-351" name="__codelineno-0-351"></a>                <span class="n">edge_type</span> <span class="o">=</span> <span class="mi">1</span>
+<a id="__codelineno-0-352" name="__codelineno-0-352"></a>            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+<a id="__codelineno-0-353" name="__codelineno-0-353"></a>                <span class="n">edge_type</span> <span class="o">=</span> <span class="mi">2</span>
+<a id="__codelineno-0-354" name="__codelineno-0-354"></a>            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-0-355" name="__codelineno-0-355"></a>                <span class="n">edge_type</span> <span class="o">=</span> <span class="mi">3</span>
+<a id="__codelineno-0-356" name="__codelineno-0-356"></a>            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+<a id="__codelineno-0-357" name="__codelineno-0-357"></a>                <span class="n">edge_type</span> <span class="o">=</span> <span class="mi">4</span>
+<a id="__codelineno-0-358" name="__codelineno-0-358"></a>            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_features</span><span class="p">[</span><span class="n">word_idx2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+<a id="__codelineno-0-359" name="__codelineno-0-359"></a>                <span class="n">edge_type</span> <span class="o">=</span> <span class="mi">5</span>
+<a id="__codelineno-0-360" name="__codelineno-0-360"></a>
+<a id="__codelineno-0-361" name="__codelineno-0-361"></a>            <span class="n">similarity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_similarity</span><span class="p">(</span><span class="n">word_idx1</span><span class="p">,</span> <span class="n">word_idx2</span><span class="p">)</span>
+<a id="__codelineno-0-362" name="__codelineno-0-362"></a>            <span class="n">pmi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pmi</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_to_key</span><span class="p">[</span><span class="n">word_idx1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_to_key</span><span class="p">[</span><span class="n">word_idx2</span><span class="p">])</span>
+<a id="__codelineno-0-363" name="__codelineno-0-363"></a>
+<a id="__codelineno-0-364" name="__codelineno-0-364"></a>            <span class="k">if</span> <span class="n">similarity</span> <span class="o">&gt;</span> <span class="n">sim_threshold</span><span class="p">:</span>
+<a id="__codelineno-0-365" name="__codelineno-0-365"></a>                <span class="n">edge_index_1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word_idx1</span><span class="p">)</span>
+<a id="__codelineno-0-366" name="__codelineno-0-366"></a>                <span class="n">edge_index_2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word_idx2</span><span class="p">)</span>
+<a id="__codelineno-0-367" name="__codelineno-0-367"></a>                <span class="n">edge_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge_type</span><span class="p">)</span>
+<a id="__codelineno-0-368" name="__codelineno-0-368"></a>                <span class="n">similarities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">similarity</span><span class="p">)</span>
+<a id="__codelineno-0-369" name="__codelineno-0-369"></a>                <span class="n">pmis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pmi</span><span class="p">)</span>
+<a id="__codelineno-0-370" name="__codelineno-0-370"></a>
+<a id="__codelineno-0-371" name="__codelineno-0-371"></a>    <span class="n">edge_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">edge_index_1</span><span class="p">,</span> <span class="n">edge_index_2</span><span class="p">])</span>
+<a id="__codelineno-0-372" name="__codelineno-0-372"></a>    <span class="n">edge_features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">edge_types</span><span class="p">,</span> <span class="n">similarities</span><span class="p">,</span> <span class="n">pmis</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+<a id="__codelineno-0-373" name="__codelineno-0-373"></a>
+<a id="__codelineno-0-374" name="__codelineno-0-374"></a>    <span class="k">return</span> <span class="n">edge_index</span><span class="p">,</span> <span class="n">edge_features</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
 <h2 id="semantics.graphs.temporal_graph.Edges.get_pmi" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">get_pmi</span><span class="p">(</span><span class="n">node1</span><span class="p">,</span> <span class="n">node2</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_pmi</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">word1</span><span class="p">,</span> <span class="n">word2</span><span class="p">)</span></code>
 
 </h2>
 
@@ -1064,13 +1732,13 @@
     </thead>
     <tbody>
         <tr>
-          <td><code>node1</code></td>
+          <td><code>word1</code></td>
           <td>
                 <code>str</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>the first node</p>
+              <p>the first node (word)</p>
             </div>
           </td>
           <td>
@@ -1078,13 +1746,13 @@
           </td>
         </tr>
         <tr>
-          <td><code>node2</code></td>
+          <td><code>word2</code></td>
           <td>
                 <code>str</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>the second node</p>
+              <p>the second node (word)</p>
             </div>
           </td>
           <td>
@@ -1111,7 +1779,7 @@
           </td>
           <td>
             <div class="doc-md-description">
-              <p>the PMI between the two nodes</p>
+              <p>the PMI between the two words in the dataset</p>
             </div>
           </td>
         </tr>
@@ -1120,31 +1788,57 @@
 
           <details class="quote">
             <summary>Source code in <code>semantics/graphs/temporal_graph.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-249">249</a></span>
-<span class="normal"><a href="#__codelineno-0-250">250</a></span>
-<span class="normal"><a href="#__codelineno-0-251">251</a></span>
-<span class="normal"><a href="#__codelineno-0-252">252</a></span>
-<span class="normal"><a href="#__codelineno-0-253">253</a></span>
-<span class="normal"><a href="#__codelineno-0-254">254</a></span>
-<span class="normal"><a href="#__codelineno-0-255">255</a></span>
-<span class="normal"><a href="#__codelineno-0-256">256</a></span>
-<span class="normal"><a href="#__codelineno-0-257">257</a></span>
-<span class="normal"><a href="#__codelineno-0-258">258</a></span>
-<span class="normal"><a href="#__codelineno-0-259">259</a></span>
-<span class="normal"><a href="#__codelineno-0-260">260</a></span>
-<span class="normal"><a href="#__codelineno-0-261">261</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-249" name="__codelineno-0-249"></a><span class="k">def</span> <span class="nf">get_pmi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">node2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<a id="__codelineno-0-250" name="__codelineno-0-250"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-251" name="__codelineno-0-251"></a><span class="sd">    This method is used to get the PMI between two nodes.</span>
-<a id="__codelineno-0-252" name="__codelineno-0-252"></a>
-<a id="__codelineno-0-253" name="__codelineno-0-253"></a><span class="sd">    Args:</span>
-<a id="__codelineno-0-254" name="__codelineno-0-254"></a><span class="sd">        node1 (str): the first node</span>
-<a id="__codelineno-0-255" name="__codelineno-0-255"></a><span class="sd">        node2 (str): the second node</span>
-<a id="__codelineno-0-256" name="__codelineno-0-256"></a>
-<a id="__codelineno-0-257" name="__codelineno-0-257"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-258" name="__codelineno-0-258"></a><span class="sd">        pmi (float): the PMI between the two nodes</span>
-<a id="__codelineno-0-259" name="__codelineno-0-259"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-260" name="__codelineno-0-260"></a>
-<a id="__codelineno-0-261" name="__codelineno-0-261"></a>    <span class="k">return</span> <span class="mf">0.0</span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-295">295</a></span>
+<span class="normal"><a href="#__codelineno-0-296">296</a></span>
+<span class="normal"><a href="#__codelineno-0-297">297</a></span>
+<span class="normal"><a href="#__codelineno-0-298">298</a></span>
+<span class="normal"><a href="#__codelineno-0-299">299</a></span>
+<span class="normal"><a href="#__codelineno-0-300">300</a></span>
+<span class="normal"><a href="#__codelineno-0-301">301</a></span>
+<span class="normal"><a href="#__codelineno-0-302">302</a></span>
+<span class="normal"><a href="#__codelineno-0-303">303</a></span>
+<span class="normal"><a href="#__codelineno-0-304">304</a></span>
+<span class="normal"><a href="#__codelineno-0-305">305</a></span>
+<span class="normal"><a href="#__codelineno-0-306">306</a></span>
+<span class="normal"><a href="#__codelineno-0-307">307</a></span>
+<span class="normal"><a href="#__codelineno-0-308">308</a></span>
+<span class="normal"><a href="#__codelineno-0-309">309</a></span>
+<span class="normal"><a href="#__codelineno-0-310">310</a></span>
+<span class="normal"><a href="#__codelineno-0-311">311</a></span>
+<span class="normal"><a href="#__codelineno-0-312">312</a></span>
+<span class="normal"><a href="#__codelineno-0-313">313</a></span>
+<span class="normal"><a href="#__codelineno-0-314">314</a></span>
+<span class="normal"><a href="#__codelineno-0-315">315</a></span>
+<span class="normal"><a href="#__codelineno-0-316">316</a></span>
+<span class="normal"><a href="#__codelineno-0-317">317</a></span>
+<span class="normal"><a href="#__codelineno-0-318">318</a></span>
+<span class="normal"><a href="#__codelineno-0-319">319</a></span>
+<span class="normal"><a href="#__codelineno-0-320">320</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-295" name="__codelineno-0-295"></a><span class="k">def</span> <span class="nf">get_pmi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">word1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<a id="__codelineno-0-296" name="__codelineno-0-296"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-297" name="__codelineno-0-297"></a><span class="sd">    This method is used to get the PMI between two nodes.</span>
+<a id="__codelineno-0-298" name="__codelineno-0-298"></a>
+<a id="__codelineno-0-299" name="__codelineno-0-299"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-300" name="__codelineno-0-300"></a><span class="sd">        word1 (str): the first node (word)</span>
+<a id="__codelineno-0-301" name="__codelineno-0-301"></a><span class="sd">        word2 (str): the second node (word)</span>
+<a id="__codelineno-0-302" name="__codelineno-0-302"></a>
+<a id="__codelineno-0-303" name="__codelineno-0-303"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-304" name="__codelineno-0-304"></a><span class="sd">        pmi (float): the PMI between the two words in the dataset</span>
+<a id="__codelineno-0-305" name="__codelineno-0-305"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-306" name="__codelineno-0-306"></a>    <span class="c1"># Replace these methods with actual methods to get the word count, </span>
+<a id="__codelineno-0-307" name="__codelineno-0-307"></a>    <span class="c1"># the co-occurrence count, and the total count.</span>
+<a id="__codelineno-0-308" name="__codelineno-0-308"></a>    <span class="n">word1_count</span> <span class="o">=</span> <span class="n">count_occurence</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">word1</span><span class="p">)</span>
+<a id="__codelineno-0-309" name="__codelineno-0-309"></a>    <span class="n">word2_count</span> <span class="o">=</span> <span class="n">count_occurence</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">word2</span><span class="p">)</span>
+<a id="__codelineno-0-310" name="__codelineno-0-310"></a>    <span class="n">co_occurrence_count</span> <span class="o">=</span> <span class="n">count_occurence</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">[</span><span class="n">word1</span><span class="p">,</span> <span class="n">word2</span><span class="p">])</span>
+<a id="__codelineno-0-311" name="__codelineno-0-311"></a>    <span class="n">total_count</span> <span class="o">=</span> <span class="n">count_occurence</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<a id="__codelineno-0-312" name="__codelineno-0-312"></a>
+<a id="__codelineno-0-313" name="__codelineno-0-313"></a>    <span class="c1"># Calculate probabilities</span>
+<a id="__codelineno-0-314" name="__codelineno-0-314"></a>    <span class="n">p_word1</span> <span class="o">=</span> <span class="n">word1_count</span> <span class="o">/</span> <span class="n">total_count</span>
+<a id="__codelineno-0-315" name="__codelineno-0-315"></a>    <span class="n">p_word2</span> <span class="o">=</span> <span class="n">word2_count</span> <span class="o">/</span> <span class="n">total_count</span>
+<a id="__codelineno-0-316" name="__codelineno-0-316"></a>    <span class="n">p_co_occurrence</span> <span class="o">=</span> <span class="n">co_occurrence_count</span> <span class="o">/</span> <span class="n">total_count</span>
+<a id="__codelineno-0-317" name="__codelineno-0-317"></a>
+<a id="__codelineno-0-318" name="__codelineno-0-318"></a>    <span class="c1"># Calculate PMI</span>
+<a id="__codelineno-0-319" name="__codelineno-0-319"></a>    <span class="n">pmi</span> <span class="o">=</span> <span class="n">log</span><span class="p">(</span><span class="n">p_co_occurrence</span> <span class="o">/</span> <span class="p">(</span><span class="n">p_word1</span> <span class="o">*</span> <span class="n">p_word2</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="n">p_co_occurrence</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+<a id="__codelineno-0-320" name="__codelineno-0-320"></a>    <span class="k">return</span> <span class="n">pmi</span>
 </code></pre></div></td></tr></table></div>
           </details>
   </div>
@@ -1183,11 +1877,11 @@
         <tr>
           <td><code>emb1</code></td>
           <td>
-                <code><span title="numpy.ndarray">ndarray</span></code>
+                <code>int</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>the embedding of the first word node</p>
+              <p>the first index of the embedding in node_embeddings</p>
             </div>
           </td>
           <td>
@@ -1197,11 +1891,11 @@
         <tr>
           <td><code>emb2</code></td>
           <td>
-                <code><span title="numpy.ndarray">ndarray</span></code>
+                <code>int</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>the embedding of the second word node</p>
+              <p>the second index of the embedding in node_embeddings</p>
             </div>
           </td>
           <td>
@@ -1237,31 +1931,37 @@
 
           <details class="quote">
             <summary>Source code in <code>semantics/graphs/temporal_graph.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-234">234</a></span>
-<span class="normal"><a href="#__codelineno-0-235">235</a></span>
-<span class="normal"><a href="#__codelineno-0-236">236</a></span>
-<span class="normal"><a href="#__codelineno-0-237">237</a></span>
-<span class="normal"><a href="#__codelineno-0-238">238</a></span>
-<span class="normal"><a href="#__codelineno-0-239">239</a></span>
-<span class="normal"><a href="#__codelineno-0-240">240</a></span>
-<span class="normal"><a href="#__codelineno-0-241">241</a></span>
-<span class="normal"><a href="#__codelineno-0-242">242</a></span>
-<span class="normal"><a href="#__codelineno-0-243">243</a></span>
-<span class="normal"><a href="#__codelineno-0-244">244</a></span>
-<span class="normal"><a href="#__codelineno-0-245">245</a></span>
-<span class="normal"><a href="#__codelineno-0-246">246</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-234" name="__codelineno-0-234"></a><span class="k">def</span> <span class="nf">get_similarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emb1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="p">,</span> <span class="n">emb2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<a id="__codelineno-0-235" name="__codelineno-0-235"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-236" name="__codelineno-0-236"></a><span class="sd">    This method is used to get the similarity between two nodes.</span>
-<a id="__codelineno-0-237" name="__codelineno-0-237"></a>
-<a id="__codelineno-0-238" name="__codelineno-0-238"></a><span class="sd">    Args:</span>
-<a id="__codelineno-0-239" name="__codelineno-0-239"></a><span class="sd">        emb1 (np.ndarray): the embedding of the first word node</span>
-<a id="__codelineno-0-240" name="__codelineno-0-240"></a><span class="sd">        emb2 (np.ndarray): the embedding of the second word node</span>
-<a id="__codelineno-0-241" name="__codelineno-0-241"></a>
-<a id="__codelineno-0-242" name="__codelineno-0-242"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-243" name="__codelineno-0-243"></a><span class="sd">        similarity (float): the similarity between the two embeddings</span>
-<a id="__codelineno-0-244" name="__codelineno-0-244"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-245" name="__codelineno-0-245"></a>    <span class="c1"># np.dot(node1, node2) / (np.linalg.norm(node1) * np.linalg.norm(node2))</span>
-<a id="__codelineno-0-246" name="__codelineno-0-246"></a>    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cosine_similarity</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">emb1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">emb2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-277">277</a></span>
+<span class="normal"><a href="#__codelineno-0-278">278</a></span>
+<span class="normal"><a href="#__codelineno-0-279">279</a></span>
+<span class="normal"><a href="#__codelineno-0-280">280</a></span>
+<span class="normal"><a href="#__codelineno-0-281">281</a></span>
+<span class="normal"><a href="#__codelineno-0-282">282</a></span>
+<span class="normal"><a href="#__codelineno-0-283">283</a></span>
+<span class="normal"><a href="#__codelineno-0-284">284</a></span>
+<span class="normal"><a href="#__codelineno-0-285">285</a></span>
+<span class="normal"><a href="#__codelineno-0-286">286</a></span>
+<span class="normal"><a href="#__codelineno-0-287">287</a></span>
+<span class="normal"><a href="#__codelineno-0-288">288</a></span>
+<span class="normal"><a href="#__codelineno-0-289">289</a></span>
+<span class="normal"><a href="#__codelineno-0-290">290</a></span>
+<span class="normal"><a href="#__codelineno-0-291">291</a></span>
+<span class="normal"><a href="#__codelineno-0-292">292</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-277" name="__codelineno-0-277"></a><span class="k">def</span> <span class="nf">get_similarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emb1</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">emb2</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<a id="__codelineno-0-278" name="__codelineno-0-278"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-279" name="__codelineno-0-279"></a><span class="sd">    This method is used to get the similarity between two nodes.</span>
+<a id="__codelineno-0-280" name="__codelineno-0-280"></a>
+<a id="__codelineno-0-281" name="__codelineno-0-281"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-282" name="__codelineno-0-282"></a><span class="sd">        emb1 (int): the first index of the embedding in node_embeddings</span>
+<a id="__codelineno-0-283" name="__codelineno-0-283"></a><span class="sd">        emb2 (int): the second index of the embedding in node_embeddings</span>
+<a id="__codelineno-0-284" name="__codelineno-0-284"></a>
+<a id="__codelineno-0-285" name="__codelineno-0-285"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-286" name="__codelineno-0-286"></a><span class="sd">        similarity (float): the similarity between the two embeddings</span>
+<a id="__codelineno-0-287" name="__codelineno-0-287"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-288" name="__codelineno-0-288"></a>    <span class="c1"># np.dot(node1, node2) / (np.linalg.norm(node1) * np.linalg.norm(node2))</span>
+<a id="__codelineno-0-289" name="__codelineno-0-289"></a>    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cosine_similarity</span><span class="p">(</span>
+<a id="__codelineno-0-290" name="__codelineno-0-290"></a>        <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_embeddings</span><span class="p">[</span><span class="n">emb1</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> 
+<a id="__codelineno-0-291" name="__codelineno-0-291"></a>        <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_embeddings</span><span class="p">[</span><span class="n">emb2</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-0-292" name="__codelineno-0-292"></a>        <span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
           </details>
   </div>
@@ -1355,7 +2055,7 @@
     <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "search", "content.tabs.link", "content.code.annotation", "content.code.copy", "content.code.tabbed", "content.image.figure", "content.image.lightbox", "content.image.zoom", "content.video", "content.iframe", "content.math"], "search": "../../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.aecac24b.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.6c14ae12.min.js"></script>
       
     
   </body>
