@@ -356,7 +356,7 @@ class Word2VecInference:
             return tuple(map(list, zip(*sims)))
         
         except KeyError:
-            print("The word in the input is not in the model vocabulary.")
+            print(f"The word {word} in the input is not in the model vocabulary.")
             return [], []
         
 
