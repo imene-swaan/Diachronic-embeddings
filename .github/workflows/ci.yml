@@ -36,12 +36,16 @@ jobs:
         pip install poetry
         poetry install --no-dev
 
+    - name: Check Git Config
+      run: |
+        git config --list
+      
     # This is where you'd put steps to build or test your project, for example:
     - name: Run tests
       run: poetry run python -m unittest discover -s tests
 
     # Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
-      run: poetry run mkdocs gh-deploy --force
+      run: poetry run mkdocs gh-deploy
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
