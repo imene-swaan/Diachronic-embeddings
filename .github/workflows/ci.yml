@@ -43,12 +43,6 @@ jobs:
         pip install poetry
         poetry install --no-dev
 
-    # Fetch gh-pages branch
-    - name: Fetch gh-pages Branch
-      run: |
-        git fetch origin gh-pages:gh-pages
-        git checkout gh-pages
-
     # Build and deploy the site
     - name: Deploy to GitHub Pages
       run: poetry run mkdocs gh-deploy --force
