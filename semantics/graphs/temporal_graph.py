@@ -5,7 +5,8 @@ from typing import List, Union, Dict
 import torch
 import numpy as np
 from math import log
-from semantics.utils.utils import count_occurence
+from semantics.utils.utils import count_occurence, most_frequent
+import tqdm
 
 # nodes:
 # level 1:
@@ -84,20 +85,32 @@ class Nodes:
         self.mlm = mlm_model
     
 
-    def get_similar_nodes(self, word: str) -> List[str]:
+    def get_similar_nodes(self, word: str, keep_k: int = 50) -> List[str]:
         """
         This method is used to get the similar nodes of a word using the MLM model.
         
         Args:
             word (str): the word to get the similar nodes for
+            keep_k (int): the number of similar nodes to keep for each occurrence of the word. Default: 50.
             
         Returns:
             similar_nodes (List[str]): the list of similar nodes of the word
         """
+        print(f'Getting the similar nodes of the word: ')
+        progress_bar = tqdm.tqdm(
+            range(len(self.dataset)), 
+            desc=f"{word}", 
+            dynamic_ncols=True
+            )
         similar_nodes = []
         for sentence in self.dataset:
             similar_nodes += self.mlm.get_top_k_words(word, sentence, self.k)
-        return list(set(similar_nodes))
+            progress_bar.update(1)
+        
+        similar_nodes = list(set(similar_nodes))
+        similar_nodes = most_frequent(similar_nodes, keep_k)
+        print(f'{len(similar_nodes)} similar nodes found.', '\n')
+        return similar_nodes
 
     def get_context_nodes(self, word: str) -> List[str]:
         """
@@ -109,7 +122,10 @@ class Nodes:
         Returns:
             context_nodes (List[str]): the list of context nodes of the word
         """
+        print(f'Getting the context nodes of the word "{word}" ...')
         context_nodes, _ = self.word2vec.get_top_k_words(word, self.c)
+
+        print(f'{len(list(set(context_nodes)))} context nodes found.', '\n')
         return list(set(context_nodes))
     
     def get_nodes(self) -> Dict[str, List[str]]:
@@ -121,8 +137,9 @@ class Nodes:
         """
         nodes = {'target_node': [], 'similar_nodes': [], 'context_nodes': []}
         for level in range(self.level):
+            print(f'Getting the nodes of level {level} ...')
             if level == 0:
-                similar_nodes = self.get_similar_nodes(self.target_word)
+                similar_nodes = self.get_similar_nodes(self.target_word, keep_k= 5)
                 context_nodes = self.get_context_nodes(self.target_word)
 
                 nodes['similar_nodes'].append(similar_nodes)
@@ -133,12 +150,12 @@ class Nodes:
                 similar_nodes = []
                 context_nodes = []
                 for word in nodes['similar_nodes'][level-1]:
-                    similar_nodes += self.get_similar_nodes(word)
+                    similar_nodes += self.get_similar_nodes(word, keep_k= 5)
                     context_nodes += self.get_context_nodes(word)
 
 
                 for word in nodes['context_nodes'][level-1]:
-                    similar_nodes += self.get_similar_nodes(word)
+                    similar_nodes += self.get_similar_nodes(word, keep_k= 5)
                     context_nodes += self.get_context_nodes(word)
                 
                 nodes['similar_nodes'].append(similar_nodes)
@@ -470,7 +487,7 @@ class TemporalGraph:
             [[0, 1, 0], [1, 2, 4]]
         """
 
-        
+        print(f'Adding the nodes of the word graph for the word "{target_word}"...')
         nodes = Nodes(
             target_word= target_word,
             dataset=dataset,
@@ -482,8 +499,9 @@ class TemporalGraph:
             )
 
         nds = nodes.get_nodes()
+        print('Getting their features...', '\n')
         index, node_feature_matrix, embeddings = nodes.get_node_features(nds)
-
+        print(f'Adding the edges of the word graph for the word "{target_word}"...')
         edges = Edges(
             index_to_key=index['index_to_key'],
             node_features=node_feature_matrix,
@@ -491,6 +509,7 @@ class TemporalGraph:
         )
         edge_index, edge_feature_matrix = edges.get_edge_features(dataset)
 
+        print('Constructing the temporal graph...', '\n')
         self.construct_graph(
             current_index=index,
             current_node_feature_matrix=node_feature_matrix,
@@ -521,6 +540,7 @@ class TemporalGraph:
         """
         
         if len(self.snapshots) == 0:
+            print('Adding the first snapshot to the temporal graph...', '\n')
             self.snapshots.append(current_index)
             self.xs.append(np.concatenate((current_node_feature_matrix, current_embeddings), axis=1))
             self.edge_indices.append(current_edge_index)
@@ -529,6 +549,7 @@ class TemporalGraph:
             self.y_indices.append([])
 
         else:
+            print(f'Adding the {len(self.snapshots)} snapshot to the temporal graph...', '\n')
             previous_index, previous_node_features, previous_edge_index, previous_edge_feature, _, _= self[-1]
             current_node_features = np.concatenate((current_node_feature_matrix, current_embeddings), axis=1)
 
@@ -546,7 +567,9 @@ class TemporalGraph:
                 'edge_features': current_edge_feature_matrix
             }
 
+            print('Aligning the nodes of the current snapshot with the nodes of the previous snapshot...', '\n')
             aligned_previous_graph, aligned_current_graph = self.get_aligned_graph(current_graph, previous_graph)
+            print('Labeling the edges of the previous snapshot with the edge feature values in the current snapshot...', '\n')
             previous_labels, previous_label_mask = self.label_previous_graph(current_graph, previous_graph)
 
             self.snapshots[-1] = aligned_previous_graph['index']
