@@ -571,6 +571,13 @@ class RobertaInference:
             for logit_set in logits:
                 top_k_tokens = torch.topk(logit_set, k).indices
                 top_k_words = [self.tokenizer.decode(token.item()).strip() for token in top_k_tokens]
+
+                if main_word in top_k_words:
+                    top_k_words.remove(main_word)
+                
+                elif any([main_word in word for word in top_k_words]):
+                    top_k_words = [word for word in top_k_words if main_word not in word]
+                
                 
                 top_k.extend(top_k_words)
 
