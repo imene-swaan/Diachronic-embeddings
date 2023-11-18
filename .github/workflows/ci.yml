@@ -14,6 +14,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Git
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+    
+    - name: Fetch gh-pages Branch
+      run: |
+        git fetch origin gh-pages:gh-pages
+        git checkout gh-pages
 
     # Setup Python environment
     - name: Set up Python
@@ -35,12 +47,6 @@ jobs:
       run: |
         pip install poetry
         poetry install --no-dev
-
-    - name: Checkout gh-pages branch
-      run: |
-        git checkout gh-pages
-        git branch --set-upstream-to=origin/gh-pages gh-pages
-        git pull origin gh-pages
   
     - name: Deploy to GitHub Pages
       run: poetry run mkdocs gh-deploy --force
