@@ -17,6 +17,7 @@ mkdocs-material = {version = "^9.4.7", extras = ["imaging"]}
 mkdocs = "^1.5.3"
 mkdocstrings = "^0.23.0"
 mkdocstrings-python = "^1.7.3"
+mkdocs-bibtex = "^2.11.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^6.2.5"
