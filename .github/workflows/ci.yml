@@ -40,8 +40,8 @@ jobs:
     - name: Run tests
       run: poetry run python -m unittest discover -s tests
 
-    # # Deploy to GitHub Pages
-    # - name: Deploy to GitHub Pages
-    #   run: poetry run mkdocs gh-deploy --force
-    #   env:
-    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # Deploy to GitHub Pages
+    - name: Deploy to GitHub Pages
+      run: poetry run mkdocs gh-deploy --force
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
