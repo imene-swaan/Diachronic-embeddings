@@ -5,11 +5,11 @@ import matplotlib.colors as mcolors
 from semantics.graphs.temporal_graph import TemporalGraph
 from semantics.utils.utils import generate_pastel_colors
 import numpy as np
-from typing import List, Union, Optional
+from typing import Optional
 
 
 def visualize_graph(
-        graph: tuple = None,
+        graph: Optional[tuple] = None,
         title: str = 'Graph Visualization',
         node_label_feature: Optional[int] = 0,
         edge_label_feature: Optional[int] = 1,
@@ -19,7 +19,7 @@ def visualize_graph(
     Visualize a graph.
 
     Args:
-        graph: The graph to be visualized. If None, return an empty figure. Default to None.
+        graph: The graph to be visualized. If None, return an empty figure. Default to None. Of type WordGraph.
         title: The title of the graph. Default to 'Graph Visualization'.
         node_label_feature: The feature of the node to be used as label. Default to 0 (node_type).
         edge_label_feature: The feature of the edge to be used as label. Default to 1 (Similarities).
@@ -39,7 +39,7 @@ def visualize_graph(
         >>> fig.show()
     """
     if ax is None:
-        fig, ax = plt.subplots(figsize=(10, 8))
+        fig, ax = plt.subplots(figsize=(17, 12))
     else:
         fig = ax.figure
 
@@ -48,9 +48,9 @@ def visualize_graph(
     if graph is None:
         return fig
     
-    index, node_features, edge_index, edge_features, _, _ = graph
+    index, xs, edge_indices, edge_features, _, _ = graph
 
-    node_feature = node_features[:, node_label_feature]
+    node_feature = xs[:, node_label_feature]
     unique_values = np.unique(node_feature, return_counts=False)
     random_pastel_colors = generate_pastel_colors(len(unique_values))
     feature_to_color_map = dict(zip(unique_values, random_pastel_colors))
@@ -62,21 +62,24 @@ def visualize_graph(
     G = nx.Graph()
     G.add_nodes_from(node_labels)
 
-    for i in range(edge_index.shape[1]):
-        G.add_edge(edge_index[0][i], edge_index[1][i], weight= edge_features[i][edge_label_feature])
+    for i in range(edge_indices.shape[1]):
+        G.add_edge(
+            index['index_to_key'][str(edge_indices[0][i])],
+            index['index_to_key'][str(edge_indices[1][i])],
+            weight= edge_features[i][edge_label_feature]
+            )
 
     weights = [G[u][v]['weight'] for u, v in G.edges()]
     cmap = plt.get_cmap('coolwarm')  # Blue to red colormap
     norm = mcolors.Normalize(vmin=0, vmax=1)
     edge_colors = [cmap(norm(weight)) for weight in weights]
 
-
-    pos = nx.spring_layout(G)  # Node positions
-    nx.draw(G, pos, with_labels=True, node_color=[color_map[node] for node in G.nodes()], edge_color=edge_colors, width=2, node_size=700, font_size=12)
+    # pos = nx.spring_layout(G)  # Node positions
+    nx.draw(G,  ax= ax, with_labels=True, node_color=[color_map[node] for node in G.nodes()], edge_color=edge_colors, width=2, node_size = 1000, font_size= 15) #pos= pos,
 
     # Edge labels (weights)
-    edge_labels = nx.get_edge_attributes(G, 'weight')
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+    # edge_labels = nx.get_edge_attributes(G, 'weight')
+    # nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
 
     ax.axis('off')
     return fig
