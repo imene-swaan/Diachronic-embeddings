@@ -49,8 +49,8 @@ jobs:
         poe install torch-sparse
 
     # Build and deploy the site
-    - name: Deploy to GitHub Pages
-      run: poetry run mkdocs gh-deploy --force
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # - name: Deploy to GitHub Pages
+    #   run: poetry run mkdocs gh-deploy --force
+    #   env:
+    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
