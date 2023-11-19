@@ -143,12 +143,10 @@ class Nodes:
                 similar_nodes = self.get_similar_nodes(self.target_word, keep_k= 5)
                 context_nodes = self.get_context_nodes(self.target_word)
 
-                # Remove target word if it's in the similar nodes
-                similar_nodes = [node for node in similar_nodes if all([node not in self.target_word, self.target_word not in node])]
+                similar_nodes = list(set(similar_nodes) - set(self.target_word))
                 
                 # Ensure similar_nodes and context_nodes are unique and exclusive
                 context_nodes = list(set(context_nodes) - set(similar_nodes))
-                context_nodes = [node for node in context_nodes if all([node not in self.target_word, self.target_word not in node])]
 
                 print('Similar nodes: ', similar_nodes)
                 print('Context nodes: ', context_nodes, '\n')
