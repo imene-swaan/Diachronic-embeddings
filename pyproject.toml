@@ -22,6 +22,7 @@ torch-geometric = "^2.4.0"
 torch-geometric-temporal = "^0.54.0"
 networkx = "^3.2.1"
 matplotlib = "^3.8.2"
+pydantic = "^2.5.1"
 
 [tool.poetry.dev-dependencies]
 poethepoet = "^0.24.3"
