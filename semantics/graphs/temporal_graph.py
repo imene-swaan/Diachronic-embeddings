@@ -7,6 +7,7 @@ import numpy as np
 from math import log
 from semantics.utils.utils import count_occurence, most_frequent
 import tqdm
+import re
 
 # nodes:
 # level 1:
@@ -142,24 +143,44 @@ class Nodes:
                 similar_nodes = self.get_similar_nodes(self.target_word, keep_k= 5)
                 context_nodes = self.get_context_nodes(self.target_word)
 
+                # Remove target word if it's in the similar nodes
+                similar_nodes = [node for node in similar_nodes if all([node not in self.target_word, self.target_word not in node])]
+                
+                # Ensure similar_nodes and context_nodes are unique and exclusive
+                context_nodes = list(set(context_nodes) - set(similar_nodes))
+                context_nodes = [node for node in context_nodes if all([node not in self.target_word, self.target_word not in node])]
+
+                print('Similar nodes: ', similar_nodes)
+                print('Context nodes: ', context_nodes, '\n')
+
+
                 nodes['similar_nodes'].append(similar_nodes)
                 nodes['context_nodes'].append(context_nodes)
                 nodes['target_node'].append([self.target_word])
 
             else:
-                similar_nodes = []
-                context_nodes = []
-                for word in nodes['similar_nodes'][level-1]:
-                    similar_nodes += self.get_similar_nodes(word, keep_k= 5)
-                    context_nodes += self.get_context_nodes(word)
+                level_similar_nodes = []
+                level_context_nodes = []
 
+                for word in nodes['similar_nodes'][level-1] + nodes['context_nodes'][level-1]:
+                    word = re.sub(r'\W', '', word)
+                    new_similar_nodes = self.get_similar_nodes(word, keep_k= 2)
+                    new_context_nodes = self.get_context_nodes(word)
 
-                for word in nodes['context_nodes'][level-1]:
-                    similar_nodes += self.get_similar_nodes(word, keep_k= 5)
-                    context_nodes += self.get_context_nodes(word)
+                    # Combine and deduplicate nodes at this level
+                    level_similar_nodes += new_similar_nodes
+                    level_context_nodes += new_context_nodes
                 
-                nodes['similar_nodes'].append(similar_nodes)
-                nodes['context_nodes'].append(context_nodes)          
+                # Ensure similar_nodes and context_nodes are unique and exclusive
+
+                previous_nodes = nodes['similar_nodes'][level-1] + nodes['context_nodes'][level-1]
+
+                level_similar_nodes = list(set(level_similar_nodes) - set(previous_nodes))
+
+                level_context_nodes = list(set(level_context_nodes) - set(previous_nodes) - set(level_similar_nodes))
+                
+                nodes['similar_nodes'].append(level_similar_nodes)
+                nodes['context_nodes'].append(level_context_nodes)     
         return nodes
     
     def get_node_features(self, nodes: Dict[str, List[str]]):
@@ -357,6 +378,7 @@ class Edges:
                     edge_type = 4
                 elif self.node_features[word_idx1][0] == 2 and self.node_features[word_idx2][0] == 2:
                     edge_type = 5
+                
 
                 similarity = self.get_similarity(word_idx1, word_idx2)
                 pmi = self.get_pmi(dataset, self.index_to_key[word_idx1], self.index_to_key[word_idx2])
@@ -415,6 +437,12 @@ class TemporalGraph:
         self.edge_features = []
         self.ys = []
         self.y_indices = []
+    
+    def __len__(self):
+        """
+        Returns the number of snapshots in the temporal graph.
+        """
+        return len(self.snapshots)
 
     def __getitem__(self, idx):
         """
@@ -545,8 +573,8 @@ class TemporalGraph:
             self.xs.append(np.concatenate((current_node_feature_matrix, current_embeddings), axis=1))
             self.edge_indices.append(current_edge_index)
             self.edge_features.append(current_edge_feature_matrix)
-            self.ys.append([])
-            self.y_indices.append([])
+            self.ys.append(np.array([]))
+            self.y_indices.append(np.array([]))
 
         else:
             print(f'Adding the {len(self.snapshots)} snapshot to the temporal graph...', '\n')
