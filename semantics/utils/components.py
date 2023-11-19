@@ -1,89 +1,74 @@
-from pydantic import BaseModel, validator, Field
-from typing import List, Optional
+from pydantic import BaseModel, validator, dataclasses
+from typing import Dict, Union
 import numpy as np
-from dataclasses import dataclass
 
-class OxfordAPIResponse(BaseModel):
-    id:str = None
-    definition:str = None
-    examples:Optional[List[str]] = None
+from pydantic import BaseModel, validator
+from typing import Dict, Union
+import numpy as np
 
-    class Config:
-        allow_population_by_field_name = True
+class WordGraph(BaseModel):
+    index: Dict[str, Union[Dict[str, int], Dict[str, str]]]
+    node_features: np.ndarray
+    edge_index: np.ndarray
+    edge_features: np.ndarray
+    labels: np.ndarray
+    label_mask: np.ndarray
 
-    def __call__(self, **kwargs):
-        self.id = kwargs['id']
-        self.definition = kwargs['definition']
-        self.examples = kwargs['examples']
+    @validator('index')
+    def check_index(cls, v):
+        if not isinstance(v, dict):
+            raise ValueError('index must be a dictionary')
+        if 'key_to_index' not in v or 'index_to_key' not in v:
+            raise ValueError('index must contain both key_to_index and index_to_key')
+        return v
+    
+    @validator('node_features')
+    def check_node_features(cls, v):
+        if not isinstance(v, np.ndarray):
+            raise ValueError('node_features must be a numpy.ndarray')
+        if len(v.shape) != 2:
+            raise ValueError('node_features must be a 2D array')
+        return v
+    
+    @validator('edge_index')
+    def check_edge_index(cls, v):
+        if not isinstance(v, np.ndarray):
+            raise ValueError('edge_index must be a numpy.ndarray')
+        if len(v.shape) != 2:
+            raise ValueError('edge_index must be a 2D array')
+        return v
+    
+    @validator('edge_features')
+    def check_edge_features(cls, v):
+        if not isinstance(v, np.ndarray):
+            raise ValueError('edge_features must be a numpy.ndarray')
+        if len(v.shape) != 2:
+            raise ValueError('edge_features must be a 2D array')
+        return v
+    
+    @validator('labels')
+    def check_labels(cls, v):
+        if not isinstance(v, np.ndarray):
+            raise ValueError('labels must be a numpy.ndarray')
+        if len(v.shape) != 1:
+            raise ValueError('labels must be a 1D array')
+        return v
 
-        return self
-
-    @validator('examples')
-    def min_len_examples(cls, v):
-        if not len(v) >= 1:
-            raise ValueError(
-                f'Not Enough examples to compile, given: {len(v)}, expected at least 1'
-            )
-        return v[:10]
-
-@dataclass(init=True, frozen=True, repr=True)
-class Words:
-    word:str
-    senses:List[OxfordAPIResponse]
-
-
-class WordSimilarities(BaseModel):
-    word:str
-    year:int
-    sense_ids:List[str]
-    props:List[float]
-
-class WordFitted(BaseModel):
-    word:str
-    sense:str
-    years:List[int]
-    props:List[float]
-    poly_fit:List[float]
-
-
-class SenseEmbedding(BaseModel):
-    id: str = None
-    definition: str = None
-    embedding: List[float] = None
-
-    class Config:
-        allow_population_by_field_name = True
-
-    def __call__(self, **kwargs):
-        self.id = kwargs['id']
-        self.definition = kwargs['definition']
-        self.embedding = kwargs['embedding']
-
-        return self
+    @validator('label_mask')
+    def check_label_mask(cls, v):
+        if not isinstance(v, np.ndarray):
+            raise ValueError('label_mask must be a numpy.ndarray')
+        if len(v.shape) != 2:
+            raise ValueError('label_mask must be a 2D array')
+        return v
 
 
-@dataclass(init=True, frozen=True, repr=True)
-class WordSenseEmbedding:
-    id: str
-    definition: str
-    embedding: List[float]
+   
+    
 
-@dataclass(init=True, frozen=True, repr=True)
-class SenseEmbedding:
-    word:str
-    senses:List[WordSenseEmbedding]
 
-class Embedding(BaseModel):
-    word: str = None
-    sentence_number_index: List[List] = None
-    embeddings: List[List] = None
 
-    class Config:
-        allow_population_by_field_name = True
 
-    def __call__(self, **kwargs):
-        self.word = kwargs['word']
-        self.sentence_number_index = kwargs['sentence_number_index']
-        self.embeddings = kwargs['embeddings']
 
-        return self
+
+
