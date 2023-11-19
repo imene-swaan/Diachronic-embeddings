@@ -42,6 +42,11 @@ jobs:
       run: |
         pip install poetry
         poetry install --no-dev
+    
+    - name: Install other dependencies with Poe the Poet
+      run: |
+        poe install torch-scatter 
+        poe install torch-sparse
 
     # Build and deploy the site
     - name: Deploy to GitHub Pages
