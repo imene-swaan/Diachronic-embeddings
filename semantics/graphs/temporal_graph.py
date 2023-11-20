@@ -7,7 +7,6 @@ import numpy as np
 from math import log
 from semantics.utils.utils import count_occurence, most_frequent
 import tqdm
-import re
 
 # nodes:
 # level 1:
@@ -86,32 +85,42 @@ class Nodes:
         self.mlm = mlm_model
     
 
-    def get_similar_nodes(self, word: str, keep_k: int = 50) -> List[str]:
+    def get_similar_nodes(
+            self, 
+            word: Union[str, List[str]],
+            keep_k: int = 50
+            ) -> Dict[str, List[str]]:
         """
         This method is used to get the similar nodes of a word using the MLM model.
         
         Args:
-            word (str): the word to get the similar nodes for
-            keep_k (int): the number of similar nodes to keep for each occurrence of the word. Default: 50.
+            word (Union[str, List[str]]): the word to get the similar nodes for
+            keep_k (int): the number of similar nodes to keep. Default: 50.
             
         Returns:
-            similar_nodes (List[str]): the list of similar nodes of the word
+            similar_nodes (Dict[str, List[str]]): the similar nodes of the word in the dataset. The keys are the words and the values are the similar nodes of the word.
         """
-        print(f'Getting the similar nodes of the word: ')
+
+        if isinstance(word, str):
+            word = [word]
+
         progress_bar = tqdm.tqdm(
-            range(len(self.dataset)), 
-            desc=f"{word}", 
-            dynamic_ncols=True
+            total=len(self.dataset), 
+            desc= f'Getting similar nodes for words: {word}'
             )
-        similar_nodes = []
+    
+        similar_nodes = {w: [] for w in word}
         for sentence in self.dataset:
-            similar_nodes += self.mlm.get_top_k_words(word, sentence, self.k)
+            for w in word:
+                similar_nodes[w] += self.mlm.get_top_k_words(main_word=w, doc = sentence, k= self.k)
             progress_bar.update(1)
+
+        for w in word:
+            similar_nodes[w] = most_frequent(similar_nodes[w], keep_k)
         
-        similar_nodes = list(set(similar_nodes))
-        similar_nodes = most_frequent(similar_nodes, keep_k)
-        print(f'{len(similar_nodes)} similar nodes found.', '\n')
         return similar_nodes
+
+               
 
     def get_context_nodes(self, word: str) -> List[str]:
         """
@@ -123,11 +132,8 @@ class Nodes:
         Returns:
             context_nodes (List[str]): the list of context nodes of the word
         """
-        print(f'Getting the context nodes of the word "{word}" ...')
-        context_nodes, _ = self.word2vec.get_top_k_words(word, self.c)
-
-        print(f'{len(list(set(context_nodes)))} context nodes found.', '\n')
-        return list(set(context_nodes))
+        context_nodes = self.word2vec.get_top_k_words(word, self.c)
+        return context_nodes
     
     def get_nodes(self) -> Dict[str, List[str]]:
         """
@@ -143,42 +149,40 @@ class Nodes:
                 similar_nodes = self.get_similar_nodes(self.target_word, keep_k= 5)
                 context_nodes = self.get_context_nodes(self.target_word)
 
-                similar_nodes = list(set(similar_nodes) - set(self.target_word))
-                
-                # Ensure similar_nodes and context_nodes are unique and exclusive
-                context_nodes = list(set(context_nodes) - set(similar_nodes))
+                first_similar_nodes = similar_nodes[self.target_word]
+                first_context_nodes = context_nodes
 
-                print('Similar nodes: ', similar_nodes)
-                print('Context nodes: ', context_nodes, '\n')
+                print(len(first_similar_nodes), 'similar nodes found for level ', 0)
+                print(len(first_context_nodes), 'context nodes found for level ', 0)
 
-
-                nodes['similar_nodes'].append(similar_nodes)
-                nodes['context_nodes'].append(context_nodes)
+                nodes['similar_nodes'].append(first_similar_nodes)
+                nodes['context_nodes'].append(first_context_nodes)
                 nodes['target_node'].append([self.target_word])
 
             else:
+                previous_nodes = nodes['similar_nodes'][level-1] + nodes['context_nodes'][level-1]
+                previous_nodes = list(set(previous_nodes))
+
+                similar_nodes = self.get_similar_nodes(previous_nodes, keep_k= 5)
+                context_nodes = {w: self.get_context_nodes(w) for w in previous_nodes}
+
                 level_similar_nodes = []
                 level_context_nodes = []
 
-                for word in nodes['similar_nodes'][level-1] + nodes['context_nodes'][level-1]:
-                    word = re.sub(r'\W', '', word)
-                    new_similar_nodes = self.get_similar_nodes(word, keep_k= 2)
-                    new_context_nodes = self.get_context_nodes(word)
-
-                    # Combine and deduplicate nodes at this level
-                    level_similar_nodes += new_similar_nodes
-                    level_context_nodes += new_context_nodes
+                for w in previous_nodes:
+                    level_similar_nodes += similar_nodes[w]
+                    level_context_nodes += context_nodes[w]
                 
-                # Ensure similar_nodes and context_nodes are unique and exclusive
+                level_similar_nodes = list(set(level_similar_nodes))
+                level_context_nodes = list(set(level_context_nodes))
 
-                previous_nodes = nodes['similar_nodes'][level-1] + nodes['context_nodes'][level-1]
+                print(len(level_similar_nodes), 'similar nodes found for level ', level)
+                print(len(level_context_nodes), 'context nodes found for level ', level)
 
-                level_similar_nodes = list(set(level_similar_nodes) - set(previous_nodes))
-
-                level_context_nodes = list(set(level_context_nodes) - set(previous_nodes) - set(level_similar_nodes))
-                
                 nodes['similar_nodes'].append(level_similar_nodes)
-                nodes['context_nodes'].append(level_context_nodes)     
+                nodes['context_nodes'].append(level_context_nodes)
+                
+                    
         return nodes
     
     def get_node_features(self, nodes: Dict[str, List[str]]):
