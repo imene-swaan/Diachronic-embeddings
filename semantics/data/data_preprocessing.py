@@ -20,7 +20,9 @@ class PREPROCESS():
                 remove_numbers: bool = True,
                 lowercase: bool = True,
                 lemmatize: bool = True,
-                remove_stopwords: bool = True,            
+                remove_stopwords: bool = True,    
+                remove_full_stop: bool = True,
+                remove_short_words: bool = True        
         ):
 
         """
@@ -33,6 +35,8 @@ class PREPROCESS():
             lowercase (bool): Whether to lowercase. Defaults to True.
             lemmatize (bool): Whether to lemmatize. Defaults to True.
             remove_stopwords (bool): Whether to remove stopwords. Defaults to True.
+            remove_full_stop (bool): Whether to remove full stops. Defaults to True.
+            remove_short_words (bool): Whether to remove short words. Defaults to True.
         
         Returns:
             newtext (str): Preprocessed text.
@@ -59,16 +63,22 @@ class PREPROCESS():
         
         if lemmatize:
             from nltk.stem import WordNetLemmatizer
-
             lemmatizer = WordNetLemmatizer()
+
             newtext = list(map(lambda x: lemmatizer.lemmatize(x, "n"), newtext.split()))
-            newtext = ' '.join(list(map(lambda x: lemmatizer.lemmatize(x, "a"), newtext)))
+            newtext = list(map(lambda x: lemmatizer.lemmatize(x, "a"), newtext))
             newtext = ' '.join(list(map(lambda x: lemmatizer.lemmatize(x, "v"), newtext)))
         
         if remove_stopwords:
             from nltk.corpus import stopwords
             stop_words = set(stopwords.words('english'))
             newtext = ' '.join(list(filter(lambda x: x not in stop_words, newtext.split())))
+        
+        if remove_full_stop:
+            newtext = re.sub(r'\.', '', str(newtext))
+        
+        if remove_short_words:
+            newtext = ' '.join(list(filter(lambda x: len(x) > 2, newtext.split())))
 
         return newtext
         
