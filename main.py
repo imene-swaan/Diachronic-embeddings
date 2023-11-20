@@ -16,16 +16,17 @@ def main(output_dir, data_path, periods, **kwargs):
     target_word = kwargs['target_word']
     xml_tag = kwargs['xml_tag']
     word2vec_paths = []
+    tg = TemporalGraph()
+    inference_options = kwargs['inference_options']
+    preprocessing_options = kwargs['preprocessing_options']
 
-
-    for period in periods:
+    for i, period in enumerate(periods):
 
         # loading the data
         print(f'Loading data from {period} ...', '\n')
         path = data_path.format(period)
 
-        try:
-            corpora[period] = Loader.from_xml(
+        corpora[period] = Loader.from_xml(
                 path, 
                 xml_tag
                 ).forward(
@@ -33,118 +34,14 @@ def main(output_dir, data_path, periods, **kwargs):
                     max_documents=kwargs['max_documents'], 
                     shuffle=kwargs['shuffle']
                     ) # Loader.from_txt(path).forward()
-        except ValueError:
-            data_dir = Path(path).parent
-            file_name = Path(path).stem
-            i = 0
-            corpora[period] = []
-
-            while os.path.exists(f"{data_dir}/{file_name}_{i}.xml"):
-                corpora[period].extend(
-                    Loader.from_xml(
-                        path= f"{data_dir}/{file_name}_{i}.xml", 
-                        tag= xml_tag
-                        ).forward(
-                            target_words=target_word, 
-                            max_documents=kwargs['max_documents'], 
-                            shuffle=kwargs['shuffle']
-                            )
-                    )
-                i += 1
-
-            # split_paths = split_xml(
-            #     path= path,
-            #     output_dir= f'{data_dir}',
-            #     max_children= 1000
-            #     )
-               
-            # if i < len(split_paths):
-            #     corpora[period] = []
-            #     for split_path in split_paths:
-            #         corpora[period].extend(
-            #             Loader.from_xml(
-            #                 split_path, 
-            #                 xml_tag
-            #                 ).forward(
-            #                     target_words=[target_word], 
-            #                     max_documents=kwargs['max_documents'], 
-            #                     shuffle=kwargs['shuffle']
-            #                     )
-            #             ) # Loader.from_txt(split_path).forward()
-            #         os.remove(split_path)
-               
-            
 
         # preprocessing
         print(f'Preprocessing data from {period} ...', '\n')
-        corpora[period] = list(map(lambda x: 
-                                    PREPROCESS().forward(
-                                       x, 
-                                       **kwargs['preprocessing_options']
-                                    ), 
-                                    corpora[period]
-                                )
-                            )
-        #training the models
-        # print(f'Training Roberta from {period} ...', '\n')
-        # roberta_path = f'{output_dir}/MLM_roberta_{period}'
-        # trainor = RobertaTrainer(**kwargs['mlm_options'])
-        # trainor.train(
-        #     data = corpora[period],
-        #     output_dir = roberta_path
-        #     )
+        prep = PREPROCESS()
+        corpora[period] = list(map(lambda x: prep.forward(text=x, **preprocessing_options), corpora[period]))
 
 
-        # print(f'Training Word2Vec from {period} ...', '\n')
-        # word2vec_path = f'{output_dir}/word2vec'
-        # if not os.path.exists(word2vec_path):
-        #     os.mkdir(word2vec_path)
-
-    #     sentences = list(map(lambda x: 
-    #                          PREPROCESS().forward(
-    #                              x, 
-    #                              remove_stopwords =True
-    #                             ), 
-    #                             corpora[period]
-    #                         )
-    #                     )
-    #     sentences = [sentence.split() for sentence in sentences]
-    #     trainor = Word2VecTrainer()
-    #     trainor.train(
-    #         data=sentences, 
-    #         output_dir= f'{word2vec_path}/word2vec_{period}.model',
-    #         epochs= 10
-    #         )
-    #     del sentences
-    #     word2vec_paths.append(f'{word2vec_path}/word2vec_{period}.model')
-    #     words = list(trainor.model.wv.key_to_index)
-    #     if 'office' not in words:
-    #         print('\n\n\n office not in vocab \n\n\n')
-            
-    
-
-    # # aligning word2vec
-    # print(f'Aligning Word2Vec models ...', '\n')
-    # aligned_word2vec_dir = f'{output_dir}/word2vec_aligned'
-    # if not os.path.exists(aligned_word2vec_dir):
-    #     os.mkdir(aligned_word2vec_dir)
-
-    # Word2VecAlign(
-    #     model_paths= word2vec_paths
-    #     ).align_models(
-    #         reference_index=-1, 
-    #         output_dir=aligned_word2vec_dir, 
-    #         method="procrustes"
-    #         )
-
-
-    # Creating the Temporal Graph
-    print(f'Creating the Temporal Graph ...', '\n')
-
-    tg = TemporalGraph()
-    inference_options = kwargs['inference_options']
-
-    for i, period in enumerate(periods):
+        print('Number of clean documents: ', len(corpora[period]), '\n')
         print(f'Creating the Graph of {period} ...', '\n')
 
         roberta_path = f'{output_dir}/MLM_roberta_{period}'
@@ -191,7 +88,7 @@ def main(output_dir, data_path, periods, **kwargs):
         with open(f'{output_dir}/inference_{period}/edge_features.npy', 'wb') as f:
             np.save(f, edge_features)
 
-        with open(f'{output_dir}/inference_{period}/ysnpy', 'wb') as f:
+        with open(f'{output_dir}/inference_{period}/ys.npy', 'wb') as f:
             np.save(f, ys)
 
         with open(f'{output_dir}/inference_{period}/y_indices.npy', 'wb') as f:
@@ -239,7 +136,9 @@ if __name__ == "__main__":
         "remove_punctuation": True, 
         "remove_numbers": True, 
         "lowercase": True, 
-        "lemmatize": True
+        "lemmatize": True,
+        "remove_full_stop": True,
+        "remove_short_words": True
         }
 
     mlm_options = {
@@ -256,13 +155,13 @@ if __name__ == "__main__":
 
     
     inference_options = {
-        "MLM_k": 5,
+        "MLM_k": 3,
         "Context_k": 5,
         "level": 3,
         }
 
     target_word = [
-            "abuse"
+            "office"
         ]
     
     tg = main(
