@@ -56,8 +56,8 @@ class Loader():
             tag (str): Tag of the XML file to extract the texts from.
         """
         size = os.path.getsize(path)
-        if size > 1e8:
-            raise ValueError("File size is too large. Please split the file into smaller files.")
+        # if size > 1e8:
+        #     raise ValueError("File size is too large. Please split the file into smaller files.")
         tree = ET.parse(path)
         root = tree.getroot()
         texts = []
@@ -97,7 +97,7 @@ class Loader():
             Filtered texts:  ['This is a third test.']
         """
 
-        if target_words:
+        if target_words is not None:
             relevant_texts = []
             for text in self.texts:
                 if any([' ' + word + ' ' in text for word in target_words]):
