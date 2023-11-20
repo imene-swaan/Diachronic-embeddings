@@ -13,8 +13,8 @@ import numpy as np
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))) # Add src to path
 from semantics.utils.utils import train_test_split
-
-
+from nltk.corpus import stopwords
+import re
 
 
 
@@ -562,6 +562,8 @@ class RobertaInference:
             raise ValueError(
                 f'The Embedding model {self.model.__class__.__name__} has not been initialized'
             )
+        if main_word not in doc:
+            return []
         
         masked_doc = doc.replace(main_word, '<mask>')
         try:
@@ -572,13 +574,12 @@ class RobertaInference:
                 top_k_tokens = torch.topk(logit_set, k).indices
                 top_k_words = [self.tokenizer.decode(token.item()).strip() for token in top_k_tokens]
 
-                if main_word in top_k_words:
-                    top_k_words.remove(main_word)
+    
+                top_k_words = list(map(lambda x: re.sub(r"\W", '', x), top_k_words))
                 
-                elif any([main_word in word for word in top_k_words]):
-                    top_k_words = [word for word in top_k_words if main_word not in word]
-                
-                
+                stop_words = list(set(stopwords.words('english')))
+                top_k_words = list(filter(lambda x: all([x != main_word, x not in main_word, main_word not in x, len(x) > 2, x not in stop_words]), top_k_words))
+
                 top_k.extend(top_k_words)
 
             return top_k

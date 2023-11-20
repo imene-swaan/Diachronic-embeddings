@@ -5,8 +5,8 @@ from semantics.utils.utils import smart_procrustes_align_gensim
 import os
 from pathlib import Path
 from typing import List, Optional, Union
-
-
+import re
+from nltk.corpus import stopwords
 
 class Word2VecTrainer:  
     """
@@ -329,14 +329,14 @@ class Word2VecInference:
     
     def get_top_k_words(
             self,
-            word: str,
+            main_word: str,
             k: int = 10,
             ):
         """
         Get the top k most similar words to a word in the vocabulary of the model. Default k = 10
 
         Args:
-            word (str): The word to get the top k most similar words of
+            main_word (str): The word to get the top k most similar words of
             k (int, optional): The number of words to return, by default 10
         
         Returns:
@@ -350,14 +350,20 @@ class Word2VecInference:
 
         try:
             sims = self.word_vectorizor.model.wv.most_similar(
-                word,
+                main_word,
                 topn=k
                 )
-            return tuple(map(list, zip(*sims)))
+            
+            words, _= tuple(map(list, zip(*sims)))
+
+            top_k_words = list(map(lambda x: re.sub(r"\W", '', x), words))
+            stop_words = list(set(stopwords.words('english')))
+            top_k_words = list(filter(lambda x: all([x != main_word, x not in main_word, main_word not in x, len(x) > 2, x not in stop_words]), top_k_words))
+            return top_k_words
         
         except KeyError:
-            print(f"The word {word} in the input is not in the model vocabulary.")
-            return [], []
+            print(f"The word {main_word} in the input is not in the model vocabulary.")
+            return []
         
 
 
