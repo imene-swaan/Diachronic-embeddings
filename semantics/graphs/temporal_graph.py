@@ -7,6 +7,7 @@ import numpy as np
 from math import log
 from semantics.utils.utils import count_occurence, most_frequent
 import tqdm
+from semantics.utils.components import WordGraph
 
 # nodes:
 # level 1:
@@ -233,6 +234,7 @@ class Nodes:
         index_to_key = {idx: word for idx, word in enumerate(words)}
         key_to_index = {word: idx for idx, word in enumerate(words)}  
 
+        del words
         # print('Key to index: ', key_to_index)
         embeddings = np.array(embeddings)
         node_features = np.stack([node_types, node_levels, frequencies]).T
@@ -386,7 +388,7 @@ class Edges:
                             pmi = self.get_pmi(dataset, node_1, node_2)
                             pmis.append(pmi)
 
-
+        del edges
         edge_index = np.stack([edge_index_1, edge_index_2])
         edge_features = np.stack([edge_types, similarities, pmis]).T
         return edge_index, edge_features
@@ -454,22 +456,25 @@ class TemporalGraph:
             idx (int): Index of the item to retrieve.
 
         Returns:
-            snapshot (dict): the graph data at the specified index.
-            node_features (np.ndarray): the features of the nodes of the graph at the specified index.
-            edge_index (np.ndarray): the edge index of the graph at the specified index.
-            edge_feature (np.ndarray): the edge features of the graph at the specified index.
-            labels (np.ndarray): the labels of the edges of the graph at the specified index.
-            labels_mask (np.ndarray): the indices of the labels of the edges of the graph at the specified index.
+            graph (WordGraph): The snapshot at the specified index.
         """
         # Get the tokenized inputs at the specified index
-        snapshot = self.snapshots[idx]
-        node_features = self.xs[idx]
-        edge_index = self.edge_indices[idx]
-        edge_feature = self.edge_features[idx]
-        labels = self.ys[idx]
-        labels_mask = self.y_indices[idx]
 
-        return snapshot, np.array(node_features), np.array(edge_index), np.array(edge_feature), np.array(labels), np.array(labels_mask)
+        graph = WordGraph(
+            index=self.snapshots[idx],
+            node_features= np.array(self.xs[idx]),
+            edge_index= np.array(self.edge_indices[idx]),
+            edge_features= np.array(self.edge_features[idx]),
+            labels= np.array(self.ys[idx]),
+            label_mask= np.array(self.y_indices[idx])
+            )
+        # snapshot = self.snapshots[idx]
+        # node_features = self.xs[idx]
+        # edge_index = self.edge_indices[idx]
+        # edge_feature = self.edge_features[idx]
+        # labels = self.ys[idx]
+        # labels_mask = self.y_indices[idx]
+        return graph
 
 
     def add_graph(
@@ -547,7 +552,8 @@ class TemporalGraph:
             current_edge_index=edge_index,
             current_edge_feature_matrix=edge_feature_matrix
         )
-    
+
+        return nds
 
     def construct_graph(
             self, 
@@ -582,32 +588,32 @@ class TemporalGraph:
 
         else:
             print(f'Adding the {len(self.snapshots)} snapshot to the temporal graph...', '\n')
-            previous_index, previous_node_features, previous_edge_index, previous_edge_feature, _, _= self[-1]
-            current_node_features = np.concatenate((current_node_feature_matrix, current_embeddings), axis=1)
+            # previous_index, previous_node_features, previous_edge_index, previous_edge_feature, _, _= self[-1]
+            # current_node_features = np.concatenate((current_node_feature_matrix, current_embeddings), axis=1)
 
             previous_graph = {
-                'index': previous_index,
-                'node_features': previous_node_features,
-                'edge_index': previous_edge_index,
-                'edge_features': previous_edge_feature
+                'index': self[-1].index,
+                'node_features': self[-1].node_features,
+                'edge_index': self[-1].edge_index,
+                'edge_features': self[-1].edge_features
             }
 
             current_graph = {
                 'index': current_index,
-                'node_features': current_node_features,
+                'node_features': np.concatenate((current_node_feature_matrix, current_embeddings), axis=1),
                 'edge_index': current_edge_index,
                 'edge_features': current_edge_feature_matrix
             }
 
-            print('Previous graph: ', previous_edge_index.shape, previous_edge_feature.shape, previous_node_features.shape)
-            print('Current graph: ', current_edge_index.shape, current_edge_feature_matrix.shape, current_node_features.shape, '\n')
-            print('Previoud key to index: ', previous_index['key_to_index'])
-            print('Previous edge index: ', previous_edge_index)
-            print('Aligning the nodes...', '\n')
+            # print('Previous graph: ', previous_edge_index.shape, previous_edge_feature.shape, previous_node_features.shape)
+            # print('Current graph: ', current_edge_index.shape, current_edge_feature_matrix.shape, current_node_features.shape, '\n')
+            # print('Previoud key to index: ', previous_index['key_to_index'])
+            # print('Previous edge index: ', previous_edge_index)
+            # print('Aligning the nodes...', '\n')
             aligned_previous_graph, aligned_current_graph = self.get_aligned_graph(current_graph, previous_graph)
 
-            print('Aligned previous graph: ', aligned_previous_graph['edge_index'].shape, aligned_previous_graph['edge_features'].shape, aligned_previous_graph['node_features'].shape)
-            print('Aligned current graph: ', aligned_current_graph['edge_index'].shape, aligned_current_graph['edge_features'].shape, aligned_current_graph['node_features'].shape, '\n')
+            # print('Aligned previous graph: ', aligned_previous_graph['edge_index'].shape, aligned_previous_graph['edge_features'].shape, aligned_previous_graph['node_features'].shape)
+            # print('Aligned current graph: ', aligned_current_graph['edge_index'].shape, aligned_current_graph['edge_features'].shape, aligned_current_graph['node_features'].shape, '\n')
 
             print('Labeling the edges...', '\n')
             previous_labels, previous_label_mask = self.label_previous_graph(current_graph, previous_graph)
