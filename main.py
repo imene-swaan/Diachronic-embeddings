@@ -20,7 +20,7 @@ def main(output_dir, data_path, periods, **kwargs):
     inference_options = kwargs['inference_options']
     preprocessing_options = kwargs['preprocessing_options']
 
-    for i, period in enumerate(periods):
+    for i, period in enumerate(periods[:2]):
 
         # loading the data
         print(f'Loading data from {period} ...', '\n')
@@ -61,14 +61,22 @@ def main(output_dir, data_path, periods, **kwargs):
         )
 
         if tg[i][2].shape[1] != tg[i][3].shape[0]:
+            if tg[i][0] == tg[i-1][0]:
+                print('Same index')
             print('edge_indices and edge_features do not match')
+            print('xs: ', tg[i][1].shape)
             print('edge_indices: ', tg[i][2].shape)
             print('edge_features: ', tg[i][3].shape)
             print('period: ', period)
-            print('index: ', tg[i][0])
-            print('xs: ', tg[i][1].shape)
             print('ys: ', tg[i][4].shape)
             print('y_indices: ', tg[i][5].shape)
+
+            print('Previous period: ', periods[i-1])
+            print('xs: ', tg[i-1][1].shape)
+            print('edge_indices: ', tg[i-1][2].shape)
+            print('edge_features: ', tg[i-1][3].shape)
+            print('ys: ', tg[i-1][4].shape)
+            print('y_indices: ', tg[i-1][5].shape)
             raise ValueError
         
         index, xs, edge_indices, edge_features, ys, y_indices = tg[i]
@@ -156,7 +164,7 @@ if __name__ == "__main__":
     
     inference_options = {
         "MLM_k": 3,
-        "Context_k": 5,
+        "Context_k": 3,
         "level": 3,
         }
 
@@ -178,42 +186,19 @@ if __name__ == "__main__":
         )
     
 
-    index = tg.snapshots
-    xs = tg.xs
-    edge_indices = tg.edge_indices
-    edge_features = tg.edge_features
-    ys = tg.ys
-    y_indices = tg.y_indices
+    # index, xs, edge_indices, edge_features, ys, y_indices = tg[0]
 
-
-    with open(f'{output_dir}/index.json', 'w') as f:
-        json.dump(index, f, indent=4)
+    # fig = visualize_graph(
+    #     graph= (index, xs, edge_indices, edge_features, ys, y_indices) ,
+    #     title= 'Graph Visualization',
+    #     node_label_feature= 0,
+    #     edge_label_feature= 1
+    #     )
     
-    with open(f'{output_dir}/xs.npy', 'wb') as f:
-        np.save(f, np.array(xs))
-
-    with open(f'{output_dir}/edge_indices.npy', 'wb') as f:
-        np.save(f, np.array(edge_indices))
-    
-    with open(f'{output_dir}/edge_features.npy', 'wb') as f:
-        np.save(f, np.array(edge_features))
-    
-    with open(f'{output_dir}/ys.npy', 'wb') as f:
-        np.save(f, np.array(ys))
-    
-    with open(f'{output_dir}/y_indices.npy', 'wb') as f:
-        np.save(f, np.array(y_indices))
-    
-
-
-    fig = visualize_graph(
-        graph= (index, xs, edge_indices, edge_features, ys, y_indices) ,
-        title= 'Graph Visualization',
-        node_label_feature= 0,
-        edge_label_feature= 1
-        )
-    
-    fig.savefig(f'{output_dir}/graph_{periods[i]}.png')
+    # image_dir = f'{output_dir}/images/graph_{periods[0]}.png'
+    # if not os.path.exists(f'{output_dir}/images'):
+    #     os.mkdir(f'{output_dir}/images')
+    # fig.savefig(image_dir)
     
 
 
