@@ -64,8 +64,8 @@ def visualize_graph(
 
     for i in range(edge_indices.shape[1]):
         G.add_edge(
-            index['index_to_key'][str(edge_indices[0][i])],
-            index['index_to_key'][str(edge_indices[1][i])],
+            index['index_to_key'][edge_indices[0][i]],
+            index['index_to_key'][edge_indices[1][i]],
             weight= edge_features[i][edge_label_feature]
             )
 
