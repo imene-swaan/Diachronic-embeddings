@@ -11,3 +11,5 @@ trial1/
 __pycache__/
 .pytest_cache/
 site/
+semantics-obsedian/
+.DS_Store
