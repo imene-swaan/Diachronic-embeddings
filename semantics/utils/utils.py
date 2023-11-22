@@ -130,7 +130,7 @@ def count_occurence(data: List[str], word: Optional[Union[List[str], str]] = Non
         word = [word]
 
     if len(word) == 1:
-        return sum([1 for w in data if word[0] in w])
+        return sum([1 for sentence in data if word[0] in sentence])
     
     else:
         counts = 0
