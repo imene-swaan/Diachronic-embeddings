@@ -3,13 +3,15 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import matplotlib.colors as mcolors
 from semantics.graphs.temporal_graph import TemporalGraph
+from semantics.utils.components import WordGraph
 from semantics.utils.utils import generate_pastel_colors
 import numpy as np
-from typing import Optional
+from typing import Optional, Union
+
 
 
 def visualize_graph(
-        graph: Optional[tuple] = None,
+        graph: Optional[Union[tuple, WordGraph]] = None,
         title: str = 'Graph Visualization',
         node_label_feature: Optional[int] = 0,
         edge_label_feature: Optional[int] = 1,
@@ -19,7 +21,7 @@ def visualize_graph(
     Visualize a graph.
 
     Args:
-        graph: The graph to be visualized. If None, return an empty figure. Default to None. Of type WordGraph.
+        graph (Optional[Union[tuple, WordGraph]]): The graph to be visualized. If None, return an empty figure. Default to None. If tuple, the graph is a temporal word graph. If WordGraph, the graph is a word graph.
         title: The title of the graph. Default to 'Graph Visualization'.
         node_label_feature: The feature of the node to be used as label. Default to 0 (node_type).
         edge_label_feature: The feature of the edge to be used as label. Default to 1 (Similarities).

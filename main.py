@@ -15,12 +15,12 @@ def main(output_dir, data_path, periods, **kwargs):
     corpora = {}
     target_word = kwargs['target_word']
     xml_tag = kwargs['xml_tag']
-    word2vec_paths = []
+    # word2vec_paths = []
     tg = TemporalGraph()
     inference_options = kwargs['inference_options']
     preprocessing_options = kwargs['preprocessing_options']
 
-    for i, period in enumerate(periods[:2]):
+    for i, period in enumerate(periods[:]):
 
         # loading the data
         print(f'Loading data from {period} ...', '\n')
@@ -50,7 +50,7 @@ def main(output_dir, data_path, periods, **kwargs):
         roberta = RobertaInference(pretrained_model_path= roberta_path)
         word2vec = Word2VecInference(pretrained_model_path= word2vec_path)
 
-        tg.add_graph(
+        nds = tg.add_graph(
             target_word= target_word[0],
             level = inference_options['level'],
             k = inference_options['MLM_k'],
@@ -60,48 +60,56 @@ def main(output_dir, data_path, periods, **kwargs):
             mlm_model= roberta,
         )
 
-        if tg[i][2].shape[1] != tg[i][3].shape[0]:
+        if tg[i].edge_index.shape[1] != tg[i].edge_features.shape[0]:
             if tg[i][0] == tg[i-1][0]:
                 print('Same index')
             print('edge_indices and edge_features do not match')
-            print('xs: ', tg[i][1].shape)
-            print('edge_indices: ', tg[i][2].shape)
-            print('edge_features: ', tg[i][3].shape)
+            print('xs: ', tg[i].node_features.shape)
+            print('edge_indices: ', tg[i].edge_index.shape)
+            print('edge_features: ', tg[i].edge_features.shape)
             print('period: ', period)
-            print('ys: ', tg[i][4].shape)
-            print('y_indices: ', tg[i][5].shape)
+            print('ys: ', tg[i].labels.shape)
+            print('y_indices: ', tg[i].label_mask.shape)
 
             print('Previous period: ', periods[i-1])
-            print('xs: ', tg[i-1][1].shape)
-            print('edge_indices: ', tg[i-1][2].shape)
-            print('edge_features: ', tg[i-1][3].shape)
-            print('ys: ', tg[i-1][4].shape)
-            print('y_indices: ', tg[i-1][5].shape)
+            print('xs: ', tg[i-1].node_features.shape)
+            print('edge_indices: ', tg[i-1].edge_index.shape)
+            print('edge_features: ', tg[i-1].edge_features.shape)
+            print('ys: ', tg[i-1].labels.shape)
+            print('y_indices: ', tg[i-1].label_mask.shape)
             raise ValueError
         
-        index, xs, edge_indices, edge_features, ys, y_indices = tg[i]
 
         if not os.path.exists(f'{output_dir}/inference_{period}'):
             os.mkdir(f'{output_dir}/inference_{period}')
 
+        with open(f'{output_dir}/inference_{period}/nds.json', 'w') as f:
+            json.dump(nds, f, indent=4)
+
         with open(f'{output_dir}/inference_{period}/index.json', 'w') as f:
-            json.dump(index, f, indent=4)
+            json.dump(tg[i].index, f, indent=4)
 
         with open(f'{output_dir}/inference_{period}/xs.npy', 'wb') as f:
-            np.save(f, xs)
+            np.save(f, tg[i].node_features)
         
         with open(f'{output_dir}/inference_{period}/edge_indices.npy', 'wb') as f:
-            np.save(f, edge_indices)
+            np.save(f, tg[i].edge_index)
 
         with open(f'{output_dir}/inference_{period}/edge_features.npy', 'wb') as f:
-            np.save(f, edge_features)
+            np.save(f, tg[i].edge_features)
 
         with open(f'{output_dir}/inference_{period}/ys.npy', 'wb') as f:
-            np.save(f, ys)
+                np.save(f, tg[i].labels)
 
         with open(f'{output_dir}/inference_{period}/y_indices.npy', 'wb') as f:
-            np.save(f, y_indices)
-    
+            np.save(f, tg[i].label_mask)
+
+        if i > 0:
+            with open(f'{output_dir}/inference_{periods[i-1]}/ys.npy', 'wb') as f:
+                np.save(f, tg[i-1].labels)
+
+            with open(f'{output_dir}/inference_{periods[i-1]}/y_indices.npy', 'wb') as f:
+                np.save(f, tg[i-1].label_mask)
 
     return tg
 
@@ -165,7 +173,7 @@ if __name__ == "__main__":
     inference_options = {
         "MLM_k": 3,
         "Context_k": 3,
-        "level": 3,
+        "level": 2,
         }
 
     target_word = [
@@ -178,7 +186,7 @@ if __name__ == "__main__":
         periods, 
         xml_tag = 'fulltext',
         target_word = target_word,
-        max_documents = 10000,
+        max_documents = 1000,
         shuffle = True,
         preprocessing_options = preprocessing_options,
         mlm_options = mlm_options,

@@ -25,40 +25,30 @@ class WordGraph(BaseModel):
     def check_node_features(cls, v):
         if not isinstance(v, np.ndarray):
             raise ValueError('node_features must be a numpy.ndarray')
-        if len(v.shape) != 2:
-            raise ValueError('node_features must be a 2D array')
         return v
     
     @field_validator('edge_index')
     def check_edge_index(cls, v):
         if not isinstance(v, np.ndarray):
             raise ValueError('edge_index must be a numpy.ndarray')
-        if len(v.shape) != 2:
-            raise ValueError('edge_index must be a 2D array')
         return v
     
     @field_validator('edge_features')
     def check_edge_features(cls, v):
         if not isinstance(v, np.ndarray):
             raise ValueError('edge_features must be a numpy.ndarray')
-        if len(v.shape) != 2:
-            raise ValueError('edge_features must be a 2D array')
         return v
     
     @field_validator('labels')
     def check_labels(cls, v):
         if not isinstance(v, np.ndarray):
             raise ValueError('labels must be a numpy.ndarray')
-        if len(v.shape) != 1:
-            raise ValueError('labels must be a 1D array')
         return v
 
     @field_validator('label_mask')
     def check_label_mask(cls, v):
         if not isinstance(v, np.ndarray):
             raise ValueError('label_mask must be a numpy.ndarray')
-        if len(v.shape) != 2:
-            raise ValueError('label_mask must be a 2D array')
         return v
 
 
