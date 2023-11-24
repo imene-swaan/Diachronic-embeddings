@@ -354,16 +354,16 @@ class Word2VecInference:
                 topn=k
                 )
             
-            words, _= tuple(map(list, zip(*sims)))
+            words, similarities= tuple(map(list, zip(*sims)))
 
             top_k_words = list(map(lambda x: re.sub(r"\W", '', x), words))
             stop_words = list(set(stopwords.words('english')))
             top_k_words = list(filter(lambda x: all([x != main_word, x not in main_word, main_word not in x, len(x) > 2, x not in stop_words]), top_k_words))
-            return top_k_words
+            return top_k_words, similarities
         
         except KeyError:
             print(f"The word {main_word} in the input is not in the model vocabulary.")
-            return []
+            return [], []
         
 
 
