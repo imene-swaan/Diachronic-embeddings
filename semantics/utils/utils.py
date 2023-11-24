@@ -141,7 +141,7 @@ def count_occurence(data: List[str], word: Optional[Union[List[str], str]] = Non
             
         
  
-def most_frequent(my_list: List[str], n: int = 1):
+def most_frequent(my_list: List[str], n: int = 1) -> (List[str], List[int]):
     """
     Return the n most frequent words in a list.
     
@@ -150,10 +150,11 @@ def most_frequent(my_list: List[str], n: int = 1):
         n (int): The number of most frequent words to return.
         
     Returns:
-        List[str]: The n most frequent words.
+        most_frequent ((List[str], List[int])): The n most frequent words and their counts
     """
     occurence_count = Counter(my_list)
-    return [w for w, _ in occurence_count.most_common(n)]
+    most_common = occurence_count.most_common(n)
+    return [w for w, _ in most_common], [c for _, c in most_common]
 
 
 # ------------------- smart_procrustes_align_gensim --------------------
