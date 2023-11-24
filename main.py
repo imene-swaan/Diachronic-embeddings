@@ -20,6 +20,7 @@ def main(output_dir, data_path, periods, **kwargs):
     inference_options = kwargs['inference_options']
     preprocessing_options = kwargs['preprocessing_options']
 
+
     for i, period in enumerate(periods[:]):
 
         # loading the data
@@ -61,8 +62,6 @@ def main(output_dir, data_path, periods, **kwargs):
         )
 
         if tg[i].edge_index.shape[1] != tg[i].edge_features.shape[0]:
-            if tg[i][0] == tg[i-1][0]:
-                print('Same index')
             print('edge_indices and edge_features do not match')
             print('xs: ', tg[i].node_features.shape)
             print('edge_indices: ', tg[i].edge_index.shape)
@@ -70,13 +69,6 @@ def main(output_dir, data_path, periods, **kwargs):
             print('period: ', period)
             print('ys: ', tg[i].labels.shape)
             print('y_indices: ', tg[i].label_mask.shape)
-
-            print('Previous period: ', periods[i-1])
-            print('xs: ', tg[i-1].node_features.shape)
-            print('edge_indices: ', tg[i-1].edge_index.shape)
-            print('edge_features: ', tg[i-1].edge_features.shape)
-            print('ys: ', tg[i-1].labels.shape)
-            print('y_indices: ', tg[i-1].label_mask.shape)
             raise ValueError
         
 
@@ -86,30 +78,29 @@ def main(output_dir, data_path, periods, **kwargs):
         with open(f'{output_dir}/inference_{period}/nds.json', 'w') as f:
             json.dump(nds, f, indent=4)
 
+
+    tg.align_graphs()
+    tg.label_graphs()
+    
+    for i, period in enumerate(periods):
         with open(f'{output_dir}/inference_{period}/index.json', 'w') as f:
             json.dump(tg[i].index, f, indent=4)
-
-        with open(f'{output_dir}/inference_{period}/xs.npy', 'wb') as f:
-            np.save(f, tg[i].node_features)
         
         with open(f'{output_dir}/inference_{period}/edge_indices.npy', 'wb') as f:
             np.save(f, tg[i].edge_index)
-
+        
         with open(f'{output_dir}/inference_{period}/edge_features.npy', 'wb') as f:
             np.save(f, tg[i].edge_features)
-
-        with open(f'{output_dir}/inference_{period}/ys.npy', 'wb') as f:
-                np.save(f, tg[i].labels)
-
-        with open(f'{output_dir}/inference_{period}/y_indices.npy', 'wb') as f:
+        
+        with open(f'{output_dir}/inference_{period}/node_features.npy', 'wb') as f:
+            np.save(f, tg[i].node_features)
+        
+        with open(f'{output_dir}/inference_{period}/labels.npy', 'wb') as f:
+            np.save(f, tg[i].labels)
+        
+        with open(f'{output_dir}/inference_{period}/label_mask.npy', 'wb') as f:
             np.save(f, tg[i].label_mask)
-
-        if i > 0:
-            with open(f'{output_dir}/inference_{periods[i-1]}/ys.npy', 'wb') as f:
-                np.save(f, tg[i-1].labels)
-
-            with open(f'{output_dir}/inference_{periods[i-1]}/y_indices.npy', 'wb') as f:
-                np.save(f, tg[i-1].label_mask)
+        
 
     return tg
 
@@ -122,7 +113,7 @@ def main(output_dir, data_path, periods, **kwargs):
 
 
 if __name__ == "__main__":
-    output_dir = 'output'
+    output_dir = 'output_1'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     periods = [
