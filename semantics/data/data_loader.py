@@ -66,7 +66,17 @@ class Loader():
                 texts.append(elem.text)
         return cls(texts)
     
-
+    @classmethod
+    def from_images(cls,
+                    path: Union[str, Path]
+                    ):
+        """
+        Class method to read texts from images.
+        
+        Args:
+            path (Union[str, Path]): Path to the directory containing the images.
+        """
+        raise NotImplementedError
     
     def forward(
             self, 
