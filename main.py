@@ -92,13 +92,13 @@ def main(output_dir, data_path, periods, **kwargs):
         with open(f'{output_dir}/inference_{period}/edge_features.npy', 'wb') as f:
             np.save(f, tg[i].edge_features)
         
-        with open(f'{output_dir}/inference_{period}/node_features.npy', 'wb') as f:
+        with open(f'{output_dir}/inference_{period}/xs.npy', 'wb') as f:
             np.save(f, tg[i].node_features)
         
-        with open(f'{output_dir}/inference_{period}/labels.npy', 'wb') as f:
+        with open(f'{output_dir}/inference_{period}/ys.npy', 'wb') as f:
             np.save(f, tg[i].labels)
         
-        with open(f'{output_dir}/inference_{period}/label_mask.npy', 'wb') as f:
+        with open(f'{output_dir}/inference_{period}/y_indices.npy', 'wb') as f:
             np.save(f, tg[i].label_mask)
         
 
@@ -113,7 +113,7 @@ def main(output_dir, data_path, periods, **kwargs):
 
 
 if __name__ == "__main__":
-    output_dir = 'output_1'
+    output_dir = 'output'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     periods = [
