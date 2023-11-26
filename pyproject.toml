@@ -24,6 +24,8 @@ networkx = "^3.2.1"
 matplotlib = "^3.8.2"
 pydantic = "^2.5.1"
 opencv-python = "^4.8.1.78"
+pytesseract = "^0.3.10"
+easyocr = "^1.7.1"
 
 [tool.poetry.dev-dependencies]
 poethepoet = "^0.24.3"
