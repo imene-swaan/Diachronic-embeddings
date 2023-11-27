@@ -15,3 +15,4 @@ semantics-obsedian/
 .DS_Store
 output_1/
 *.jp2
+.vscode/settings.json

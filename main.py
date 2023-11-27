@@ -30,7 +30,7 @@ def main(output_dir, data_path, periods, **kwargs):
         corpora[period] = Loader.from_xml(
                 path, 
                 xml_tag
-                ).forward(
+                ).sample(
                     target_words= target_word, 
                     max_documents=kwargs['max_documents'], 
                     shuffle=kwargs['shuffle']
