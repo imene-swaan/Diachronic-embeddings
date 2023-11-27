@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_validator
-from typing import Dict
+from typing import Dict, Optional, Literal
 import numpy as np
 
 class WordGraph(BaseModel):
@@ -52,7 +52,25 @@ class WordGraph(BaseModel):
         return v
 
 
-   
+
+
+class OCRSettings(BaseModel):
+    ocr_engine: Optional[Literal['easyocr', 'pytesseract']] = None
+
+    @field_validator('ocr_engine')
+    def check_ocr_engine(cls, v):
+        if v is not None and v not in ['easyocr', 'pytesseract']:
+            raise ValueError('ocr_engine must be either easyocr or pytesseract')
+        return v
+    
+    # @field_validator('ocr_options')
+    # def check_ocr_options(cls, v):
+    #     if v is not None and not isinstance(v, dict):
+    #         raise ValueError('ocr_options must be a dictionary')
+        
+    #     if v is not None and 
+    #     return v
+    
     
 if __name__ == '__main__':
     g = WordGraph(
