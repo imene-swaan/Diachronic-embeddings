@@ -3291,7 +3291,18 @@ files = [
     {file = "webencodings-0.5.1.tar.gz", hash = "sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923"},
 ]
 
+[[package]]
+name = "word2number"
+version = "1.1"
+description = "Convert number words eg. three hundred and forty two to numbers (342)."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "word2number-1.1.zip", hash = "sha256:70e27a5d387f67b04c71fbb7621c05930b19bfd26efd6851e6e0f9969dcde7d0"},
+]
+
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "84a32f4d120943f971840b6c1cedb635e3ffd0d2ade74e87fad33c2aeb426b93"
+content-hash = "c0fe2cdec726c163a08d8e5df2573c6c3144571ff9946e651c1884301cffddf6"
