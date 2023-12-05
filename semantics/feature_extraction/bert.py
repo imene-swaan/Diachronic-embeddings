@@ -4,7 +4,7 @@ from pathlib import Path
 from transformers import BertTokenizer, BertModel, BertForMaskedLM
 from transformers import logging as lg
 import logging
-from typing import Union
+from typing import Optional, Union
 
 
 class BertEmbeddings:
@@ -20,7 +20,7 @@ class BertEmbeddings:
     """
     def __init__(
         self,
-        pretrained_model_path:Union[str, Path] = None,
+        pretrained_model_path: Optional[Union[str, Path]] = None,
     ):
         self.model_path = pretrained_model_path
         if pretrained_model_path is not None:
@@ -92,7 +92,11 @@ class BertEmbeddings:
 
 
 class BertInference:
-    pass
+    def __init__(self) -> None:
+        pass
+
+    def get_top_k_words(self):
+        pass
 
 
 
