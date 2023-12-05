@@ -5,6 +5,7 @@ from semantics.feature_extraction.roberta import  RobertaInference
 from semantics.feature_extraction.word2vec import Word2VecInference
 from semantics.graphs.temporal_graph import TemporalGraph
 from semantics.inference.visualize import WordTraffic, visualize_graph
+from semantics.utils.utils import count_occurence
 from pathlib import Path
 import os
 import numpy as np
@@ -13,8 +14,8 @@ import json
 
 def main(output_dir, data_path, periods, **kwargs):
     corpora = {}
-    target_word = kwargs['target_word']
-    xml_tag = kwargs['xml_tag']
+    target_word = kwargs.get('target_word', None)
+    xml_tag = kwargs.get('xml_tag', None)
     # word2vec_paths = []
     tg = TemporalGraph()
     inference_options = kwargs['inference_options']
@@ -32,7 +33,7 @@ def main(output_dir, data_path, periods, **kwargs):
                 xml_tag
                 ).sample(
                     target_words= target_word, 
-                    max_documents=kwargs['max_documents'], 
+                    max_documents=kwargs.get('max_documents', None),
                     shuffle=kwargs['shuffle']
                     ) # Loader.from_txt(path).forward()
 
@@ -43,6 +44,11 @@ def main(output_dir, data_path, periods, **kwargs):
 
 
         print('Number of clean documents: ', len(corpora[period]), '\n')
+
+        print('Number of sentences with the word: ')
+        for word in target_word:
+            print(word, ': ', count_occurence(corpora[period], word), '\n')
+        
         print(f'Creating the Graph of {period} ...', '\n')
 
         roberta_path = f'{output_dir}/MLM_roberta_{period}'
@@ -83,6 +89,13 @@ def main(output_dir, data_path, periods, **kwargs):
     tg.label_graphs()
     
     for i, period in enumerate(periods):
+        print(f'Saving the Graph of {period} ...')
+        print('xs: ', tg[i].node_features.shape)
+        print('edge_indices: ', tg[i].edge_index.shape)
+        print('edge_features: ', tg[i].edge_features.shape)
+        print('ys: ', tg[i].labels.shape)
+        print('y_indices: ', tg[i].label_mask.shape, '\n')
+
         with open(f'{output_dir}/inference_{period}/index.json', 'w') as f:
             json.dump(tg[i].index, f, indent=4)
         
@@ -168,7 +181,36 @@ if __name__ == "__main__":
         }
 
     target_word = [
-            "office"
+            # "office",
+            # "work",
+            # "job",
+            # "career",
+            # "profession",
+            # "employment",
+            # "occupation",
+            # "vocation",
+            # "trade",
+            # "business",
+            # "position",
+            # "post",
+            "trump",
+            # "biden",
+            # "obama",
+            # "bush",
+            # "ford",
+            # "nixon",
+            # "putin",
+            # "merkel",
+            # "us",
+            # "usa",
+            # "america",
+            # "russia",
+            # "china",
+            # "germany",
+            # "uk",
+            # "france",
+            # "italy",
+            # "japan"
         ]
     
     tg = main(
