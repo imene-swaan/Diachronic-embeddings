@@ -1,12 +1,12 @@
 from semantics.data.data_loader import Loader
-from semantics.data.data_loader import split_xml
+# from semantics.data.data_loader import split_xml
 from semantics.data.data_preprocessing import PREPROCESS
 from semantics.feature_extraction.roberta import  RobertaInference
 from semantics.feature_extraction.word2vec import Word2VecInference
 from semantics.graphs.temporal_graph import TemporalGraph
 from semantics.inference.visualize import WordTraffic, visualize_graph
+from semantics.inference.obsedian import ObsedianGraph
 from semantics.utils.utils import count_occurence
-from pathlib import Path
 import os
 import numpy as np
 import json
@@ -20,6 +20,8 @@ def main(output_dir, data_path, periods, **kwargs):
     tg = TemporalGraph()
     inference_options = kwargs['inference_options']
     preprocessing_options = kwargs['preprocessing_options']
+
+    obsedian_vault = kwargs.get('obsedian_vault', 'semantics-obsedian')
 
 
     for i, period in enumerate(periods[:]):
@@ -113,6 +115,15 @@ def main(output_dir, data_path, periods, **kwargs):
         
         with open(f'{output_dir}/inference_{period}/y_indices.npy', 'wb') as f:
             np.save(f, tg[i].label_mask)
+
+        obsedian_graph = ObsedianGraph(
+            vault_path= obsedian_vault,
+            graph= tg[i],
+        )
+
+        obsedian_graph.generate_markdowns(folder= f'{period}')
+        obsedian_graph.style()
+        
         
 
     return tg
@@ -177,7 +188,7 @@ if __name__ == "__main__":
     inference_options = {
         "MLM_k": 3,
         "Context_k": 3,
-        "level": 2,
+        "level": 3,
         }
 
     target_word = [
@@ -213,17 +224,22 @@ if __name__ == "__main__":
             # "japan"
         ]
     
+    visualization_options = {
+        "obsedian_vault": "semantics-obsedian"
+    }
+    
     tg = main(
         output_dir,
         file_path, 
         periods, 
         xml_tag = 'fulltext',
         target_word = target_word,
-        max_documents = 1000,
+        max_documents = 20,
         shuffle = True,
         preprocessing_options = preprocessing_options,
         mlm_options = mlm_options,
-        inference_options = inference_options
+        inference_options = inference_options,
+        visualization_options = visualization_options
         )
     
 
