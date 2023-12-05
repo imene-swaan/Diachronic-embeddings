@@ -229,7 +229,8 @@ class Nodes:
         words = [self.target_word]
         node_types = [0]
         node_levels = [0]
-        frequencies = [count_occurence(self.dataset, self.target_word)]
+        all_words_count = count_occurence(self.dataset)
+        frequencies = [count_occurence(self.dataset, self.target_word)/ all_words_count]
         embeddings = [self.mlm.get_embedding(main_word=self.target_word).mean(axis=0)]
 
         for level in range(self.level):
@@ -246,7 +247,7 @@ class Nodes:
                             node_types.append(2)
 
                         node_levels.append(level+1)
-                        frequencies.append(count_occurence(self.dataset, node))
+                        frequencies.append(count_occurence(self.dataset, node) / all_words_count)
                         embeddings.append(self.mlm.get_embedding(main_word=node).mean(axis=0))
 
         index_to_key = {idx: word for idx, word in enumerate(words)}
