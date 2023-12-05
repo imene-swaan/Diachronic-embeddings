@@ -1,7 +1,7 @@
 from semantics.feature_extraction.roberta import RobertaInference
 from semantics.feature_extraction.bert import BertInference
 from semantics.feature_extraction.word2vec import Word2VecInference
-from typing import List, Union, Dict, Optional
+from typing import List, Union, Dict, Optional, Tuple
 import torch
 import numpy as np
 from math import log
@@ -90,7 +90,7 @@ class Nodes:
             self, 
             word: Union[str, List[str]],
             keep_k: int = 50
-            ) -> (Dict[str, List[str]], Dict[str, List[int]]):
+            ) -> Tuple[Dict[str, List[str]], Dict[str, List[int]]]:
         """
         This method is used to get the similar nodes of a word using the MLM model.
         
@@ -129,7 +129,7 @@ class Nodes:
 
                
 
-    def get_context_nodes(self, word: Union[str, List[str]]) -> Dict[str, List[str]]:
+    def get_context_nodes(self, word: Union[str, List[str]]) -> Tuple[Dict[str, List[str]], Dict[str, List[int]]]:
         """
         This method is used to get the context nodes of a word using the word2vec model.
 
@@ -152,7 +152,7 @@ class Nodes:
                 context_strength[w] = sims
         return context_nodes, context_strength
     
-    def get_nodes(self) -> (Dict, Dict):
+    def get_nodes(self) -> Tuple[Dict, Dict]:
         """
         This method is used to get the nodes of the word graph (similar nodes, context nodes, and target node).
 
