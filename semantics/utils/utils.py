@@ -2,7 +2,7 @@ import yaml
 import tomli
 import random
 import numpy as np
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Tuple
 from collections import Counter
 
 
@@ -22,6 +22,7 @@ def generate_pastel_colors(num_colors=3):
         int(random.uniform(0.6, 1.0) * 255),
         int(random.uniform(0.6, 1.0) * 255)
     ) for _ in range(num_colors)]
+
 
 
 
@@ -117,7 +118,7 @@ def count_occurence(data: List[str], word: Optional[Union[List[str], str]] = Non
 
     Args:
         data (List[str]): The list of strings.
-        word (Union[List[str], str]): The word or list of words to count. if a list of words is provided, the function will count the co-occurence of the words in each data string. if word is None, the function return the count of all words in the data.
+        word (Union[List[str], str]): The word or list of words to count. If word is str, the function will count the occurence of the word in each data string. If a list of words is provided, the function will count the co-occurence of the words in each data string. If word is None, the function return the count of all words in the data. Defaults to None.
 
     Returns:
         count (int): The count of occurences.
@@ -141,7 +142,7 @@ def count_occurence(data: List[str], word: Optional[Union[List[str], str]] = Non
             
         
  
-def most_frequent(my_list: List[str], n: int = 1) -> (List[str], List[int]):
+def most_frequent(my_list: List[str], n: int = 1) -> Tuple[List[str], List[int]]:
     """
     Return the n most frequent words in a list.
     
