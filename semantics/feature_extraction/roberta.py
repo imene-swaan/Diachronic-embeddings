@@ -15,6 +15,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.
 from semantics.utils.utils import train_test_split
 from nltk.corpus import stopwords
 import re
+from word2number import w2n
 
 
 
@@ -301,7 +302,7 @@ class RobertaEmbedding:
     """
     def __init__(
         self,
-        pretrained_model_path: Optional[Union[str, Path]] = None,
+        pretrained_model_path: Union[str, Path],
     ):
         """
         Args:
@@ -316,13 +317,6 @@ class RobertaEmbedding:
             vocab (bool): Whether the model has been initialized or not.
         """
         self.model_path = pretrained_model_path
-        if pretrained_model_path is not None:
-            if not os.path.exists(pretrained_model_path):
-                raise ValueError(
-                    f'The path {pretrained_model_path} does not exist'
-                )
-            self.model_path = Path(pretrained_model_path)
-
         self._tokens = []
         self.model = None
         self.vocab = False
@@ -338,7 +332,7 @@ class RobertaEmbedding:
         """
         This method is used to prepare the BERT model for the inference.
         """
-        model_path = self.model_path if self.model_path is not None else 'roberta-base'
+        model_path = self.model_path if os.path.exists(self.model_path) else 'roberta-base'
         self.tokenizer = RobertaTokenizer.from_pretrained(model_path)
         self.model = RobertaModel.from_pretrained(
             model_path, 
@@ -456,7 +450,7 @@ class RobertaInference:
 
     def __init__(
             self,
-            pretrained_model_path:Union[str, Path] = None,
+            pretrained_model_path: Optional[Union[str, Path]] = None,
     ):
         """
         Args:
@@ -496,7 +490,7 @@ class RobertaInference:
     def get_embedding(
             self,
             main_word : str, 
-            doc: Optional[Union[str, List[str]]] = None,
+            doc: Optional[str] = None,
             mask : bool = False
             ) -> torch.Tensor:
         
@@ -505,7 +499,7 @@ class RobertaInference:
 
         Args:
             main_word (str): Word to get the vector embeddings for
-            doc (str, List[str], None): Documents to get the vector embeddings of the main_word from. If None, the document is the main_word itself. Defaults to None.
+            doc (str, None): Documents to get the vector embeddings of the main_word from. If None, the document is the main_word itself. Defaults to None.
             mask: Whether to mask the main_word in the documents or not. Defaults to False.
             
         Returns: 
@@ -521,7 +515,7 @@ class RobertaInference:
         
         if not self.vocab:
             raise ValueError(
-                f'The Embedding model {self.model.__class__.__name__} has not been initialized'
+                f'The Embedding model {self.word_vectorizor.__class__.__name__} has not been initialized'
             )
         
         if doc is None:
@@ -560,7 +554,7 @@ class RobertaInference:
         """
         if not self.vocab:
             raise ValueError(
-                f'The Embedding model {self.model.__class__.__name__} has not been initialized'
+                f'The Embedding model {self.word_vectorizor.__class__.__name__} has not been initialized'
             )
         if main_word not in doc:
             return []
@@ -574,14 +568,14 @@ class RobertaInference:
                 top_k_tokens = torch.topk(logit_set, k).indices
                 top_k_words = [self.tokenizer.decode(token.item()).strip() for token in top_k_tokens]
 
-    
-                top_k_words = list(map(lambda x: re.sub(r"\W", '', x), top_k_words))
-                
                 stop_words = list(set(stopwords.words('english')))
-                top_k_words = list(filter(lambda x: all([x != main_word, x not in main_word, main_word not in x, len(x) > 2, x not in stop_words]), top_k_words))
-
-                top_k.extend(top_k_words)
-
+                for word in top_k_words:
+                    word = re.sub(r"\W", '', word)
+                    if all([word != main_word, word not in main_word, main_word not in word, len(word) > 2, word not in stop_words]):
+                        try:
+                            w2n.word_to_num(word)
+                        except:
+                            top_k.append(word)
             return top_k
         
         except ValueError:
