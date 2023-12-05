@@ -548,26 +548,26 @@ class ImageProcessor():
 
 
 if __name__ == "__main__":
-    image_dir = 'input/images'
+    # image_dir = 'input/images'
     # output_dir = image_dir + '/output'
     # if not os.path.exists(output_dir):
     #     os.makedirs(output_dir)
     
-    preprocessing_options = {
+    # preprocessing_options = {
         # 'rotation': True,
         # 'rotation_angle': None, # If None, the angle will be automatically determined. Otherwise, it should be a float value in degrees.
-        'threshold': True,
-        'threshold_val': (0, 255),
-        'threshold_type': cv2.THRESH_BINARY + cv2.THRESH_OTSU,
-        # 'blur': True,
+        # 'threshold': True,
+        # 'threshold_val': (0, 255),
+        # 'threshold_type': cv2.THRESH_BINARY + cv2.THRESH_OTSU,
+        # # 'blur': True,
         # 'blur_ksize': (5, 5),
         # 'blur_sigma': 0,
         # 'dilation': True,
         # 'dilation_kernel_shape': (5, 5),
         # 'dilation_iterations': 1,
-        'erosion': True,
-        'erosion_kernel_shape': (3, 3),
-        'erosion_iterations': 2,
+        # 'erosion': True,
+        # 'erosion_kernel_shape': (3, 3),
+        # 'erosion_iterations': 2,
         # 'opening': True,
         # 'opening_kernel_shape': (5, 5),
         # 'closing': True,
@@ -576,24 +576,26 @@ if __name__ == "__main__":
         # 'canny_thresh': (50, 150),
         # 'canny_L2gradient': False,
         # 'bitwise_not': True,
-        'split': True,
-    }
+    #     'split': True,
+    # }
 
-    ocr_model = 'easyocr'
-    ocr_options = {
-        'language': 'en',
-        'detail': 0,
-    }
+    # ocr_model = 'easyocr'
+    # ocr_options = {
+    #     'language': 'en',
+    #     'detail': 0,
+    # }
 
     
-    data_loader = Loader.from_images(
-        image_dir=image_dir,
-        ocr=ocr_model,
-        preprocessing_options=preprocessing_options,
-        ocr_options=ocr_options,
-        save_preprocessed=True,
-        output_dir= f"{image_dir}/split",
-        save_as_txt=True,
-    )
+    # data_loader = Loader.from_images(
+    #     image_dir=image_dir,
+    #     ocr=ocr_model,
+    #     preprocessing_options=preprocessing_options,
+    #     ocr_options=ocr_options,
+    #     save_preprocessed=True,
+    #     output_dir= f"{image_dir}/split",
+    #     save_as_txt=True,
+    # )
 
     # print(data_loader.texts)
+
+    xml_dir = 'input/xml'
