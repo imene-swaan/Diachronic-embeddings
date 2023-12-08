@@ -1,6 +1,6 @@
 import os
 from typing import List, Dict, Optional, Tuple
-from semantics.utils.utils import generate_pastel_colors
+from semantics.utils.utils import generate_colors
 from semantics.utils.components import WordGraph
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
@@ -120,7 +120,7 @@ class ObsedianGraph:
 
         tag_style = {}
         
-        colors = ["#b4f927", "#13ebef", "#1118f0"]   # generate_pastel_colors(len(unique_types))
+        colors = ["#b4f927", "#13ebef", "#1118f0"]   # generate_colors(len(unique_types))
         color_map = {val: color for val, color in zip(list(unique_types), colors)}
         for tag in unique_types:
             tag_style[tag] = {
