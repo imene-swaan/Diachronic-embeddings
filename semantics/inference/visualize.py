@@ -4,7 +4,7 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.colors as mcolors
 from semantics.graphs.temporal_graph import TemporalGraph
 from semantics.utils.components import WordGraph
-from semantics.utils.utils import generate_pastel_colors
+from semantics.utils.utils import generate_colors
 import numpy as np
 from typing import Optional, Union
 
@@ -54,7 +54,7 @@ def visualize_graph(
 
     node_feature = xs[:, node_label_feature]
     unique_values = np.unique(node_feature, return_counts=False)
-    random_pastel_colors = generate_pastel_colors(len(unique_values))
+    random_pastel_colors = generate_colors(len(unique_values))
     feature_to_color_map = dict(zip(unique_values, random_pastel_colors))
 
     node_labels = list(index['key_to_index'].keys())

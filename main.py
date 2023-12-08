@@ -86,7 +86,6 @@ def main(output_dir, data_path, periods, **kwargs):
         with open(f'{output_dir}/inference_{period}/nds.json', 'w') as f:
             json.dump(nds, f, indent=4)
 
-
     tg.align_graphs()
     tg.label_graphs()
     
@@ -123,9 +122,7 @@ def main(output_dir, data_path, periods, **kwargs):
 
         obsedian_graph.generate_markdowns(folder= f'{period}')
         obsedian_graph.style()
-        
-        
-
+   
     return tg
 
     
@@ -186,9 +183,9 @@ if __name__ == "__main__":
 
     
     inference_options = {
-        "MLM_k": 3,
-        "Context_k": 3,
-        "level": 3,
+        "MLM_k": 2,
+        "Context_k": 2,
+        "level": 2,
         }
 
     target_word = [
@@ -234,7 +231,7 @@ if __name__ == "__main__":
         periods, 
         xml_tag = 'fulltext',
         target_word = target_word,
-        max_documents = 20,
+        max_documents = 200,
         shuffle = True,
         preprocessing_options = preprocessing_options,
         mlm_options = mlm_options,
