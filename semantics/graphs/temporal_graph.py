@@ -168,7 +168,7 @@ class Nodes:
             node_strengths[level] = {}
             print(f'Getting the nodes of level {level} ...')
             if level == 0:
-                similar_nodes, similar_strengths  = self.get_similar_nodes(self.target_word, keep_k= 5)
+                similar_nodes, similar_strengths  = self.get_similar_nodes(self.target_word, keep_k= 6)
                 context_nodes, context_strengths = self.get_context_nodes(self.target_word)
 
                 nodes[level]['similar_nodes'] = similar_nodes
@@ -184,7 +184,7 @@ class Nodes:
                
                 previous_nodes = list(set(previous_nodes))
 
-                similar_nodes, similar_strengths = self.get_similar_nodes(previous_nodes, keep_k= 5)
+                similar_nodes, similar_strengths = self.get_similar_nodes(previous_nodes, keep_k= 3)
                 context_nodes, context_strengths = self.get_context_nodes(previous_nodes)
 
                 nodes[level]['similar_nodes'] = similar_nodes
@@ -484,8 +484,6 @@ class TemporalGraph:
         Returns:
             graph (WordGraph): The snapshot at the specified index.
         """
-        # Get the tokenized inputs at the specified index
-
         graph = WordGraph(
             index=self.index[idx],
             node_features= np.array(self.xs[idx]),
@@ -494,12 +492,6 @@ class TemporalGraph:
             labels= np.array(self.ys[idx]),
             label_mask= np.array(self.y_indices[idx])
             )
-        # snapshot = self.snapshots[idx]
-        # node_features = self.xs[idx]
-        # edge_index = self.edge_indices[idx]
-        # edge_feature = self.edge_features[idx]
-        # labels = self.ys[idx]
-        # labels_mask = self.y_indices[idx]
         return graph
 
     def __setitem__(self, idx, key, value):
