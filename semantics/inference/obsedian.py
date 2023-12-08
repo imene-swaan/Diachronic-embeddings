@@ -1,8 +1,9 @@
 import os
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from semantics.utils.utils import generate_pastel_colors
 from semantics.utils.components import WordGraph
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import numpy as np
 
 
@@ -28,10 +29,9 @@ class ObsedianGraph:
     """
     def __init__(
             self,
-            vault_path: str,
-            graph: WordGraph
+            vault_path: Optional[str] = None,
+            graph: Optional[WordGraph] = None,
             ):
-        
         self.vault_path = vault_path
         if not os.path.exists(self.vault_path):
             raise ValueError(f"Vault path {self.vault_path} does not exist.")
@@ -42,7 +42,7 @@ class ObsedianGraph:
         self.edge_features = graph.edge_features #edge_types, similarities, pmis, edge_strengths
         self.edge_index = graph.edge_index
     
-        self.nodes = self._get_nodes()
+        self.nodes, self.tag_styles = self._get_nodes()
         self.edges = self._get_edges()
 
     
@@ -59,13 +59,15 @@ class ObsedianGraph:
         """
         if not os.path.exists(os.path.join(self.vault_path, folder)):
             os.mkdir(os.path.join(self.vault_path, folder))
-        for node, node_attributes in self.nodes.items():
+        
+
+        for node, node_content in self.nodes.items():
             node_path = os.path.join(self.vault_path, folder, f"{node}.md")
-            node_edges = [val['content'] for key, val in self.edges.items() if node in key.split('-')]
+            node_edges = [val['content'] for key, val in self.edges.items() if node == key.split('AND')[0]]
 
             with open(node_path, "w") as f:
-                f.write(self._generate_yaml_front_matter(node_attributes))
-                f.write(f"# {node}\n\n")
+                # f.write(self._generate_node_tags(node_attributes['content']))
+                f.write(node_content)
                 f.write("## Links\n\n")
                 for edge in node_edges:
                     f.write(edge)
@@ -83,11 +85,12 @@ class ObsedianGraph:
             f.write('/* This is a custom CSS file for styling the graph view using juggl plugin. */\n\n')
 
             f.write("/* Node styles */\n")
-            for node, node_attributes in self.nodes.items():
-                f.write(f"node[title=\"{node}\"]" + "{\n")
-                for attr, value in node_attributes.items():
+            for tag, style in self.tag_styles.items():
+                f.write(f".tag-{tag}" + "{\n")
+                for attr, value in style.items():
                     f.write(f"\t{attr}: {value};\n")
                 f.write("}\n\n")
+
             
             f.write("/* Edge styles */\n")
             for edge, edge_attributes in self.edges.items():
@@ -97,29 +100,57 @@ class ObsedianGraph:
                 f.write("}\n\n")
 
     
-    def _get_nodes(self) -> Dict[str, Dict]:
+    def _get_nodes(self) -> Tuple[Dict[str, str], Dict[str, Dict]]:
         """
         Get all the nodes in the graph.
         
         Returns:
             Dict[str, Dict]: Dictionary of nodes with their attributes.
-
-        Examples:
-            >>> obsedian_graph = ObsedianGraph()
-            >>> obsedian_graph._get_nodes()
-            {'a': {'title': 'a', 'color': (255, 127, 0), 'width': 250, 'height': 250}, 'b': {'title': 'b', 'color': (255, 127, 0), 'width': 250, 'height': 250}}
         """
-        colors = generate_pastel_colors(np.unique(self.node_features[:, 0]).shape[0])
-        color_map = {node_type: color for node_type, color in zip(np.unique(self.node_features[:, 0]), colors)}
         nodes = {}
+        unique_types = set()
+        unique_levels = set()
         for key, idx in self.index['key_to_index'].items():
-            nodes[key] = {
-                'title': key,
-                'color': color_map[self.node_features[idx, 0]],
-                'width': self._float_to_size(self.node_features[idx, 2]),
-                'height': self._float_to_size(self.node_features[idx, 2]),
+            type_tag = f"type{int(self.node_features[idx, 0])}" 
+            level_tag = f"level{int(self.node_features[idx, 1])}" 
+            unique_types.add(type_tag)
+            unique_levels.add(level_tag) 
+            nodes[key] = self._format_tags(tags= [type_tag, level_tag])           
+        
+
+        tag_style = {}
+        
+        colors = ["#b4f927", "#13ebef", "#1118f0"]   # generate_pastel_colors(len(unique_types))
+        color_map = {val: color for val, color in zip(list(unique_types), colors)}
+        for tag in unique_types:
+            tag_style[tag] = {
+                'background-color': color_map[tag]
             }
-        return nodes
+
+
+        sizes = self._category_to_size(unique_levels)
+        size_map = {val: size for val, size in zip(list(unique_levels), sizes)}
+        for tag in unique_levels:
+            size = self._float_to_size(size_map[tag], scale_max=20)
+            tag_style[tag] = {
+                'width': f"{size}px",
+                'height': f"{size}px"
+            }
+
+        return nodes, tag_style
+
+    def _category_to_size(self, categories: list) -> List[str]:
+        items = len(categories)
+        return [np.round(i+1/items, 2) for i in range(items)]
+
+    
+    def _format_tags(self, tags: List[str]) -> str:
+        content = "\n"
+        for tag in tags:
+            content += f"#{tag}\n"
+        content += "\n\n"
+        return content
+
 
     def _get_edges(self) -> Dict[str, Dict]:
         """
@@ -142,50 +173,37 @@ class ObsedianGraph:
             strength = self.edge_features[i, 3]
 
             edge_color = self._float_to_color(similarity)
-            edge_width = self._float_to_size(strength)
+            edge_width = self._float_to_size(similarity, scale_max=10)
 
-            edge_content = f"- {source}-{target} [[{target}]]\n"
+            edge_content = f"- {source}AND{target} [[{target}]]\n"
             edge_style = {
-                'label': similarity,
+                'label': str(np.round(similarity, 2)),
                 'line-color': edge_color,
+                'target-arrow-color': edge_color,
                 'width': edge_width,
             }
-            edges[f"{source}-{target}"] = {
+            edges[f"{source}AND{target}"] = {
                 'content': edge_content,
                 'style': edge_style,
             }
         return edges
     
-    def _generate_yaml_front_matter(self, attributes: Dict) -> str:
-        """
-        Generate the YAML front matter for the Obsedian note.
-        
-        Args:
-            attributes (Dict): Dictionary of attributes for the note.
-            
-        Returns:
-            str: YAML front matter.
-
-        Examples:
-            >>> obsedian_graph = ObsedianGraph()
-            >>> obsedian_graph._generate_yaml_front_matter({'tags': 'test'})
-            '---\\ntags: test\\n---\\n\\n'
-        """
-        yaml_content = "---\n"
-        for attr, value in attributes.items():
-            yaml_content += f"{attr}: {value}\n"
-        yaml_content += "---\n\n"
-        return yaml_content
+    # def _generate_yaml_front_matter(self, attributes: Dict) -> str:
+    #     yaml_content = "---\n"
+    #     for attr, value in attributes.items():
+    #         yaml_content += f"{attr}: {value}\n"
+    #     yaml_content += "---\n\n"
+    #     return yaml_content
     
 
 
-    def _float_to_color(self, alpha: float, colormap=plt.cm.inferno) -> str:
+    def _float_to_color(self, alpha: float, colormap=plt.cm.get_cmap('inferno_r')) -> str:
         """
         Convert a value to a color using a specified colormap.
         
         Args:
-            alpha (float): Value to convert to color.
-            colormap (plt.cm, optional): Colormap to use. Defaults to plt.cm.inferno.
+            alpha (float): Value to convert to color. Should be between 0 and 1.
+            colormap (plt.cm, optional): Colormap to use. Defaults to plt.cm.get_cmap('inferno_r').
             
         Returns:
             str: Hex color code.
@@ -195,26 +213,31 @@ class ObsedianGraph:
             >>> obsedian_graph._float_to_color(0.5)
             '#ff7f00'
         """
-        return tuple(int(x * 255) for x in colormap(alpha)[:3])
+        return mcolors.to_hex(colormap(alpha/1.5))
 
-    def _float_to_size(self, alpha: float) -> int:
+    def _float_to_size(self, alpha: float, scale_min: int = 0, scale_max:int = 50) -> int:
         """
-        Convert a value to a size in px. 
+        Convert a value to a size.
         
         Args:
-            alpha (float): Value to convert to size.
+            alpha (float): Value to convert to size. Should be between 0 and 1.
+            scale_min (int): Minimum size. Defaults to 0.
+            scale_max (int): Maximum size. Defaults to 50.
             
         Returns:
-            int: Size in px.
+            int: Size.
         
         Examples:
             >>> obsedian_graph = ObsedianGraph()
-            >>> obsedian_graph._float_to_size(0.5)
-            250
+            >>> obsedian_graph._float_to_size(0.5, 0, 50)
+            25
         """
-        return int(alpha * 1000)/2        
+        return int(alpha * (scale_max - scale_min) + scale_min)      
 
 
 if __name__ == "__main__":
-    og = ObsedianGraph()
+    # og = ObsedianGraph()
 
+    # print(og._float_to_size(0.5, 0, 10))
+
+    pass
