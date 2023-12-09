@@ -15,7 +15,7 @@ def generate_colors(num_colors=3):
         num_colors (int): The number of colors to generate.
     
     Returns:
-        List[str]: A list of colors in hex format.
+        colors (List[str]): A list of colors in hex format.
     """
     return ['#{:02x}{:02x}{:02x}'.format(
         int(random.uniform(0.0, 1.0) * 255),
@@ -78,8 +78,7 @@ def train_test_split(data: List[str], test_ratio=0.2, random_seed=None):
         random_seed (int): The random seed.
 
     Returns:
-        - train_data (List[str]): The train set.
-        - test_data (List[str]): The test set.
+        data Tuple[List[str], List[str]]: The training and testing datasets.
     """
     
     if random_seed:

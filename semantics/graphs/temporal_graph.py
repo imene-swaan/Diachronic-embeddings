@@ -44,7 +44,7 @@ class Nodes:
     This class is used to get the nodes of the word graph.
 
     methods:
-        __init__(self, target_word: str, dataset: List[str], level: int, k: int, c: int, word2vec_model_path: str, mlm_model_path: str, mlm_model_type: str = 'roberta')
+        __init__(self, target_word: str, dataset: List[str], level: int, k: int, c: int, word2vec_model_path: str, mlm_model_path: str, mlm_model_type: str = 'roberta') -> None
             The constructor of the Nodes class.
         get_similar_nodes(self, word: str) -> List[str]
             This method is used to get the similar nodes of a word.
@@ -304,8 +304,9 @@ class Edges:
         ):
         """
         Args:
-            index_to_key (Dict[int, str]): the index of the nodes of the word graph. The keys are the indices of the nodes and the values are the words of the nodes.
-            node_features (np.ndarray): the features of the nodes of the word graph of shape (num_nodes, 3) where num_nodes is the number of nodes in the graph.
+            index (Dict): the index of the nodes of the word graph.
+            nodes (Dict): the nodes of the word graph.
+            node_strengths (Dict): the strength of the nodes of the word graph.
             node_embeddings (np.ndarray): the embeddings of the nodes of the word graph from the MLM model, of shape (num_nodes, 768).
         """
 
@@ -427,9 +428,9 @@ class TemporalGraph:
     This class is used to get the temporal graph of a word.
 
     methods:
-        __init__(self)
+        __init__(self) -> None
             The constructor of the TemporalGraph class.
-        __getitem__(self, idx)
+        __getitem__(self, idx) -> WordGraph
             Retrieves the snapshot at the specified index.
         add_graph(self, target_word: str, level: int, k: int, c: int, dataset: List[str], word2vec_model: Word2VecInference, mlm_model: Union[RobertaInference, BertInference])
             This method is used to add a snapshot to the temporal graph.
@@ -448,7 +449,7 @@ class TemporalGraph:
             edge_features: Optional[List[np.ndarray]] = [],
             ys: Optional[List[np.ndarray]] = [],
             y_indices: Optional[List[np.ndarray]] = []
-            ):
+            ) -> None:
         
         """
         Attributes:
@@ -468,13 +469,13 @@ class TemporalGraph:
         self.ys = ys
         self.y_indices = y_indices
     
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Returns the number of snapshots in the temporal graph.
         """
         return len(self.xs)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx) -> WordGraph:
         """
         Retrieves the snapshot at the specified index.
 
@@ -494,7 +495,7 @@ class TemporalGraph:
             )
         return graph
 
-    def __setitem__(self, idx, key, value):
+    def __setitem__(self, idx, key, value) -> None:
         """
         Sets the attribute at the specified index.
 

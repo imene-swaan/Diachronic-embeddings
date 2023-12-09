@@ -242,7 +242,7 @@ class EasyOCR():
             **kwargs: Keyword arguments to be passed to the easyocr.Reader.readtext() function.
             
         Returns:
-            Union[List[str], Tuple[List[List[List[int]]], List[str]]]: List of texts or a tuple of coordinates and texts.
+            ocr_results (Union[List[str], Tuple[List[List[List[int]]], List[str]]]): List of texts or a tuple of coordinates and texts.
         
         Examples:
             >>> from semantics.data.data_loader import ImageProcessor
