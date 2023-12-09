@@ -211,7 +211,7 @@ class RobertaTrainer:
         
         train_data, test_data = train_test_split(
             data, 
-            test_ratio=1 - self.split_ratio, 
+            test_ratio= 1 - self.split_ratio, 
             random_seed=42
             )
         
@@ -568,10 +568,11 @@ class RobertaInference:
                 top_k_tokens = torch.topk(logit_set, k).indices
                 top_k_words = [self.tokenizer.decode(token.item()).strip() for token in top_k_tokens]
 
-                stop_words = list(set(stopwords.words('english')))
+                stop_words = list(set(stopwords.words('english'))) + ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelveth']
+
                 for word in top_k_words:
                     word = re.sub(r"\W", '', word)
-                    if all([word != main_word, word not in main_word, main_word not in word, len(word) > 2, word not in stop_words]):
+                    if all([word != main_word, word not in main_word, main_word not in word, len(word) > 2, word not in stop_words, word[:-1] not in top_k]):
                         try:
                             w2n.word_to_num(word)
                         except:
