@@ -11,9 +11,9 @@ import tqdm
 
 
 
-class TemporalGNN(torch.nn.Module):
+class TemporalGCN(torch.nn.Module):
     def __init__(self, node_features, edge_features):
-        super(TemporalGNN, self).__init__()
+        super(TemporalGCN, self).__init__()
         # (nodes, node_features) -> (nodes, 32)
         self.node_encoder = torch.nn.Linear(node_features, 32)  # Node feature encoder
         # (edges, edge_features) -> (edges, 32)
@@ -76,7 +76,7 @@ class TemporalGNNTrainer:
         self.device = device
         # self.subset = subset
 
-        self.model = TemporalGNN(node_features, edge_features).to(self.device)
+        self.model = TemporalGCN(node_features, edge_features).to(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr= learning_rate)
     
     def train(
