@@ -157,9 +157,8 @@ class Nodes:
         This method is used to get the nodes of the word graph (similar nodes, context nodes, and target node).
 
         Returns:
-            nodes (Dict): the nodes of the word graph. The keys are the levels of the graph and the values are dictionaries containing the similar nodes and context nodes of each word in the previous level. Example: in the nodes dictionary {0: {'similar_nodes': {'word1': ['similar_word1', 'similar_word2'], 'word2': ['similar_word3', 'similar_word4']}, 'context_nodes': {'word1': ['context_word1', 'context_word2'], 'word2': ['context_word3', 'context_word4']}}}.
-
-            node_strengths (Dict): the strength of the nodes of the word graph. The keys are the levels of the graph and the values are dictionaries containing the strength of the similar nodes and context nodes of each word in the previous level. Example: in the node_strengths dictionary {0: {'similar_nodes': {'word1': [0.5, 0.3], 'word2': [0.2, 0.1]}, 'context_nodes': {'word1': [0.5, 0.3], 'word2': [0.2, 0.1]}}}.
+            nodes (Dict[int, Dict[str, Dict[str, List[str]]]]): the nodes of the word graph. The keys are the levels of the graph. The values are dictionaries with the keys 'similar_nodes' and 'context_nodes'. The values of these keys are dictionaries with the keys 'target_word' and 'similar_nodes'/'context_nodes'. The values of these keys are lists of similar/context nodes.
+            node_strengths (Dict[int, Dict[str, Dict[str, List[int]]]]): the strength of the nodes of the word graph. The keys are the levels of the graph. The values are dictionaries with the keys 'similar_nodes' and 'context_nodes'. The values of these keys are dictionaries with the keys 'target_word' and 'similar_nodes'/'context_nodes'. The values of these keys are lists of similar/context nodes.
         """
         nodes = {}
         node_strengths = {}
@@ -200,29 +199,26 @@ class Nodes:
         This method is used to get the features of the nodes of the word graph.
 
         Args:
-            nodes (Dict[int, Dict[str, Dict[str, List[str]]]]): the nodes of the word graph
-
+            nodes (Dict[int, Dict[str, Dict[str, List[str]]]]): the nodes of the word graph. The keys are the levels of the graph. The values are dictionaries with the keys 'similar_nodes' and 'context_nodes'. The values of these keys are dictionaries with the keys 'target_word' and 'similar_nodes'/'context_nodes'. The values of these keys are lists of similar/context nodes.
+        
         Returns:
-            index (Dict[str, Dict[int, str]]): the index of the nodes of the word graph. The index contains the 'index_to_key' and 'key_to_index' mapping dictionaries. Example: in the index_to_key dictionary {0: target_word}, and in the key_to_index dictionary {target_word: 0}.
+            index (Dict): the index of the nodes of the word graph. Contains key_to_index and index_to_key dictionaries.
             node_features (np.ndarray): the features of the nodes of the word graph of shape (num_nodes, 3) where num_nodes is the number of nodes in the graph. The features are:
-
-                - node_type: the type of the node (target: 0, similar: 1, context: 2).
-
-                - node_level: the level of the node in the graph. The target node is level 0.
-
-                - frequency: the frequency of the word node in the dataset.
+                - node_type: the type of the node (target, similar, context)
+                - node_level: the level of the node in the graph
+                - frequency: the frequency of the word node in the dataset
             embeddings (np.ndarray): the embeddings of the nodes of the word graph from the MLM model, of shape (num_nodes, 768).
 
         Examples:
             >>> word2vec = Word2VecInference('word2vec.model')
             >>> mlm = RobertaInference('MLM_roberta')
-            >>> n = Nodes(target_word='sentence', dataset=['this is a sentence', 'this is another sentence'], level=3, k=2, c=2, word2vec_model = word2vec, mlm_model = mlm)
-            >>> nodes = n.get_nodes()
-            >>> index, node_features, embeddings = n.get_node_features(nodes)
+            >>> nodes = Nodes(target_word='sentence', dataset=['this is a sentence', 'this is another sentence'], level=3, k=2, c=2, word2vec_model = word2vec, mlm_model = mlm)
+            >>> nd, nd_s = nodes.get_nodes()
+            >>> index, node_features, embeddings = nodes.get_node_features(nd)
             >>> print(index)
             {'index_to_key': {0: 'sentence', 1: 'this', 2: 'is', 3: 'a', 4: 'another'}, 'key_to_index': {'sentence': 0, 'this': 1, 'is': 2, 'a': 3, 'another': 4}
             >>> print(node_features)
-            [[0, 0, 2], [1, 1, 2], [1, 1, 2], [1, 1, 2], [2, 1, 2]]
+            [[0, 0, 2, ...], [1, 1, 2, ...], [1, 1, 2, ...], [1, 1, 2, ...], [2, 1, 2, ...]]
             >>> print(embeddings.shape)
             (5, 768)
         """
@@ -577,7 +573,7 @@ class TemporalGraph:
             node_strengths=nd_s,
             node_embeddings=embeddings
         )
-        edge_index, edge_feature_matrix = edges.get_edge_features(dataset)
+        edge_index, edge_feature_matrix = edges.get_edge_features(dataset, 0.0)
 
         print('Constructing the temporal graph...', '\n')
 
