@@ -5,7 +5,7 @@ from semantics.utils.components import WordGraph
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
-
+import json
 
 
 
@@ -46,7 +46,11 @@ class ObsedianGraph:
         self.edges = self._get_edges()
 
     
-    def generate_markdowns(self, folder: Optional[str] = '') -> None:
+    def generate_markdowns(
+            self, 
+            folder: Optional[str] = '',
+            add_tag: Optional[str] = None
+            ) -> None:
         """
         Generate markdown files for the nodes in the graph.
         
@@ -68,11 +72,18 @@ class ObsedianGraph:
             with open(node_path, "w") as f:
                 # f.write(self._generate_node_tags(node_attributes['content']))
                 f.write(node_content)
+
+                if add_tag:
+                    f.write('Additional tags:\n')
+                    if add_tag.isnumeric():
+                        add_tag = f"{add_tag}s"
+                    f.write(f"#{add_tag}\n\n")
+                
                 f.write("## Links\n\n")
                 for edge in node_edges:
                     f.write(edge)
 
-    def style(self) -> None:
+    def JugglStyle(self) -> None:
         """Style the graph using the Obsedian CSS.
         
         Examples:
@@ -80,10 +91,9 @@ class ObsedianGraph:
             >>> obsedian_graph.style()
         """
         graph_css_path = os.path.join(self.vault_path, ".obsidian", "plugins", "juggl", "graph.css")
-
         with open(graph_css_path, "w") as f:
             f.write('/* This is a custom CSS file for styling the graph view using juggl plugin. */\n\n')
-
+            
             f.write("/* Node styles */\n")
             for tag, style in self.tag_styles.items():
                 f.write(f".tag-{tag}" + "{\n")
@@ -98,6 +108,19 @@ class ObsedianGraph:
                 for attr, value in edge_attributes['style'].items():
                     f.write(f"\t{attr}: {value};\n")
                 f.write("}\n\n")
+
+    def Filter(self, by_tag: Optional[str] = None) -> None:
+        if by_tag:
+            settings_path = os.path.join(self.vault_path, ".obsidian", "plugins", "juggl", "settings.json")
+            with open(settings_path, "r") as f:
+                settings = json.load(f)
+            
+            if by_tag.isnumeric():
+                by_tag = f"{by_tag}s"
+                
+            settings['filter'] += f" tag:#{by_tag}"
+            with open(settings_path, "w") as f:
+                json.dump(settings, f, indent=4)
 
     
     def _get_nodes(self) -> Tuple[Dict[str, str], Dict[str, Dict]]:
