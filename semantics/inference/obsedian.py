@@ -134,6 +134,8 @@ class ObsedianGraph:
         unique_types = set()
         unique_levels = set()
         for key, idx in self.index['key_to_index'].items():
+            if self.node_features[idx].sum() == 0: # skip nodes that are not in the current graph
+                continue
             type_tag = f"type{int(self.node_features[idx, 0])}" 
             level_tag = f"level{int(self.node_features[idx, 1])}" 
             unique_types.add(type_tag)
