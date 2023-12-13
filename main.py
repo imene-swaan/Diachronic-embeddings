@@ -8,180 +8,203 @@ from semantics.graphs.temporal_graph import TemporalGraph
 from semantics.inference.visualize import WordTraffic, visualize_graph
 from semantics.inference.obsedian import ObsedianGraph
 from semantics.utils.utils import count_occurence
-from semantics.models.tgcn import TemporalGNNTrainer
+from semantics.models.tgcn import TemporalGCNTrainer
 import os
 import numpy as np
 import json
 
 
 def main(output_dir, data_path, periods, **kwargs):
-    corpora = {}
-    target_word = kwargs.get('target_word', None)
-    xml_tag = kwargs.get('xml_tag', None)
+    # corpora = {}
+    # target_word = kwargs.get('target_word', None)
+    # xml_tag = kwargs.get('xml_tag', None)
     # word2vec_paths = []
-    tg = TemporalGraph()
-    inference_options = kwargs['inference_options']
-    preprocessing_options = kwargs['preprocessing_options']
-    visualization_options = kwargs['visualization_options']
+    # tg = TemporalGraph()
+    # inference_options = kwargs['inference_options']
+    # preprocessing_options = kwargs['preprocessing_options']
+    # visualization_options = kwargs['visualization_options']
 
-    obsedian_vault = visualization_options.get('obsedian_vault', 'semantics-obsedian')
-    view_period = visualization_options.get('view_period', 0)
+    # obsedian_vault = visualization_options.get('obsedian_vault', 'semantics-obsedian')
+    # view_period = visualization_options.get('view_period', 0)
 
-    for i, period in enumerate(periods[:]):
+    # for i, period in enumerate(periods[:]):
 
-        # loading the data
-        print(f'Loading data from {period} ...', '\n')
-        path = data_path.format(period)
+    #     # loading the data
+    #     print(f'Loading data from {period} ...', '\n')
+    #     path = data_path.format(period)
 
-        corpora[period] = Loader.from_xml(
-                path, 
-                xml_tag
-                ).sample(
-                    target_words= target_word, 
-                    max_documents=kwargs.get('max_documents', None),
-                    shuffle=kwargs['shuffle']
-                    ) # Loader.from_txt(path).forward()
+    #     corpora[period] = Loader.from_xml(
+    #             path, 
+    #             xml_tag
+    #             ).sample(
+    #                 target_words= target_word, 
+    #                 max_documents=kwargs.get('max_documents', None),
+    #                 shuffle=kwargs['shuffle']
+    #                 ) # Loader.from_txt(path).forward()
 
-        # preprocessing
-        print(f'Preprocessing data from {period} ...', '\n')
-        prep = PREPROCESS()
-        corpora[period] = list(map(lambda x: prep.forward(text=x, **preprocessing_options), corpora[period]))
+    #     # preprocessing
+    #     print(f'Preprocessing data from {period} ...', '\n')
+    #     prep = PREPROCESS()
+    #     corpora[period] = list(map(lambda x: prep.forward(text=x, **preprocessing_options), corpora[period]))
 
 
-        print('Number of clean documents: ', len(corpora[period]), '\n')
+    #     print('Number of clean documents: ', len(corpora[period]), '\n')
 
-        print('Number of sentences with the word: ')
-        for word in target_word:
-            print(word, ': ', count_occurence(corpora[period], word), '\n')
+    #     print('Number of sentences with the word: ')
+    #     for word in target_word:
+    #         print(word, ': ', count_occurence(corpora[period], word), '\n')
         
-        print(f'Creating the Graph of {period} ...', '\n')
+    #     print(f'Creating the Graph of {period} ...', '\n')
 
-        roberta_path = f'{output_dir}/MLM_roberta_{period}'
-        word2vec_path = f'{output_dir}/word2vec_aligned/word2vec_{period}_aligned.model'
+    #     roberta_path = f'{output_dir}/MLM_roberta_{period}'
+    #     word2vec_path = f'{output_dir}/word2vec_aligned/word2vec_{period}_aligned.model'
 
-        roberta = RobertaInference(pretrained_model_path= roberta_path)
-        word2vec = Word2VecInference(pretrained_model_path= word2vec_path)
+    #     roberta = RobertaInference(pretrained_model_path= roberta_path)
+    #     word2vec = Word2VecInference(pretrained_model_path= word2vec_path)
 
-        nds = tg.add_graph(
-            target_word= target_word[0],
-            level = inference_options['level'],
-            k = inference_options['MLM_k'],
-            c = inference_options['Context_k'],
-            dataset= corpora[period],
-            word2vec_model= word2vec,
-            mlm_model= roberta,
-        )
+    #     nds = tg.add_graph(
+    #         target_word= target_word[0],
+    #         level = inference_options['level'],
+    #         k = inference_options['MLM_k'],
+    #         c = inference_options['Context_k'],
+    #         dataset= corpora[period],
+    #         word2vec_model= word2vec,
+    #         mlm_model= roberta,
+    #     )
 
-        if tg[i].edge_index.shape[1] != tg[i].edge_features.shape[0]:
-            print('edge_indices and edge_features do not match')
-            print('xs: ', tg[i].node_features.shape)
-            print('edge_indices: ', tg[i].edge_index.shape)
-            print('edge_features: ', tg[i].edge_features.shape)
-            print('period: ', period)
-            print('ys: ', tg[i].labels.shape)
-            print('y_indices: ', tg[i].label_mask.shape)
-            raise ValueError('edge_indices and edge_features do not match')
+    #     if tg[i].edge_index.shape[1] != tg[i].edge_features.shape[0]:
+    #         print('edge_indices and edge_features do not match')
+    #         print('xs: ', tg[i].node_features.shape)
+    #         print('edge_indices: ', tg[i].edge_index.shape)
+    #         print('edge_features: ', tg[i].edge_features.shape)
+    #         print('period: ', period)
+    #         print('ys: ', tg[i].labels.shape)
+    #         print('y_indices: ', tg[i].label_mask.shape)
+    #         raise ValueError('edge_indices and edge_features do not match')
         
 
-        if not os.path.exists(f'{output_dir}/inference_{period}'):
-            os.mkdir(f'{output_dir}/inference_{period}')
+    #     if not os.path.exists(f'{output_dir}/inference_{period}'):
+    #         os.mkdir(f'{output_dir}/inference_{period}')
 
-        with open(f'{output_dir}/inference_{period}/nds.json', 'w') as f:
-            json.dump(nds, f, indent=4)
+    #     with open(f'{output_dir}/inference_{period}/nds.json', 'w') as f:
+    #         json.dump(nds, f, indent=4)
 
-    tg.align_graphs()
-    tg.label_graphs()
+    # tg.align_graphs()
+    # tg.label_graphs()
     
-    if not os.path.exists(f'{output_dir}/inference'):
-        os.mkdir(f'{output_dir}/inference')  
+    # if not os.path.exists(f'{output_dir}/inference'):
+    #     os.mkdir(f'{output_dir}/inference')  
         
-    with open(f'{output_dir}/inference/index.json', 'w') as f:
-        json.dump(tg[i].index, f, indent=4)
+    # with open(f'{output_dir}/inference/index.json', 'w') as f:
+    #     json.dump(tg[i].index, f, indent=4)
         
-    for i, period in enumerate(periods):
-        print(f'Saving the Graph of {period} ...')
-        print('xs: ', tg[i].node_features.shape)
-        print('edge_indices: ', tg[i].edge_index.shape)
-        print('edge_features: ', tg[i].edge_features.shape)
-        print('ys: ', tg[i].labels.shape)
-        print('y_indices: ', tg[i].label_mask.shape, '\n')
+    # for i, period in enumerate(periods):
+    #     print(f'Saving the Graph of {period} ...')
+    #     print('xs: ', tg[i].node_features.shape)
+    #     print('edge_indices: ', tg[i].edge_index.shape)
+    #     print('edge_features: ', tg[i].edge_features.shape)
+    #     print('ys: ', tg[i].labels.shape)
+    #     print('y_indices: ', tg[i].label_mask.shape, '\n')
         
-        with open(f'{output_dir}/inference_{period}/edge_indices.npy', 'wb') as f:
-            np.save(f, tg[i].edge_index)
+    #     with open(f'{output_dir}/inference_{period}/edge_indices.npy', 'wb') as f:
+    #         np.save(f, tg[i].edge_index)
         
-        with open(f'{output_dir}/inference_{period}/edge_features.npy', 'wb') as f:
-            np.save(f, tg[i].edge_features)
+    #     with open(f'{output_dir}/inference_{period}/edge_features.npy', 'wb') as f:
+    #         np.save(f, tg[i].edge_features)
         
-        with open(f'{output_dir}/inference_{period}/xs.npy', 'wb') as f:
-            np.save(f, tg[i].node_features)
+    #     with open(f'{output_dir}/inference_{period}/xs.npy', 'wb') as f:
+    #         np.save(f, tg[i].node_features)
         
-        with open(f'{output_dir}/inference_{period}/ys.npy', 'wb') as f:
-            np.save(f, tg[i].labels)
+    #     with open(f'{output_dir}/inference_{period}/ys.npy', 'wb') as f:
+    #         np.save(f, tg[i].labels)
         
-        with open(f'{output_dir}/inference_{period}/y_indices.npy', 'wb') as f:
-            np.save(f, tg[i].label_mask)
-
-        obsedian_graph = ObsedianGraph(
-            vault_path= obsedian_vault,
-            graph= tg[i],
-        )
-
-        obsedian_graph.generate_markdowns(folder= f'{period}', add_tag= f'{period}')
+    #     with open(f'{output_dir}/inference_{period}/y_indices.npy', 'wb') as f:
+    #         np.save(f, tg[i].label_mask)
     
-        if i == view_period:
-            obsedian_graph.JugglStyle()
-            obsedian_graph.Filter(by_tag= f'{period}')
+        # obsedian_graph = ObsedianGraph(
+        #     vault_path= obsedian_vault,
+        #     graph= tg[i],
+        # )
+
+        # obsedian_graph.generate_markdowns(folder= f'{period}', add_tag= f'{period}')
     
-    
-    
-    # print('Loading the Graphs ...')
-    # index = []
-    # xs = []
-    # ys = []
-    # edge_indices = []
-    # edge_features = []
-    # y_indices = []
-
-    # for period in periods:
-    #     with open(f'{output_dir}/inference/index.json', 'r') as f:
-    #         index.append(json.load(f))
-
-    #     with open(f'{output_dir}/inference_{period}/edge_indices.npy', 'rb') as f:
-    #         edge_indices.append(np.load(f))
-        
-    #     with open(f'{output_dir}/inference_{period}/edge_features.npy', 'rb') as f:
-    #         edge_features.append(np.load(f))
-
-    #     with open(f'{output_dir}/inference_{period}/xs.npy', 'rb') as f:
-    #         xs.append(np.load(f))
-
-    #     with open(f'{output_dir}/inference_{period}/ys.npy', 'rb') as f:
-    #         ys.append(np.load(f))
-
-    #     with open(f'{output_dir}/inference_{period}/y_indices.npy', 'rb') as f:
-    #         y_indices.append(np.load(f))
-        
-    # print('Creating the Temporal Graph ...')
-
-    # tg = TemporalGraph(
-    #     index= index[:-1],
-    #     xs= xs[:-1],
-    #     ys= ys[:-1],
-    #     edge_indices= edge_indices[:-1],
-    #     edge_features= edge_features[:-1],
-    #     y_indices= y_indices[:-1],
-    # )
-
-    # node_features = xs[0].shape[1]
-    # edge_features = edge_features[0].shape[1]
+        # if i == view_period:
+        #     obsedian_graph.JugglStyle()
+        #     obsedian_graph.Filter(by_tag= f'{period}')
     
     
-    # print('Training the Temporal Graph ...')
-    # gnn = TemporalGNNTrainer(node_features= node_features, edge_features= edge_features, epochs= 2, split_ratio= 0.8, learning_rate= 0.01, device= 'cpu')
-    # gnn.train(graph= tg)
+    
+    print('Loading the Graphs ...')
+    index = []
+    xs = []
+    ys = []
+    edge_indices = []
+    edge_features = []
+    y_indices = []
+
+    for period in periods:
+        with open(f'{output_dir}/inference/index.json', 'r') as f:
+            index.append(json.load(f))
+
+        with open(f'{output_dir}/inference_{period}/edge_indices.npy', 'rb') as f:
+            edge_indices.append(np.load(f))
+        
+        with open(f'{output_dir}/inference_{period}/edge_features.npy', 'rb') as f:
+            edge_features.append(np.load(f))
+
+        with open(f'{output_dir}/inference_{period}/xs.npy', 'rb') as f:
+            xs.append(np.load(f))
+
+        with open(f'{output_dir}/inference_{period}/ys.npy', 'rb') as f:
+            ys.append(np.load(f))
+
+        with open(f'{output_dir}/inference_{period}/y_indices.npy', 'rb') as f:
+            y_indices.append(np.load(f))
+
+        
+        
+    print('Creating the Temporal Graph ...')
+
+    tg = TemporalGraph(
+        index= index,
+        xs= xs,
+        ys= ys,
+        edge_indices= edge_indices,
+        edge_features= edge_features,
+        y_indices= y_indices,
+    )
+
+    # print('Creating the obsedian graphs')
+    # for i, period in enumerate(periods):
+    #     obsedian_graph = ObsedianGraph(
+    #         vault_path= obsedian_vault,
+    #         graph= tg[i],
+    #     )
+
+    #     obsedian_graph.generate_markdowns(folder= f'{period}', add_tag= f'{period}')
+    
+    #     if i == view_period:
+    #         print(f'Visualizing the Graph of the {view_period}th period: {period}')
+    #         obsedian_graph.JugglStyle()
+    #         obsedian_graph.Filter(by_tag= f'{period}')
+
+        
+    node_features = xs[0].shape[1]
+    edge_features = edge_features[0].shape[1]
     
     
-    # print('Done!')
+    print('Training the Temporal Graph ...')
+    gnn = TemporalGCNTrainer(node_features= node_features, edge_features= edge_features, epochs= 100, split_ratio= 0.8, learning_rate= 0.01, device= 'cpu')
+
+    if not os.path.exists(f'{output_dir}/TGCN'):
+        os.mkdir(f'{output_dir}/TGCN')
+
+    gnn.train(
+        graph= tg,
+        output_dir= f'{output_dir}/TGCN/model')
+    
+    
+    print('Done!')
 
     
              
@@ -281,7 +304,7 @@ if __name__ == "__main__":
     
     visualization_options = {
         "obsedian_vault": "semantics-obsedian",
-        "view_period": 0
+        "view_period": 15
     }
     
     main(
