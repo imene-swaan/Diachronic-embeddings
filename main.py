@@ -1,3 +1,4 @@
+from logging import config
 from regex import P
 from semantics.data.data_loader import Loader
 # from semantics.data.data_loader import split_xml
@@ -8,10 +9,11 @@ from semantics.graphs.temporal_graph import TemporalGraph
 from semantics.inference.visualize import WordTraffic, visualize_graph
 from semantics.inference.obsedian import ObsedianGraph
 from semantics.utils.utils import count_occurence
-from semantics.models.tgcn import TemporalGCNTrainer
+from semantics.models.tgcn import TemporalGCNTrainer, TGCNInference
 import os
 import numpy as np
 import json
+import yaml
 
 
 def main(output_dir, data_path, periods, **kwargs):
@@ -166,12 +168,21 @@ def main(output_dir, data_path, periods, **kwargs):
     print('Creating the Temporal Graph ...')
 
     tg = TemporalGraph(
-        index= index,
-        xs= xs,
-        ys= ys,
-        edge_indices= edge_indices,
-        edge_features= edge_features,
-        y_indices= y_indices,
+        index= index[:-1],
+        xs= xs[:-1],
+        ys= ys[:-1],
+        edge_indices= edge_indices[:-1],
+        edge_features= edge_features[:-1],
+        y_indices= y_indices[:-1],
+    )
+
+    tg_2017 = TemporalGraph(
+        index= index[-1:],
+        xs= xs[-1:],
+        ys= ys[-1:],
+        edge_indices= edge_indices[-1:],
+        edge_features= edge_features[-1:],
+        y_indices= y_indices[-1:],
     )
 
     # print('Creating the obsedian graphs')
@@ -189,21 +200,39 @@ def main(output_dir, data_path, periods, **kwargs):
     #         obsedian_graph.Filter(by_tag= f'{period}')
 
         
-    node_features = xs[0].shape[1]
-    edge_features = edge_features[0].shape[1]
+    # node_features = xs[0].shape[1]
+    # edge_features = edge_features[0].shape[1]
     
     
-    print('Training the Temporal Graph ...')
-    gnn = TemporalGCNTrainer(node_features= node_features, edge_features= edge_features, epochs= 100, split_ratio= 0.8, learning_rate= 0.01, device= 'cpu')
+    # print('Training the Temporal Graph ...')
+    # gnn = TemporalGCNTrainer(node_features= node_features, edge_features= edge_features, epochs= 100, split_ratio= 0.9, learning_rate= 0.01, device= 'cpu')
 
-    if not os.path.exists(f'{output_dir}/TGCN'):
-        os.mkdir(f'{output_dir}/TGCN')
+    # if not os.path.exists(f'{output_dir}/TGCN'):
+    #     os.mkdir(f'{output_dir}/TGCN')
+    
+    model_path = f'{output_dir}/TGCN/model'
+    # gnn.train(
+    #     graph= tg,
+    #     output_dir= model_path)
+    
+    
+    print('Loading the model ...')
+    config_path = f'{model_path}.yaml'
+    with open(config_path, 'r') as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
 
-    gnn.train(
-        graph= tg,
-        output_dir= f'{output_dir}/TGCN/model')
-    
-    
+    tgcn = TGCNInference(pretrained_model_path= f'{model_path}.pt', **config)
+
+    y_hat = tgcn.predict(graph= tg_2017)
+    print('y_hat: ', y_hat)
+    print('y_hat shape: ', y_hat[0].shape, '\n')
+
+    y = tg_2017[0].edge_features[:, 1].reshape(-1, 1)
+    print('y', y)
+    print('y shape: ', y.shape, '\n')
+
+    mse = tgcn.mse_loss(y_hat= y_hat, y= y)
+    print('mse: ', mse, '\n')
     print('Done!')
 
     
