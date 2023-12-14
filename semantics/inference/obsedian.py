@@ -1,5 +1,8 @@
 import os
 from typing import List, Dict, Optional, Tuple
+
+from cv2 import sort
+from sympy import re
 from semantics.utils.utils import generate_colors
 from semantics.utils.components import WordGraph
 import matplotlib.pyplot as plt
@@ -152,8 +155,8 @@ class ObsedianGraph:
                 'background-color': color_map[tag]
             }
 
-
-        sizes = self._category_to_size(unique_levels)
+        unique_levels = sorted(list(unique_levels), reverse=True)
+        sizes = self._category_to_float(unique_levels)
         size_map = {val: size for val, size in zip(list(unique_levels), sizes)}
         for tag in unique_levels:
             size = self._float_to_size(size_map[tag], scale_max=20)
@@ -164,7 +167,7 @@ class ObsedianGraph:
 
         return nodes, tag_style
 
-    def _category_to_size(self, categories: list) -> List[str]:
+    def _category_to_float(self, categories: list) -> List[str]:
         items = len(categories)
         return [np.round(i+1/items, 2) for i in range(items)]
 
@@ -192,8 +195,14 @@ class ObsedianGraph:
         edges = {}
         for i in range(self.edge_index.shape[1]):
             edge = self.edge_index[:, i]
-            source = self.index['index_to_key'][edge[0]]
-            target = self.index['index_to_key'][edge[1]]
+            try:
+                source = self.index['index_to_key'][edge[0]]
+                target = self.index['index_to_key'][edge[1]]
+            except:
+                edge = (str(int(edge[0])), str(int(edge[1])))
+                source = self.index['index_to_key'][edge[0]]
+                target = self.index['index_to_key'][edge[1]]
+
             similarity = self.edge_features[i, 1]
             strength = self.edge_features[i, 3]
 
