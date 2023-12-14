@@ -1,4 +1,4 @@
-from ast import Not
+import numpy as np
 from semantics.graphs.temporal_graph import TemporalGraph
 from torch_geometric_temporal.signal import DynamicGraphTemporalSignal
 from torch_geometric_temporal.signal import temporal_signal_split
@@ -7,7 +7,8 @@ import torch.nn.functional as F
 from torch_geometric_temporal.nn.recurrent import TGCN
 from typing import Optional
 import tqdm
-
+import yaml
+import os
 
 
 
@@ -18,46 +19,42 @@ class TemporalGCN(torch.nn.Module):
         self.node_encoder = torch.nn.Linear(node_features, 32)  # Node feature encoder
         # (edges, edge_features) -> (edges, 32)
         self.edge_encoder = torch.nn.Linear(edge_features, 32)  # Edge feature encoder
-        # 
+        # ((nodes, 32), (edges, 32)) -> (nodes, 32)
         self.conv = TGCN(in_channels=32, out_channels=32)  # Temporal GNN layer
-        # ()
+        # (edges, 96) -> (edges, 1)
         self.linear = torch.nn.Linear(96, 1)  # Linear layer for final edge prediction
 
     def forward(self, x, edge_index, edge_attr):
         # Encode node and edge features
-        print(f'x: {x.shape}')
+
+        # (nodes, node_features) -> (nodes, 32)
         x_encoded = F.relu(self.node_encoder(x))
-        print(f'x_encoded: {x_encoded.shape}')
 
-        print(f'edge_attr: {edge_attr.shape}')
+        # (edges, edge_features) -> (edges, 32)
         edge_attr_encoded = F.relu(self.edge_encoder(edge_attr))
-        print(f'edge_attr_encoded: {edge_attr_encoded.shape}')
-
 
         # Apply temporal graph convolution
+
+        # (nodes, 32)
         h = self.conv(x_encoded, edge_index)
-        print(f'h: {h.shape}')
+        
 
         # Aggregate node features for each edge
-        print(f'edge_index: {edge_index.shape}')
         row, col = edge_index
-        print(f'row: {row.shape}')
-        print(f'col: {col.shape}')
 
-        print(f'h[row]: {h[row].shape}')
-        print(f'h[col]: {h[col].shape}')
+        # (edges, 32), (edges, 32) -> (edges, 64)
         edge_h = torch.cat([h[row], h[col]], dim=1)
-        print(f'edge_h: {edge_h.shape}')
-
+        
         # Combine aggregated node features with edge features
+
+        # (edges, 64), (edges, 32) -> (edges, 96)
         combined_edge_features = torch.cat([edge_h, edge_attr_encoded], dim=1)
-        print(f'combined_edge_features: {combined_edge_features.shape}')
         
         # Predict edge similarity
         return self.linear(combined_edge_features)
  
 
-class TemporalGNNTrainer:
+class TemporalGCNTrainer:
     def __init__(
             self, 
             node_features: int = 771,
@@ -105,23 +102,36 @@ class TemporalGNNTrainer:
                 print(f'edge_index: {snapshot.edge_index.shape}')
                 print(f'edge_attr: {snapshot.edge_attr.shape}')
                 print(f'y: {snapshot.y.shape}')
-
+                print(f'y_indices: {snapshot.y_indices.shape}')
                 print('\n')
+
                 # Move the snapshot data to the specified device
                 snapshot = snapshot.to(self.device)
+
                 # Forward pass: compute the model's output
                 # Input shape: x: [number_of_nodes, node_features], edge_index: [2, number_of_edges], edge_attr: [number_of_edges, edge_features]
                 # Output shape: y_hat: [number_of_edges, 1]
                 y_hat = self.model(snapshot.x, snapshot.edge_index, snapshot.edge_attr)
+        
                 # Compute mean squared error loss
-                # Input shape: y_hat: [number_of_edges, 1], snapshot.y.view(-1, 1): [number_of_edges, 1]
+                labeled_edges = snapshot.y_indices.T.to(torch.int).tolist()
+                labeled_edge_index = []
+                for idx, edge in enumerate(snapshot.edge_index.T):
+                    if edge.tolist() in labeled_edges:
+                        labeled_edge_index.append(idx)
+
+                y_hat = y_hat[labeled_edge_index]
                 loss = F.mse_loss(y_hat, snapshot.y.view(-1, 1))
+
                 # Zero the gradients before backward pass
                 self.optimizer.zero_grad()
+
                 # Backward pass: compute gradient of the loss with respect to model parameters
                 loss.backward()
+
                 # Perform a single optimization step (parameter update)
                 self.optimizer.step()
+
                 # Accumulate the loss
                 total_loss += loss.item()
 
@@ -136,7 +146,17 @@ class TemporalGNNTrainer:
             print(f"Epoch {epoch+1}/{self.epochs}, Train Loss: {avg_loss:.4f}, Val Loss: {val_loss:.4f}")
         
         if output_dir:
+            config = {
+                "node_features": self.node_features,
+                "edge_features": self.edge_features,
+                "epochs": self.epochs,
+                "split_ratio": self.split_ratio,
+                "train_loss": avg_loss,
+                "val_loss": val_loss
+            }
             torch.save(self.model.state_dict(), f"{output_dir}.pt")
+            with open(f"{output_dir}.yaml", "w") as f:
+                yaml.dump(config, f)
 
     def evaluate(self, test_dataset: DynamicGraphTemporalSignal):
         self.model.eval()
@@ -145,6 +165,76 @@ class TemporalGNNTrainer:
             for snapshot in test_dataset:
                 snapshot = snapshot.to(self.device)
                 y_hat = self.model(snapshot.x, snapshot.edge_index, snapshot.edge_attr)
+
+                # Compute mean squared error loss
+                labeled_edges = snapshot.y_indices.T.to(torch.int).tolist()
+                labeled_edge_index = []
+                for idx, edge in enumerate(snapshot.edge_index.T):
+                    if edge.tolist() in labeled_edges:
+                        labeled_edge_index.append(idx)
+
+                y_hat = y_hat[labeled_edge_index]
                 loss = F.mse_loss(y_hat, snapshot.y.view(-1, 1))
+
                 total_loss += loss.item()
         return total_loss / sum(1 for _ in test_dataset)
+
+
+class TGCNInference:
+    def __init__(
+            self,
+            pretrained_model_path: str,
+            **config
+        ):
+        self.node_features = config.get("node_features", 771)
+        self.edge_features = config.get("edge_features", 4)
+        
+
+        self.model_path = pretrained_model_path
+        if not os.path.exists(pretrained_model_path):
+            raise ValueError(
+                f'The path {pretrained_model_path} does not exist'
+            )
+        
+
+        self.model = None
+        self.vocab = False
+        self._tgcn_preparation()
+
+    def _tgcn_preparation(self) -> None:
+        self.model = TemporalGCN(self.node_features, self.edge_features)
+        self.model.load_state_dict(torch.load(self.model_path))
+        self.model.eval()
+
+        self.vocab = True
+
+
+    def predict(self, graph: TemporalGraph) -> TemporalGraph:
+        if not self.vocab:
+            raise ValueError(
+                'The model is not loaded'
+            )
+        
+        dataset = DynamicGraphTemporalSignal(
+            graph.edge_indices, graph.edge_features, graph.xs, graph.ys, y_indices= graph.y_indices
+        )
+
+        y_hat = []
+        for snapshot in dataset:
+            snapshot = snapshot.to('cpu')
+            y_hat.append(self.model(snapshot.x, snapshot.edge_index, snapshot.edge_attr))
+        
+        return y_hat
+
+
+    def mse_loss(self, y_hat, y):
+        if isinstance(y_hat, list):
+            y_hat = torch.cat(y_hat)
+        if isinstance(y, list):
+            y = torch.cat(y)
+        
+        if isinstance(y, np.ndarray):
+            y = torch.from_numpy(y)
+        
+        
+        return F.mse_loss(y_hat, y)
