@@ -133,7 +133,11 @@ class Nodes:
 
                
 
-    def get_context_nodes(self, word: Union[str, List[str]]) -> Dict[str, List[str]]:
+    def get_context_nodes(
+            self, 
+            word: Union[str, List[str]],
+            keep_k: int = 50
+            ) -> Dict[str, List[str]]:
         """
         This method is used to get the context nodes of a word using the word2vec model.
 
@@ -159,7 +163,7 @@ class Nodes:
         for w in word:
             k_words, _ = self.word2vec.get_top_k_words(w, self.c)
             if len(k_words) > 0:
-                context_nodes[w] = k_words
+                context_nodes[w] = k_words[:keep_k]
         return context_nodes
     
     def get_nodes(self) -> Dict[str, Dict[str, List[str]]]:
@@ -187,8 +191,8 @@ class Nodes:
             print(f'Getting the nodes of level {level} ...')
 
             if level == 0:
-                similar_nodes  = self.get_similar_nodes(self.target_word, keep_k= 3)
-                context_nodes = self.get_context_nodes(self.target_word)
+                similar_nodes  = self.get_similar_nodes(self.target_word, keep_k= 4)
+                context_nodes = self.get_context_nodes(self.target_word, keep_k= 2)
 
                 # nodes[level]['similar_nodes'] = similar_nodes
                 # nodes[level]['context_nodes'] = context_nodes
@@ -204,13 +208,13 @@ class Nodes:
                 previous_nodes = list(set(previous_nodes))
 
                 similar_nodes = self.get_similar_nodes(previous_nodes, keep_k= 2)
-                context_nodes = self.get_context_nodes(previous_nodes)
+                context_nodes = self.get_context_nodes(previous_nodes, keep_k= 1)
 
                 # nodes[level]['similar_nodes'] = similar_nodes
                 # nodes[level]['context_nodes'] = context_nodes
 
                 nodes['similar_nodes'].update(similar_nodes)
-                #nodes['context_nodes'].update(context_nodes)
+                nodes['context_nodes'].update(context_nodes)
                              
         return nodes
     
@@ -243,7 +247,7 @@ class Nodes:
             (5, 768)
         """
         words = [self.target_word]
-        node_types = [0]
+        node_types = [1]
         # node_levels = [0]
         all_words_count = count_occurence(self.dataset)
         frequencies = [count_occurence(self.dataset, self.target_word)/ all_words_count]
@@ -275,9 +279,9 @@ class Nodes:
 
                     words.append(node)
                     if node_type == 'similar_nodes':
-                        node_types.append(1)
-                    else:
                         node_types.append(2)
+                    else:
+                        node_types.append(3)
 
                     frequencies.append(count_occurence(self.dataset, node) / all_words_count)
                     embeddings.append(self.mlm.get_embedding(main_word=node).mean(axis=0))
