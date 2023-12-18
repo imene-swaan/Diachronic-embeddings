@@ -90,7 +90,7 @@ class Nodes:
             self, 
             word: Union[str, List[str]],
             keep_k: int = 50
-            ) -> Tuple[Dict[str, List[str]], Dict[str, List[int]]]:
+            ) -> Dict[str, List[str]]:
         """
         This method is used to get the similar nodes of a word using the MLM model.
         
@@ -100,7 +100,14 @@ class Nodes:
             
         Returns:
             similar_nodes (Dict[str, List[str]]): the similar nodes of the word
-            similar_strength (Dict[str, List[int]]): How many times each similar node replaced the target word in the dataset (normalized by the frequency of the target word in the dataset).
+
+        Examples:
+            >>> word2vec = Word2VecInference('word2vec.model')
+            >>> mlm = RobertaInference('MLM_roberta')
+            >>> nodes = Nodes(target_word='sentence', dataset=['this is a sentence', 'this is another sentence'], level=3, k=2, c=2, word2vec_model = word2vec, mlm_model = mlm)
+            >>> similar_nodes = nodes.get_similar_nodes('sentence')
+            >>> print(similar_nodes)
+            {'sentence': ['sentence', 'sentence'], 'this': ['this', 'this'], 'is': ['is', 'is'], 'a': ['a', 'a'], 'another': ['another', 'another']}
         """
 
         if isinstance(word, str):
@@ -117,19 +124,16 @@ class Nodes:
                 similar_nodes[w] += self.mlm.get_top_k_words(main_word=w, doc = sentence, k= self.k)
             progress_bar.update(1)
 
-        similar_strength = {}
         for w in word:
             if len(similar_nodes[w]) > 0:
-                target_freq = count_occurence(self.dataset, w)
-                similar_nodes[w], similar_strength[w] = most_frequent(similar_nodes[w], keep_k)
-                similar_strength[w] = [s/target_freq for s in similar_strength[w]]
+                similar_nodes[w], _ = most_frequent(similar_nodes[w], keep_k)
             else:
                 del similar_nodes[w]
-        return similar_nodes, similar_strength
+        return similar_nodes
 
                
 
-    def get_context_nodes(self, word: Union[str, List[str]]) -> Tuple[Dict[str, List[str]], Dict[str, List[int]]]:
+    def get_context_nodes(self, word: Union[str, List[str]]) -> Dict[str, List[str]]:
         """
         This method is used to get the context nodes of a word using the word2vec model.
 
@@ -137,64 +141,80 @@ class Nodes:
             word (Union[str, List[str]]): the word to get the context nodes for. If a list of words is given, the context nodes of all the words in the list are returned.
 
         Returns:
-            context_nodes (List[str]): the list of context nodes of the word
+            context_nodes (Dict[str, List[str]]): the context nodes of the word
+
+        Examples:
+            >>> word2vec = Word2VecInference('word2vec.model')
+            >>> mlm = RobertaInference('MLM_roberta')
+            >>> nodes = Nodes(target_word='sentence', dataset=['this is a sentence', 'this is another sentence'], level=3, k=2, c=2, word2vec_model = word2vec, mlm_model = mlm)
+            >>> context_nodes = nodes.get_context_nodes('sentence')
+            >>> print(context_nodes)
+            {'sentence': ['this', 'is'], 'this': ['sentence', 'is'], 'is': ['this', 'sentence'], 'a': ['this', 'is'], 'another': ['this', 'is']}
         """
         if isinstance(word, str):
             word = [word]
         
         context_nodes = {}
-        context_strength = {}
         print(f'Getting the context nodes for the words: {word} ...')
         for w in word:
-            k_words, sims = self.word2vec.get_top_k_words(w, self.c)
+            k_words, _ = self.word2vec.get_top_k_words(w, self.c)
             if len(k_words) > 0:
                 context_nodes[w] = k_words
-                context_strength[w] = sims
-        return context_nodes, context_strength
+        return context_nodes
     
-    def get_nodes(self) -> Tuple[Dict, Dict]:
+    def get_nodes(self) -> Dict[str, Dict[str, List[str]]]:
         """
         This method is used to get the nodes of the word graph (similar nodes, context nodes, and target node).
 
         Returns:
-            nodes (Dict[int, Dict[str, Dict[str, List[str]]]]): the nodes of the word graph. The keys are the levels of the graph. The values are dictionaries with the keys 'similar_nodes' and 'context_nodes'. The values of these keys are dictionaries with the keys 'target_word' and 'similar_nodes'/'context_nodes'. The values of these keys are lists of similar/context nodes.
-            node_strengths (Dict[int, Dict[str, Dict[str, List[int]]]]): the strength of the nodes of the word graph. The keys are the levels of the graph. The values are dictionaries with the keys 'similar_nodes' and 'context_nodes'. The values of these keys are dictionaries with the keys 'target_word' and 'similar_nodes'/'context_nodes'. The values of these keys are lists of similar/context nodes.
+            nodes (Dict[str, Dict[str, List[str]]]): the nodes of the word graph. The keys are 'similar_nodes' and 'context_nodes'. The values are dictionaries with words and their similar/context nodes. The depth of word graph is determined by the level argument in the constructor.
+
+        Examples:
+            >>> word2vec = Word2VecInference('word2vec.model')
+            >>> mlm = RobertaInference('MLM_roberta')
+            >>> nd = Nodes(target_word='sentence', dataset=['this is a sentence', 'this is another sentence'], level=3, k=2, c=2, word2vec_model = word2vec, mlm_model = mlm)
+            >>> nodes = nd.get_nodes()
+            >>> print(nodes)
+            {'similar_nodes': 
+                {'sentence': ['sentence', 'sentence'], 'this': ['this', 'this'], 'is': ['is', 'is'], 'a': ['a', 'a'], 'another': ['another', 'another']}, 
+            'context_nodes': 
+                {'sentence': ['this', 'is'], 'this': ['sentence', 'is'], 'is': ['this', 'sentence'], 'a': ['this', 'is'], 'another': ['this', 'is']}
+            }
         """
         nodes = {}
-        node_strengths = {}
         for level in range(self.level):
-            nodes[level] = {}
-            node_strengths[level] = {}
+            # nodes[level] = {}
             print(f'Getting the nodes of level {level} ...')
+
             if level == 0:
-                similar_nodes, similar_strengths  = self.get_similar_nodes(self.target_word, keep_k= 6)
-                context_nodes, context_strengths = self.get_context_nodes(self.target_word)
+                similar_nodes  = self.get_similar_nodes(self.target_word, keep_k= 3)
+                context_nodes = self.get_context_nodes(self.target_word)
 
-                nodes[level]['similar_nodes'] = similar_nodes
-                nodes[level]['context_nodes'] = context_nodes
+                # nodes[level]['similar_nodes'] = similar_nodes
+                # nodes[level]['context_nodes'] = context_nodes
 
-                node_strengths[level]['similar_nodes'] = similar_strengths
-                node_strengths[level]['context_nodes'] = context_strengths
-
-                
+                nodes['similar_nodes'] = similar_nodes
+                nodes['context_nodes'] = context_nodes
 
             else:
-                previous_nodes = [node for node_list in nodes[level-1]['similar_nodes'].values() for node in node_list] + [node for node_list in nodes[level-1]['context_nodes'].values() for node in node_list]
+                # previous_nodes = [node for node_list in nodes[level-1]['similar_nodes'].values() for node in node_list] + [node for node_list in nodes[level-1]['context_nodes'].values() for node in node_list]
+
+                previous_nodes = [node for node_list in nodes['similar_nodes'].values() for node in node_list if node not in nodes['similar_nodes'].keys()] + [node for node_list in nodes['context_nodes'].values() for node in node_list if node not in nodes['context_nodes'].keys()]
                
                 previous_nodes = list(set(previous_nodes))
 
-                similar_nodes, similar_strengths = self.get_similar_nodes(previous_nodes, keep_k= 3)
-                context_nodes, context_strengths = self.get_context_nodes(previous_nodes)
+                similar_nodes = self.get_similar_nodes(previous_nodes, keep_k= 2)
+                context_nodes = self.get_context_nodes(previous_nodes)
 
-                nodes[level]['similar_nodes'] = similar_nodes
-                nodes[level]['context_nodes'] = context_nodes
+                # nodes[level]['similar_nodes'] = similar_nodes
+                # nodes[level]['context_nodes'] = context_nodes
 
-                node_strengths[level]['similar_nodes'] = similar_strengths
-                node_strengths[level]['context_nodes'] = context_strengths
+                nodes['similar_nodes'].update(similar_nodes)
+                #nodes['context_nodes'].update(context_nodes)
                              
-        return nodes, node_strengths
+        return nodes
     
-    def get_node_features(self, nodes: Dict[int, Dict[str, Dict[str, List[str]]]]):
+    def get_node_features(self, nodes: Dict[str, Dict[str, List[str]]]):
         """
         This method is used to get the features of the nodes of the word graph.
 
@@ -224,27 +244,44 @@ class Nodes:
         """
         words = [self.target_word]
         node_types = [0]
-        node_levels = [0]
+        # node_levels = [0]
         all_words_count = count_occurence(self.dataset)
         frequencies = [count_occurence(self.dataset, self.target_word)/ all_words_count]
         embeddings = [self.mlm.get_embedding(main_word=self.target_word).mean(axis=0)]
 
-        for level in range(self.level):
-            for node_type in ['similar_nodes', 'context_nodes']:
-                for node_list in nodes[level][node_type].values():
-                    for node in node_list:
-                        if node in words:
-                            continue
+        # for level in range(self.level):
+        #     for node_type in ['similar_nodes', 'context_nodes']:
+        #         for node_list in nodes[level][node_type].values():
+        #             for node in node_list:
+        #                 if node in words:
+        #                     continue
 
-                        words.append(node)
-                        if node_type == 'similar_nodes':
-                            node_types.append(1)
-                        else:
-                            node_types.append(2)
+        #                 words.append(node)
+        #                 if node_type == 'similar_nodes':
+        #                     node_types.append(1)
+        #                 else:
+        #                     node_types.append(2)
 
-                        node_levels.append(level+1)
-                        frequencies.append(count_occurence(self.dataset, node) / all_words_count)
-                        embeddings.append(self.mlm.get_embedding(main_word=node).mean(axis=0))
+        #                 node_levels.append(level+1)
+        #                 frequencies.append(count_occurence(self.dataset, node) / all_words_count)
+        #                 embeddings.append(self.mlm.get_embedding(main_word=node).mean(axis=0))
+        
+
+        for node_type in ['similar_nodes', 'context_nodes']:
+            for node_list in nodes[node_type].values():
+                for node in node_list:
+                    if node in words:
+                        continue
+
+                    words.append(node)
+                    if node_type == 'similar_nodes':
+                        node_types.append(1)
+                    else:
+                        node_types.append(2)
+
+                    frequencies.append(count_occurence(self.dataset, node) / all_words_count)
+                    embeddings.append(self.mlm.get_embedding(main_word=node).mean(axis=0))
+
 
         index_to_key = {idx: word for idx, word in enumerate(words)}
         key_to_index = {word: idx for idx, word in enumerate(words)}  
@@ -252,7 +289,9 @@ class Nodes:
         del words
         # print('Key to index: ', key_to_index)
         embeddings = np.array(embeddings)
-        node_features = np.stack([node_types, node_levels, frequencies]).T
+        # node_features = np.stack([node_types, node_levels, frequencies]).T
+
+        node_features = np.stack([node_types, frequencies]).T
         # node_features = np.concatenate((node_features, embeddings), axis=1)
 
         index = {'index_to_key': index_to_key, 'key_to_index': key_to_index}
@@ -294,8 +333,7 @@ class Edges:
     def __init__(
             self,
             index: Dict,
-            nodes: Dict,
-            node_strengths: Dict,
+            nodes: Dict[str, Dict[str, List[str]]],
             node_embeddings: np.ndarray,
         ):
         """
@@ -309,7 +347,6 @@ class Edges:
         self.index = index
         self.nodes = nodes
         self.node_embeddings = node_embeddings
-        self.node_strengths = node_strengths
        
 
     def get_similarity(self, emb1: int, emb2: int) -> float:
@@ -354,8 +391,14 @@ class Edges:
         p_co_occurrence = co_occurrence_count / total_count
 
         # Calculate PMI
-        pmi = log(p_co_occurrence / (p_word1 * p_word2), 2) if p_co_occurrence > 0 else 0
-        return pmi
+        if p_co_occurrence > 0:
+            pmi = log(p_co_occurrence / (p_word1 * p_word2), 2)
+            npmi = pmi / (-log(p_co_occurrence, 2))
+        
+        else:
+            npmi = 0
+        
+        return npmi
     
     def get_edge_features(self, dataset: List[str], sim_threshold: float = 0.5):
         """
@@ -379,41 +422,84 @@ class Edges:
         edge_index_1 = []
         edge_index_2 = []
         edge_types = []
-        edge_strengths = []
         similarities = []
         pmis = []
         edges = []
-        levels = max(self.nodes.keys()) + 1
-        
-        for level in range(levels):
-            for node_type in ['similar_nodes', 'context_nodes']:
-                for node_1 in self.nodes[level][node_type].keys():
-                    for i, node_2 in enumerate(self.nodes[level][node_type][node_1]):
+        # levels = max(self.nodes.keys()) + 1
 
-                        e1 = self.index['key_to_index'][node_1]
-                        e2 = self.index['key_to_index'][node_2]
+        """
+        Examples:
+            >>> nodes = nd.get_nodes()
+            >>> print(nodes)
+
+            {'similar_nodes': 
+                {
+                    'trump': ['hand', 'deal'], 
+                    'hand': ['play', 'win'], 
+                    'deal': ['play', 'game'],
+                    'bronzecolored: ['hand', 'deal'],
+                }, 
+            'context_nodes': 
+                {
+                    'trump': ['bronzecolored'],
+                    'hand': ['shook'],
+                    'deal': ['diamond'],
+                    'bronzecolored: ['trump'],
+                }
+            }
+        """
+
+        for node_type in ['similar_nodes', 'context_nodes']:
+            for source_node in self.nodes[node_type].keys():
+                for target_node in self.nodes[node_type][source_node]:
+
+                    source_idx = self.index['key_to_index'][source_node]
+                    target_idx = self.index['key_to_index'][target_node]
+
+                    # TODO: check if this is needed
+                    if ((source_idx, target_idx) in edges) or ((target_idx, source_idx) in edges):
+                        continue
+
+                    similarity = self.get_similarity(source_idx, target_idx)
+
+                    if similarity > sim_threshold:
+                        edge_index_1.append(source_idx)
+                        edge_index_2.append(target_idx)
+                        edges.append((source_idx, target_idx))
+                        edge_type = 0 if source_idx == target_idx else 1 if node_type == 'similar_nodes' else 2
+                        edge_types.append(edge_type)
+                        similarities.append(similarity)
+                        pmi = self.get_pmi(dataset, source_node, target_node)
+                        pmis.append(pmi)
 
 
-                        if ((e1,e2) in edges) or ((e2,e1) in edges):
-                            continue
+        # for level in range(levels):
+        #     for node_type in ['similar_nodes', 'context_nodes']:
+        #         for node_1 in self.nodes[level][node_type].keys():
+        #             for i, node_2 in enumerate(self.nodes[level][node_type][node_1]):
 
-                        similarity = self.get_similarity(e1, e2)
+        #                 e1 = self.index['key_to_index'][node_1]
+        #                 e2 = self.index['key_to_index'][node_2]
 
-                        if similarity > sim_threshold:
-                            edge_index_1.append(e1)
-                            edge_index_2.append(e2)
-                            edges.append((e1,e2))
-                            edge_type = 0 if e1 == e2 else 1 if node_type == 'similar_nodes' else 2
-                            edge_types.append(edge_type)
-                            strength = self.node_strengths[level][node_type][node_1][i]
-                            edge_strengths.append(strength)
-                            similarities.append(similarity)
-                            pmi = self.get_pmi(dataset, node_1, node_2)
-                            pmis.append(pmi)
+
+        #                 if ((e1,e2) in edges) or ((e2,e1) in edges):
+        #                     continue
+
+        #                 similarity = self.get_similarity(e1, e2)
+
+        #                 if similarity > sim_threshold:
+        #                     edge_index_1.append(e1)
+        #                     edge_index_2.append(e2)
+        #                     edges.append((e1,e2))
+        #                     edge_type = 0 if e1 == e2 else 1 if node_type == 'similar_nodes' else 2
+        #                     edge_types.append(edge_type)
+        #                     similarities.append(similarity)
+        #                     pmi = self.get_pmi(dataset, node_1, node_2)
+        #                     pmis.append(pmi)
 
         del edges
         edge_index = np.stack([edge_index_1, edge_index_2])
-        edge_features = np.stack([edge_types, similarities, pmis, edge_strengths]).T
+        edge_features = np.stack([edge_types, similarities, pmis]).T
         return edge_index, edge_features
 
 
@@ -464,6 +550,8 @@ class TemporalGraph:
         self.edge_features = edge_features
         self.ys = ys
         self.y_indices = y_indices
+
+        self.nodes = []
     
     def __len__(self) -> int:
         """
@@ -515,8 +603,10 @@ class TemporalGraph:
             c: int,
             dataset: List[str], 
             word2vec_model: Word2VecInference, 
-            mlm_model: Union[RobertaInference, BertInference]
-            ) -> None:
+            mlm_model: Union[RobertaInference, BertInference],
+            edge_threshold: float = 0.5,
+            accumulate: bool = False
+            ) -> Dict[str, Dict[str, List[str]]]:
         """
         This method is used to add a snapshot to the temporal graph.
 
@@ -553,7 +643,7 @@ class TemporalGraph:
         """
 
         print(f'Adding the nodes of the word graph for the word "{target_word}"...')
-        nodes = Nodes(
+        nd = Nodes(
             target_word= target_word,
             dataset=dataset,
             level= level,
@@ -563,17 +653,30 @@ class TemporalGraph:
             mlm_model = mlm_model
             )
 
-        nd, nd_s = nodes.get_nodes()
+        nodes = nd.get_nodes()
+
+        if accumulate and (len(self.nodes) > 0):
+            print('Accumulating the nodes of the word graph...')
+            previous_nodes = self.nodes[-1]
+            for node_type in ['similar_nodes', 'context_nodes']:
+                for node in previous_nodes[node_type].keys():
+                    if node not in nodes[node_type].keys():
+                        nodes[node_type][node] = previous_nodes[node_type][node]
+                    else:
+                        nodes[node_type][node] += previous_nodes[node_type][node]
+                        nodes[node_type][node] = list(set(nodes[node_type][node]))
+                        
+    
+
         print('Getting their features...', '\n')
-        index, node_feature_matrix, embeddings = nodes.get_node_features(nd)
+        index, node_feature_matrix, embeddings = nd.get_node_features(nodes)
         print(f'Adding the edges of the word graph for the word "{target_word}"...')
         edges = Edges(
             index=index,
-            nodes=nd,
-            node_strengths=nd_s,
+            nodes=nodes,
             node_embeddings=embeddings
         )
-        edge_index, edge_feature_matrix = edges.get_edge_features(dataset, 0.0)
+        edge_index, edge_feature_matrix = edges.get_edge_features(dataset, sim_threshold=edge_threshold)
 
         print('Constructing the temporal graph...', '\n')
 
@@ -584,7 +687,8 @@ class TemporalGraph:
         self.ys.append(np.array([]))
         self.y_indices.append(np.array([]))
 
-        return nd, nd_s
+        self.nodes.append(nodes)
+        return nodes
     
     def align_graphs(self) -> None:
         all_words = [set(self[i].index['key_to_index'].keys()) for i in range(len(self.index))]
