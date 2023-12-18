@@ -8,6 +8,7 @@ from semantics.feature_extraction.word2vec import Word2VecInference
 from semantics.graphs.temporal_graph import TemporalGraph
 from semantics.inference.visualize import WordTraffic, visualize_graph
 from semantics.inference.obsedian import ObsedianGraph
+from semantics.inference.graph_clustering import GraphClusterer
 from semantics.utils.utils import count_occurence
 from semantics.models.tgcn import TemporalGCNTrainer, TGCNInference
 import os
@@ -220,6 +221,17 @@ def main(output_dir, data_path, periods, **kwargs):
 
     # mse = tgcn.mse_loss(y_hat= y_hat, y= y)
     # print('mse: ', mse, '\n')
+            
+    # tg = TemporalGraph(
+    #     index= index,
+    #     xs= xs,
+    #     ys= ys,
+    #     edge_indices= edge_indices,
+    #     edge_features= edge_features,
+    #     y_indices= y_indices,
+    # )
+
+    # g = GraphClusterer(graph= tg[0])
     print('Done!')
 
     
@@ -283,7 +295,7 @@ if __name__ == "__main__":
         "MLM_k": 2,
         "Context_k": 2,
         "level": 2,
-        "edge_threshold": 0.3,
+        "edge_threshold": 0.1,
         "accumulate": True,
         }
 
