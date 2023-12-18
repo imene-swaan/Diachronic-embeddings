@@ -27,6 +27,7 @@ opencv-python = "^4.8.1.78"
 pytesseract = "^0.3.10"
 easyocr = "^1.7.1"
 word2number = "^1.1"
+python-louvain = "^0.16"
 
 [tool.poetry.dev-dependencies]
 poethepoet = "^0.24.3"
