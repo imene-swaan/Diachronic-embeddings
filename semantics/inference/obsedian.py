@@ -149,12 +149,12 @@ class ObsedianGraph:
 
         tag_style = {}
         
-        colors = ["#b4f927", "#13ebef", "#1118f0"]   # generate_colors(len(unique_types))
-        color_map = {val: color for val, color in zip(list(unique_types), colors)}
-        for tag in unique_types:
-            tag_style[tag] = {
-                'background-color': color_map[tag]
-            }
+        # colors = ["#b4f927", "#13ebef", "#1118f0"]   # generate_colors(len(unique_types))
+        # color_map = {val: color for val, color in zip(list(unique_types), colors)}
+        # for tag in unique_types:
+        #     tag_style[tag] = {
+        #         'background-color': color_map[tag]
+        #     }
 
         # unique_levels = sorted(list(unique_levels), reverse=True)
         # sizes = self._category_to_float(unique_levels)
@@ -165,6 +165,21 @@ class ObsedianGraph:
         #         'width': f"{size}px",
         #         'height': f"{size}px"
         #     }
+            
+
+        colors = ["#b4f927", "#13ebef", "#1118f0"]   # generate_colors(len(unique_types))
+        color_map = {val: color for val, color in zip(list(unique_types), colors)}
+
+        sizes = self._category_to_float(unique_types)
+        size_map = {val: size for val, size in zip(list(unique_types), sizes)}
+
+        for tag in unique_types:
+            size = self._float_to_size(size_map[tag], scale_max=20)
+            tag_style[tag] = {
+                'background-color': color_map[tag],
+                'width': f"{size}px",
+                'height': f"{size}px"
+            }
 
         return nodes, tag_style
 
