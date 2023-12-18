@@ -41,8 +41,8 @@ class ObsedianGraph:
         
 
         self.index = graph.index
-        self.node_features = graph.node_features #node_types, node_levels, frequencies
-        self.edge_features = graph.edge_features #edge_types, similarities, pmis, edge_strengths
+        self.node_features = graph.node_features #node_types, frequencies
+        self.edge_features = graph.edge_features #edge_types, similarities, pmis
         self.edge_index = graph.edge_index
     
         self.nodes, self.tag_styles = self._get_nodes()
@@ -135,15 +135,16 @@ class ObsedianGraph:
         """
         nodes = {}
         unique_types = set()
-        unique_levels = set()
+        # unique_levels = set()
         for key, idx in self.index['key_to_index'].items():
             if self.node_features[idx].sum() == 0: # skip nodes that are not in the current graph
                 continue
             type_tag = f"type{int(self.node_features[idx, 0])}" 
-            level_tag = f"level{int(self.node_features[idx, 1])}" 
+            # level_tag = f"level{int(self.node_features[idx, 1])}" 
             unique_types.add(type_tag)
-            unique_levels.add(level_tag) 
-            nodes[key] = self._format_tags(tags= [type_tag, level_tag])           
+            # unique_levels.add(level_tag) 
+            # nodes[key] = self._format_tags(tags= [type_tag, level_tag])   
+            nodes[key] = self._format_tags(tags= [type_tag])        
         
 
         tag_style = {}
@@ -155,15 +156,15 @@ class ObsedianGraph:
                 'background-color': color_map[tag]
             }
 
-        unique_levels = sorted(list(unique_levels), reverse=True)
-        sizes = self._category_to_float(unique_levels)
-        size_map = {val: size for val, size in zip(list(unique_levels), sizes)}
-        for tag in unique_levels:
-            size = self._float_to_size(size_map[tag], scale_max=20)
-            tag_style[tag] = {
-                'width': f"{size}px",
-                'height': f"{size}px"
-            }
+        # unique_levels = sorted(list(unique_levels), reverse=True)
+        # sizes = self._category_to_float(unique_levels)
+        # size_map = {val: size for val, size in zip(list(unique_levels), sizes)}
+        # for tag in unique_levels:
+        #     size = self._float_to_size(size_map[tag], scale_max=20)
+        #     tag_style[tag] = {
+        #         'width': f"{size}px",
+        #         'height': f"{size}px"
+        #     }
 
         return nodes, tag_style
 
@@ -204,7 +205,7 @@ class ObsedianGraph:
                 target = self.index['index_to_key'][edge[1]]
 
             similarity = self.edge_features[i, 1]
-            strength = self.edge_features[i, 3]
+            # strength = self.edge_features[i, 3]
 
             edge_color = self._float_to_color(similarity)
             edge_width = self._float_to_size(similarity, scale_max=10)
@@ -247,7 +248,7 @@ class ObsedianGraph:
             >>> obsedian_graph._float_to_color(0.5)
             '#ff7f00'
         """
-        return mcolors.to_hex(colormap(alpha/1.5))
+        return mcolors.to_hex(colormap(alpha*0.8))
 
     def _float_to_size(self, alpha: float, scale_min: int = 0, scale_max:int = 50) -> int:
         """
