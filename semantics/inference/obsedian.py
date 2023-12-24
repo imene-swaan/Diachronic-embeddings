@@ -1,8 +1,6 @@
 import os
 from typing import List, Dict, Optional, Tuple
-
-from cv2 import sort
-from sympy import re
+import shutil
 from semantics.utils.utils import generate_colors
 from semantics.utils.components import WordGraph
 import matplotlib.pyplot as plt
@@ -67,6 +65,9 @@ class ObsedianGraph:
         if not os.path.exists(os.path.join(self.vault_path, folder)):
             os.mkdir(os.path.join(self.vault_path, folder))
         
+        elif os.listdir(os.path.join(self.vault_path, folder)):
+            shutil.rmtree(os.path.join(self.vault_path, folder))
+            os.mkdir(os.path.join(self.vault_path, folder))
 
         for node, node_content in self.nodes.items():
             node_path = os.path.join(self.vault_path, folder, f"{node}.md")
@@ -121,7 +122,7 @@ class ObsedianGraph:
             if by_tag.isnumeric():
                 by_tag = f"{by_tag}s"
                 
-            settings['filter'] += f" tag:#{by_tag}"
+            settings['filter'] = f"-class:dangling -class:file tag:#{by_tag}"
             with open(settings_path, "w") as f:
                 json.dump(settings, f, indent=4)
 
@@ -165,16 +166,17 @@ class ObsedianGraph:
         #         'width': f"{size}px",
         #         'height': f"{size}px"
         #     }
-            
+        
+        unique_types = sorted(list(unique_types), reverse=True)
 
         colors = ["#b4f927", "#13ebef", "#1118f0"]   # generate_colors(len(unique_types))
-        color_map = {val: color for val, color in zip(list(unique_types), colors)}
+        color_map = {val: color for val, color in zip(unique_types, colors)}
 
         sizes = self._category_to_float(unique_types)
-        size_map = {val: size for val, size in zip(list(unique_types), sizes)}
+        size_map = {val: size for val, size in zip(unique_types, sizes)}
 
         for tag in unique_types:
-            size = self._float_to_size(size_map[tag], scale_max=20)
+            size = self._float_to_size(size_map[tag],scale_min=10, scale_max=20)
             tag_style[tag] = {
                 'background-color': color_map[tag],
                 'width': f"{size}px",
@@ -215,6 +217,7 @@ class ObsedianGraph:
                 source = self.index['index_to_key'][edge[0]]
                 target = self.index['index_to_key'][edge[1]]
             except:
+                # reading from json converts the keys to strings
                 edge = (str(int(edge[0])), str(int(edge[1])))
                 source = self.index['index_to_key'][edge[0]]
                 target = self.index['index_to_key'][edge[1]]
@@ -238,12 +241,7 @@ class ObsedianGraph:
             }
         return edges
     
-    # def _generate_yaml_front_matter(self, attributes: Dict) -> str:
-    #     yaml_content = "---\n"
-    #     for attr, value in attributes.items():
-    #         yaml_content += f"{attr}: {value}\n"
-    #     yaml_content += "---\n\n"
-    #     return yaml_content
+
     
 
 
