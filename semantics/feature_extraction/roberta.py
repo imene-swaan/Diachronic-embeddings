@@ -535,7 +535,9 @@ class RobertaInference:
             self,
             main_word : str,
             doc: str,
-            k: int = 3
+            k: int = 3,
+            min_length: int = 3,
+            remove_numbers : bool = True
             ) -> List[str]:
         """
         This method is used to infer the vector embeddings of a main_word from a document.
@@ -572,10 +574,15 @@ class RobertaInference:
 
                 for word in top_k_words:
                     word = re.sub(r"\W", '', word)
-                    if all([word != main_word, word not in main_word, main_word not in word, len(word) > 2, word not in stop_words, word[:-1] not in top_k]):
-                        try:
-                            w2n.word_to_num(word)
-                        except:
+                    if all([word != main_word, word not in main_word, main_word not in word, len(word) > min_length, word not in stop_words, word[:-1] not in top_k]):
+                        if remove_numbers:
+                            try:
+                                w2n.word_to_num(word)
+                            except:
+                                if word in ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth']:
+                                    continue
+                                top_k.append(word)
+                        else:
                             top_k.append(word)
             return top_k
         
