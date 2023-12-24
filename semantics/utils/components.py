@@ -1,5 +1,6 @@
+from re import L
 from pydantic import BaseModel, field_validator
-from typing import Dict, Optional, Literal
+from typing import Dict, Optional, Literal, List, Union
 import numpy as np
 
 class WordGraph(BaseModel):
@@ -52,25 +53,132 @@ class WordGraph(BaseModel):
         return v
 
 
+    
 
+class GraphNodes(BaseModel):
+    """
+    This class is used to represent the nodes of the word graph.
 
-class OCRSettings(BaseModel):
-    ocr_engine: Optional[Literal['easyocr', 'pytesseract']] = None
+    Attributes:
+        similar_nodes (Optional, Dict[str, List[str]]): dictionary of similar nodes for each node of the graph. Default: None
+        context_nodes (Optional, Dict[str, List[str]]): dictionary of context nodes for each node of the graph. Default: None
 
-    @field_validator('ocr_engine')
-    def check_ocr_engine(cls, v):
-        if v is not None and v not in ['easyocr', 'pytesseract']:
-            raise ValueError('ocr_engine must be either easyocr or pytesseract')
+    """
+    similar_nodes: Optional[Dict[str, List[str]]] = None 
+    context_nodes: Optional[Dict[str, List[str]]] = None
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    @field_validator('similar_nodes')
+    def check_similar_nodes(cls, v):
+        if not isinstance(v, dict):
+            raise ValueError('similar_nodes must be a dictionary')
+        if not isinstance(list(v.values())[0], list):
+            raise ValueError('similar_nodes values must be a list')
+        if not isinstance(list(v.values())[0][0], str):
+            raise ValueError('similar_nodes values must be a list of strings')
+        if not isinstance(list(v.keys())[0], str):
+            raise ValueError('similar_nodes keys must be a string')
+        return v
+
+    
+    @field_validator('context_nodes')
+    def check_context_nodes(cls, v):
+        if not isinstance(v, dict):
+            raise ValueError('context_nodes must be a dictionary')
+        if not isinstance(list(v.values())[0], list):
+            raise ValueError('context_nodes values must be a list')
+        if not isinstance(list(v.values())[0][0], str):
+            raise ValueError('context_nodes values must be a list of strings')
+        if not isinstance(list(v.keys())[0], str):
+            raise ValueError('context_nodes keys must be a string')
         return v
     
-    # @field_validator('ocr_options')
-    # def check_ocr_options(cls, v):
-    #     if v is not None and not isinstance(v, dict):
-    #         raise ValueError('ocr_options must be a dictionary')
-        
-    #     if v is not None and 
-    #     return v
+   
+
+class TargetWords(BaseModel):
+    """
+    This class is used to represent the target words of the word graph.
+    """
+    words : Union[str, List[str], Dict[str, List[str]]]
+
+    class Config:
+        arbitrary_types_allowed = True
     
+    @field_validator('words')
+    def check_words(cls, v):
+        if isinstance(v, str):
+            return v
+        if isinstance(v, list):
+            if not isinstance(v[0], str):
+                raise ValueError('words must be a list of strings')
+            return v
+        if isinstance(v, dict):
+            if not isinstance(list(v.values())[0], list):
+                raise ValueError('words values must be a list')
+            if not isinstance(list(v.values())[0][0], str):
+                raise ValueError('words values must be a list of strings')
+            if not isinstance(list(v.keys())[0], str):
+                raise ValueError('words keys must be a string')
+            return v
+        raise ValueError('words must be a string, a list of strings or a dictionary')
+    
+
+
+class CenteredGraph(BaseModel):
+    """
+    This class is used to represent the centered word graph of a target word.
+    """
+    target_word: str
+
+    class Config:
+        arbitrary_types_allowed = True
+    
+    @field_validator('target_word')
+    def check_target_word(cls, v):
+        if not isinstance(v, str):
+            raise ValueError('target_word must be a string')
+        return v
+
+class CircularGraph(BaseModel):
+    """
+    This class is used to represent the circular word graph of the list of target words.
+    """
+    target_word: List[str]
+
+    class Config:
+        arbitrary_types_allowed = True
+    
+    @field_validator('target_word')
+    def check_target_word(cls, v):
+        if not isinstance(v, list):
+            raise ValueError('target_word must be a list')
+        if not isinstance(v[0], str):
+            raise ValueError('target_word must be a list of strings')
+        return v
+
+class HierarchicalGraph(BaseModel):
+    """
+    This class is used to represent the hierarchical word graph of the list of target words.
+    """
+    target_word: Dict[str, List[str]]
+
+    class Config:
+        arbitrary_types_allowed = True
+    
+    @field_validator('target_word')
+    def check_target_word(cls, v):
+        if not isinstance(v, dict):
+            raise ValueError('target_word must be a dictionary')
+        if not isinstance(list(v.values())[0], list):
+            raise ValueError('target_word values must be a list')
+        if not isinstance(list(v.values())[0][0], str):
+            raise ValueError('target_word values must be a list of strings')
+        if not isinstance(list(v.keys())[0], str):
+            raise ValueError('target_word keys must be a string')
+        return v
+
     
 if __name__ == '__main__':
     g = WordGraph(
