@@ -1,3 +1,4 @@
+from sympy import O
 from semantics.feature_extraction.roberta import RobertaInference
 from semantics.feature_extraction.bert import BertInference
 from semantics.feature_extraction.word2vec import Word2VecInference
@@ -9,34 +10,6 @@ from semantics.utils.utils import count_occurence, most_frequent
 import tqdm
 from semantics.utils.components import WordGraph
 
-# nodes:
-# level 1:
-    # - context nodes: words that are used in the same context as the target word. Extracted from word2vec.
-    # - similar nodes: words that are similar to the target word. Extracted from the MLM by checking the k most likely words to replace the masked target word in each sentence.
-    # - target node: the target word.
-
-# level 2:
-    # - context nodes: context nodes of words in level 1
-    # - similar nodes: similar nodes of words in level 1
-
-# level 3:
-    # - context nodes: context nodes of words in level 2
-    # - similar nodes: similar nodes of words in level 2
-
-# args:
-    # - target word: the word to get the nodes for
-    # - dataset: the sentences to get the nodes from
-    # - k: the number of similar nodes to get for each occurrence of the target word
-    # - c: the number of context nodes to get for the target word
-    # - level: the level of the graph to get
-    # - model_paths: the path to the word2vec model and the MLM model
-
-
-# node features:
-# - node_type: the type of the node (target, similar, context)
-# - node_level: the level of the node in the graph
-# - embeddings: the embeddings of the word node
-# - frequency: the frequency of the word node in the dataset
 
 
 class Nodes:
@@ -187,21 +160,16 @@ class Nodes:
         """
         nodes = {}
         for level in range(self.level):
-            # nodes[level] = {}
             print(f'Getting the nodes of level {level} ...')
 
             if level == 0:
-                similar_nodes  = self.get_similar_nodes(self.target_word, keep_k= 4)
+                similar_nodes  = self.get_similar_nodes(self.target_word, keep_k= 6)
                 context_nodes = self.get_context_nodes(self.target_word, keep_k= 2)
-
-                # nodes[level]['similar_nodes'] = similar_nodes
-                # nodes[level]['context_nodes'] = context_nodes
 
                 nodes['similar_nodes'] = similar_nodes
                 nodes['context_nodes'] = context_nodes
 
             else:
-                # previous_nodes = [node for node_list in nodes[level-1]['similar_nodes'].values() for node in node_list] + [node for node_list in nodes[level-1]['context_nodes'].values() for node in node_list]
 
                 previous_nodes = [node for node_list in nodes['similar_nodes'].values() for node in node_list if node not in nodes['similar_nodes'].keys()] + [node for node_list in nodes['context_nodes'].values() for node in node_list if node not in nodes['context_nodes'].keys()]
                
@@ -209,9 +177,6 @@ class Nodes:
 
                 similar_nodes = self.get_similar_nodes(previous_nodes, keep_k= 2)
                 context_nodes = self.get_context_nodes(previous_nodes, keep_k= 1)
-
-                # nodes[level]['similar_nodes'] = similar_nodes
-                # nodes[level]['context_nodes'] = context_nodes
 
                 nodes['similar_nodes'].update(similar_nodes)
                 nodes['context_nodes'].update(context_nodes)
@@ -248,28 +213,9 @@ class Nodes:
         """
         words = [self.target_word]
         node_types = [1]
-        # node_levels = [0]
         all_words_count = count_occurence(self.dataset)
         frequencies = [count_occurence(self.dataset, self.target_word)/ all_words_count]
         embeddings = [self.mlm.get_embedding(main_word=self.target_word).mean(axis=0)]
-
-        # for level in range(self.level):
-        #     for node_type in ['similar_nodes', 'context_nodes']:
-        #         for node_list in nodes[level][node_type].values():
-        #             for node in node_list:
-        #                 if node in words:
-        #                     continue
-
-        #                 words.append(node)
-        #                 if node_type == 'similar_nodes':
-        #                     node_types.append(1)
-        #                 else:
-        #                     node_types.append(2)
-
-        #                 node_levels.append(level+1)
-        #                 frequencies.append(count_occurence(self.dataset, node) / all_words_count)
-        #                 embeddings.append(self.mlm.get_embedding(main_word=node).mean(axis=0))
-        
 
         for node_type in ['similar_nodes', 'context_nodes']:
             for node_list in nodes[node_type].values():
@@ -291,32 +237,12 @@ class Nodes:
         key_to_index = {word: idx for idx, word in enumerate(words)}  
 
         del words
-        # print('Key to index: ', key_to_index)
         embeddings = np.array(embeddings)
-        # node_features = np.stack([node_types, node_levels, frequencies]).T
-
         node_features = np.stack([node_types, frequencies]).T
-        # node_features = np.concatenate((node_features, embeddings), axis=1)
 
         index = {'index_to_key': index_to_key, 'key_to_index': key_to_index}
         return index, node_features, embeddings
 
-
-
-# edge_index:
-# - target node -> similar node
-# - target node -> context node
-# - similar node -> similar node
-# - similar node -> context node
-# - context node -> context node
-
-# edge features:
-# - edge_type: the type of the edge (target-similar (1), target-context(2), similar-similar(3), similar-context(4), context-context(5), self-loop(0))
-# - similarity: the similarity between node embeddings in the current snapshot
-# - PMI: the PMI between nodes in the current snapshot
-
-# - labels: 
-    # - similarity: the similarity between similar nodes in the next snapshot
 
 
 
@@ -382,8 +308,6 @@ class Edges:
         Returns:
             pmi (float): the PMI between the two words in the dataset
         """
-        # Replace these methods with actual methods to get the word count, 
-        # the co-occurrence count, and the total count.
         word1_count = count_occurence(data, word1)
         word2_count = count_occurence(data, word2)
         co_occurrence_count = count_occurence(data, [word1, word2])
@@ -429,29 +353,6 @@ class Edges:
         similarities = []
         pmis = []
         edges = []
-        # levels = max(self.nodes.keys()) + 1
-
-        """
-        Examples:
-            >>> nodes = nd.get_nodes()
-            >>> print(nodes)
-
-            {'similar_nodes': 
-                {
-                    'trump': ['hand', 'deal'], 
-                    'hand': ['play', 'win'], 
-                    'deal': ['play', 'game'],
-                    'bronzecolored: ['hand', 'deal'],
-                }, 
-            'context_nodes': 
-                {
-                    'trump': ['bronzecolored'],
-                    'hand': ['shook'],
-                    'deal': ['diamond'],
-                    'bronzecolored: ['trump'],
-                }
-            }
-        """
 
         for node_type in ['similar_nodes', 'context_nodes']:
             for source_node in self.nodes[node_type].keys():
@@ -476,30 +377,6 @@ class Edges:
                         pmi = self.get_pmi(dataset, source_node, target_node)
                         pmis.append(pmi)
 
-
-        # for level in range(levels):
-        #     for node_type in ['similar_nodes', 'context_nodes']:
-        #         for node_1 in self.nodes[level][node_type].keys():
-        #             for i, node_2 in enumerate(self.nodes[level][node_type][node_1]):
-
-        #                 e1 = self.index['key_to_index'][node_1]
-        #                 e2 = self.index['key_to_index'][node_2]
-
-
-        #                 if ((e1,e2) in edges) or ((e2,e1) in edges):
-        #                     continue
-
-        #                 similarity = self.get_similarity(e1, e2)
-
-        #                 if similarity > sim_threshold:
-        #                     edge_index_1.append(e1)
-        #                     edge_index_2.append(e2)
-        #                     edges.append((e1,e2))
-        #                     edge_type = 0 if e1 == e2 else 1 if node_type == 'similar_nodes' else 2
-        #                     edge_types.append(edge_type)
-        #                     similarities.append(similarity)
-        #                     pmi = self.get_pmi(dataset, node_1, node_2)
-        #                     pmis.append(pmi)
 
         del edges
         edge_index = np.stack([edge_index_1, edge_index_2])
@@ -582,22 +459,7 @@ class TemporalGraph:
             label_mask= np.array(self.y_indices[idx])
             )
         return graph
-
-    def __setitem__(self, idx, key, value) -> None:
-        """
-        Sets the attribute at the specified index.
-
-        Args:
-            idx (int): Index of the item to set.
-            key (str): Key of the attribute to set.
-            value (any): Value to be set at the given index of the attribute.
-        """
-        valid_keys = ['index', 'xs', 'edge_indices', 'edge_features', 'ys', 'y_indices']
-        if key in valid_keys:
-            getattr(self, key)[idx] = value
-        else:
-            raise KeyError(f'Invalid key: {key}')
-        
+   
 
     def add_graph(
             self,
@@ -790,362 +652,3 @@ def is_dynamic(sets):
     return not all(s == union_of_all_sets for s in sets)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        # self.construct_graph(
-        #     current_index=index,
-        #     current_node_feature_matrix=node_feature_matrix,
-        #     current_embeddings=embeddings,
-        #     current_edge_index=edge_index,
-        #     current_edge_feature_matrix=edge_feature_matrix
-        # )
-
-        # return nd, nd_s
-
-    # def construct_graph(
-    #         self, 
-    #         current_index, 
-    #         current_node_feature_matrix, 
-    #         current_embeddings, 
-    #         current_edge_index, 
-    #         current_edge_feature_matrix
-    #         ):
-        
-    #     """
-    #     This method is used to construct the temporal graph.
-
-    #     Args:
-    #         current_index (dict): the index of the nodes of the current snapshot.
-    #         current_node_feature_matrix (np.ndarray): the features of the nodes of the current snapshot.
-    #         current_embeddings (np.ndarray): the embeddings of the nodes of the current snapshot.
-    #         current_edge_index (np.ndarray): the edge index of the current snapshot.
-    #         current_edge_feature_matrix (np.ndarray): the edge features of the current snapshot.
-    #     """
-        
-    #     if len(self.xs) == 0:
-    #         print('Adding the first snapshot to the temporal graph...', '\n')
-    #         self.index = current_index
-    #         self.xs.append(np.concatenate((current_node_feature_matrix, current_embeddings), axis=1))
-    #         self.edge_indices.append(current_edge_index)
-    #         print('\ncurrent_edge_index: ', current_edge_index.shape)
-    #         self.edge_features.append(current_edge_feature_matrix)
-    #         print('current_edge_feature_matrix: ', current_edge_feature_matrix.shape, '\n')
-    #         self.ys.append(np.array([]))
-    #         self.y_indices.append(np.array([]))
-
-    #     else:
-    #         print(f'Adding the {len(self.xs) + 1} snapshot to the temporal graph...', '\n')
-
-    #         previous_graph = {
-    #             'index': self.index,
-    #             'node_features': self[-1].node_features,
-    #             'edge_index': self[-1].edge_index,
-    #             'edge_features': self[-1].edge_features
-    #         }
-
-    #         current_graph = {
-    #             'index': current_index,
-    #             'node_features': np.concatenate((current_node_feature_matrix, current_embeddings), axis=1),
-    #             'edge_index': current_edge_index,
-    #             'edge_features': current_edge_feature_matrix
-    #         }
-
-
-    #         aligned_previous_graph, aligned_current_graph = self.get_aligned_graph(current_graph, previous_graph)
-
-    #         print('\ncurrent_edge_index: ', aligned_current_graph['edge_index'].shape)
-    #         print('current_edge_feature_matrix: ', aligned_current_graph['edge_features'].shape, '\n')
-
-    #         print('\nprevious_edge_index: ', aligned_previous_graph['edge_index'].shape)
-    #         print('previous_edge_feature_matrix: ', aligned_previous_graph['edge_features'].shape, '\n')
-
-
-    #         print('Labeling the edges...', '\n')
-    #         previous_labels, previous_label_mask = self.label_previous_graph(current_graph, previous_graph)
-
-    #         print('Previous labels: ', previous_labels.shape)
-    #         print('Previous label mask: ', previous_label_mask.shape, '\n')
-
-    #         self.index = aligned_previous_graph['index']
-
-    #         self.xs[-1] = aligned_previous_graph['node_features']
-    #         self.edge_indices[-1] = aligned_previous_graph['edge_index']
-    #         self.edge_features[-1] = aligned_previous_graph['edge_features']
-    #         self.ys[-1] = previous_labels
-    #         self.y_indices[-1] = previous_label_mask
-
-            
-    #         self.xs.append(aligned_current_graph['node_features'])
-    #         self.edge_indices.append(aligned_current_graph['edge_index'])
-    #         self.edge_features.append(aligned_current_graph['edge_features'])
-    #         self.ys.append(np.array([]))
-    #         self.y_indices.append(np.array([]))
-
-            
-    
-    # def get_aligned_graph(
-    #         self, 
-    #         current_graph: dict, 
-    #         previous_graph: dict
-    #         ) -> (dict, dict):
-        
-    #     """
-    #     This method is used to align the nodes of the current snapshot with the nodes of the previous snapshot.
-
-    #     Args:
-    #         current_graph (dict): the current snapshot of the temporal graph to align with the previous snapshot.
-    #         previous_graph (dict): the previous snapshot of the temporal graph to align with the current snapshot.
-
-    #     Returns:
-    #         aligned_previous_graph (dict): the aligned previous snapshot of the temporal graph.
-    #         aligned_current_graph (dict): the aligned current snapshot of the temporal graph.
-    #     """
-
-    #     current_index = current_graph['index']
-    #     previous_index = previous_graph['index']
-
-    #     if current_index == previous_index:
-    #         return current_graph
-
-    #     current_words = set(current_index['key_to_index'].keys())
-    #     previous_words = set(previous_index['key_to_index'].keys())
-    
-    #     dynamic_graph = current_words != previous_words
-
-    #     if not dynamic_graph:
-    #         print('The graph is static...', '\n')
-    #         index_mapping = {current_index['key_to_index'][key]: previous_index['key_to_index'][key] for key in current_index['key_to_index'].keys()}
-
-    #         reordered_node_feature_matrix = np.zeros_like(current_graph['node_features'])
-    #         for current_idx, previous_idx in index_mapping.items():
-    #             reordered_node_feature_matrix[previous_idx] = current_graph['node_features'][current_idx]
-
-
-    #         updated_edge_index = np.zeros_like(current_graph['edge_index'])
-    #         for i in range(current_graph['edge_index'].shape[1]):
-    #             updated_edge_index[0, i] = index_mapping[current_graph['edge_index'][0, i]]
-    #             updated_edge_index[1, i] = index_mapping[current_graph['edge_index'][1, i]]
-
-    #         aligned_current_graph = {
-    #             'index': previous_graph['index'],
-    #             'node_features': reordered_node_feature_matrix,
-    #             'edge_index': updated_edge_index,
-    #             'edge_features': current_graph['edge_features']
-    #         }
-    #         return previous_graph, aligned_current_graph
-
-        
-    #     else:
-    #         print('The graph is dynamic...', '\n')
-    #         all_words = previous_words | current_words
-    #         unified_dict = {word: idx for idx, word in enumerate(all_words)}
-    #         unified_dict_reverse = {idx: word for idx, word in enumerate(all_words)}
-    #         reordered_index = {'index_to_key': unified_dict_reverse, 'key_to_index': unified_dict}
-
-    #         # print('Previous key to index: ', len(previous_index['key_to_index']), previous_index['key_to_index'], '\n')
-    #         # print('Current key to index: ', len(current_index['key_to_index']), current_index['key_to_index'], '\n')
-    #         # print('Unified index: ', len(reordered_index['key_to_index']), reordered_index['key_to_index'], '\n')
-
-    #         # print('Number of previous words', sum([1 for _ in previous_index['key_to_index'].keys()]))
-    #         # print('Number of current words', sum([1 for _ in current_index['key_to_index'].keys()]), '\n')
-            
-            
-    #         reordered_previous_node_feature_matrix = np.zeros((len(unified_dict), previous_graph['node_features'].shape[1]))
-    #         for word, index in previous_index['key_to_index'].items():
-    #             if word in unified_dict:
-    #                 reordered_previous_node_feature_matrix[unified_dict[word]] = previous_graph['node_features'][index]
-            
-    #         # first_word = list(previous_index['key_to_index'].keys())[0]
-    #         # print('first word: ', first_word, '\n')
-    #         # print('Index in previous graph of first word: ', previous_index['key_to_index'][first_word], '\n')
-    #         # print('Index in current graph of first word: ', current_index['key_to_index'][first_word], '\n')
-    #         # print('Index in aligned previous graph of first word: ', unified_dict[first_word], '\n')
-
-    #         # print('Feature in previous graph of first word is equal to aligned one: ', np.array_equal(reordered_previous_node_feature_matrix[unified_dict[first_word]], previous_graph['node_features'][previous_index['key_to_index'][first_word]]), '\n')
-    #         # print('Feature in current graph of first word is equal to aligned one: ', np.array_equal(reordered_previous_node_feature_matrix[unified_dict[first_word]], current_graph['node_features'][current_index['key_to_index'][first_word]]), '\n')
-
-
-    #         reordered_current_node_feature_matrix = np.zeros((len(unified_dict), current_graph['node_features'].shape[1]))
-
-    #         # print('Shape of previous node features: ', previous_graph['node_features'].shape, '\n')
-    #         # print('New shape after alignement: ', reordered_previous_node_feature_matrix.shape, '\n')
-    #         for word, index in current_index['key_to_index'].items():
-    #             if word in unified_dict:
-    #                 reordered_current_node_feature_matrix[unified_dict[word]] = current_graph['node_features'][index]
-
-    
-    #         # Mapping old indices to new indices for the previous dictionary
-    #         previous_index_mapping = {old_index: unified_dict[word] for word, old_index in previous_index['key_to_index'].items()}
-
-    #         # print('Previous key to index: ', previous_index['key_to_index'], '\n')
-    #         # print('Previous to new index mapping: ', previous_index_mapping, '\n')
-    #         # print('Edge index: ', previous_graph['edge_index'], '\n')
-
-    #         updated_previous_edge_index = np.zeros(previous_graph['edge_index'].shape)
-            
-    #         # print('Previous edge index: ', previous_graph['edge_index'].shape, '\n')
-    #         # print('Updated previous edge index: ', updated_previous_edge_index.shape, '\n')
-    #         for i in range(previous_graph['edge_index'].shape[1]):
-    #             n1 = previous_graph['edge_index'][0, i]
-    #             n2 = previous_graph['edge_index'][1, i]
-    #             # print('Old edge: ', (n1, n2))
-    #             # print('New edge: ', (previous_index_mapping[n1], previous_index_mapping[n2]), '\n')
-    #             updated_previous_edge_index[0, i] = previous_index_mapping[n1]
-    #             updated_previous_edge_index[1, i] = previous_index_mapping[n2]
-    #         # print('Updated edge index: ', updated_previous_edge_index.shape, '\n')
-
-    #         # Mapping old indices to new indices for the current dictionary
-    #         current_index_mapping = {old_index: unified_dict[word] for word, old_index in current_index['key_to_index'].items()}
-    #         updated_current_edge_index = np.zeros(current_graph['edge_index'].shape)
-    #         for i in range(current_graph['edge_index'].shape[1]):
-    #             updated_current_edge_index[0, i] = current_index_mapping[current_graph['edge_index'][0, i]]
-    #             updated_current_edge_index[1, i] = current_index_mapping[current_graph['edge_index'][1, i]]
-            
-            
-    #         aligned_previous_graph = {
-    #             'index': reordered_index,
-    #             'node_features': reordered_previous_node_feature_matrix,
-    #             'edge_index': updated_previous_edge_index,
-    #             'edge_features': previous_graph['edge_features']
-    #         }
-
-    #         aligned_current_graph = {
-    #             'index': reordered_index,
-    #             'node_features': reordered_current_node_feature_matrix,
-    #             'edge_index': updated_current_edge_index,
-    #             'edge_features': current_graph['edge_features']
-    #         }
-
-    #         return aligned_previous_graph, aligned_current_graph
-            
-   
-
-    # def label_previous_graph(
-    #         self,
-    #         current_graph: dict,
-    #         previous_graph: dict,
-    #         label_feature_idx: int = 1
-    #         ) -> (np.ndarray, np.ndarray):
-    #     """
-    #     This method is used to label the edges of the previous snapshot with the edge feature values in the current snapshot.
-
-    #     Args:
-    #         current_graph (dict): the current snapshot of the temporal graph to use for labeling the previous snapshot.
-    #         previous_graph (dict): the previous snapshot of the temporal graph to label.
-    #         label_feature_idx (int): the index of the feature to use as labels. Default: 1.
-
-    #     Returns:
-    #         labels (np.ndarray): the labels of the edges of the graph at the specified index.
-    #         labels_mask (np.ndarray): the indices of the labels of the edges of the graph at the specified index.
-    #     """
-
-    #     current_edge_index = current_graph['edge_index']
-    #     current_edge_features = current_graph['edge_features']
-
-    #     previous_edge_index = previous_graph['edge_index']
-
-    #     previous_edges = [tuple(edge) for edge in previous_edge_index.T]
-    #     current_edges  = [tuple(edge) for edge in current_edge_index.T]
-
-    #     labels = []
-        
-    #     label_mask_1 = []
-    #     label_mask_2 = []
-
-    #     for _, previous_edge in enumerate(previous_edges):
-    #         if previous_edge in current_edges:
-    #             label_mask_1.append(previous_edge[0])
-    #             label_mask_2.append(previous_edge[1])
-
-    #             current_index = current_edges.index(previous_edge)
-    #             labels.append(current_edge_features[current_index][label_feature_idx])
-
-    #     label_mask = np.stack([label_mask_1, label_mask_2])
-    #     labels = np.array(labels)
-
-    #     return labels, label_mask
-
-
-
-
-
-            
-
-
-
-
-
-
-
-
-# if __name__ == '__main__':
-    # data1 = ['this is a sentence', 'this is another sentence']
-    # data2 = ['this is a sentence', 'this is another sentence', 'this is a third sentence']
-    # model_dir = 'output'
-
-    # word2vec = Word2VecInference(f'{model_dir}/word2vec_aligned/word2vec_1980_aligned.model')
-    # mlm = RobertaInference(f'{model_dir}/MLM_roberta_1980')
-    # n = Nodes(
-    #     target_word='sentence',
-    #     dataset=data,
-    #     level=3,
-    #     k=2,
-    #     c=2,
-    #     word2vec_model = word2vec,
-    #     mlm_model = mlm
-    # )
-
-    # nodes = n.get_nodes()
-    # words_ids, features, embeddings = n.get_node_features(nodes)
-
-    # e = Edges(
-    #     word_ids=words_ids,
-    #     node_features=features,
-    #     node_embeddings=embeddings
-    # )
-    
-    # edge_index, edge_features = e.get_edge_features(dataset=data)
-
-    # print('Words:', words_ids, '\n')
-    # print('Edge index:', edge_index, '\n')
-    # print('Edge features:', edge_features, '\n')
-    # print('Shape edge_features: ', edge_features.shape)
-
-    # tg = TemporalGraph()
-
-    # tg.add_graph(
-    #     target_word='sentence',
-    #     level=3,
-    #     k=2,
-    #     c=2,
-    #     dataset=data1,
-    #     word2vec_model=word2vec,
-    #     mlm_model=mlm
-    # )
-
-    # tg.add_graph(
-    #     target_word='sentence',
-    #     level=3,
-    #     k=2,
-    #     c=2,
-    #     dataset=data2,
-    #     word2vec_model=word2vec,
-    #     mlm_model=mlm
-    # )
-    
-    # print('First snapshot:', tg[0], '\n')
-    # print('Second snapshot:', tg[1], '\n')
-    
