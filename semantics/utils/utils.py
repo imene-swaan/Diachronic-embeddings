@@ -7,7 +7,7 @@ from collections import Counter
 
 
 
-def generate_colors(num_colors=3):
+def generate_colors(num_colors=3, range_min=0.0, range_max=1.0):
     """
     Generate random pastel colors.
 
@@ -18,9 +18,9 @@ def generate_colors(num_colors=3):
         colors (List[str]): A list of colors in hex format.
     """
     return ['#{:02x}{:02x}{:02x}'.format(
-        int(random.uniform(0.0, 1.0) * 255),
-        int(random.uniform(0.0, 1.0) * 255),
-        int(random.uniform(0.0, 1.0) * 255)
+        int(random.uniform(range_min, range_max) * 255),
+        int(random.uniform(range_min, range_max) * 255),
+        int(random.uniform(range_min, range_max) * 255)
     ) for _ in range(num_colors)]
 
 
