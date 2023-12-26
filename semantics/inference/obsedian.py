@@ -137,7 +137,7 @@ class ObsedianGraph:
         nodes = {}
         unique_types = set()
         # unique_levels = set()
-        for key, idx in self.index['key_to_index'].items():
+        for key, idx in self.index.key_to_index.items():
             if self.node_features[idx].sum() == 0: # skip nodes that are not in the current graph
                 continue
             type_tag = f"type{int(self.node_features[idx, 0])}" 
@@ -214,13 +214,13 @@ class ObsedianGraph:
         for i in range(self.edge_index.shape[1]):
             edge = self.edge_index[:, i]
             try:
-                source = self.index['index_to_key'][edge[0]]
-                target = self.index['index_to_key'][edge[1]]
+                source = self.index.index_to_key[edge[0]]
+                target = self.index.index_to_key[edge[1]]
             except:
                 # reading from json converts the keys to strings
                 edge = (str(int(edge[0])), str(int(edge[1])))
-                source = self.index['index_to_key'][edge[0]]
-                target = self.index['index_to_key'][edge[1]]
+                source = self.index.index_to_key[edge[0]]
+                target = self.index.index_to_key[edge[1]]
 
             similarity = self.edge_features[i, 1]
             # strength = self.edge_features[i, 3]
