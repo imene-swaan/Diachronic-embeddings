@@ -10,6 +10,7 @@ from semantics.inference.visualize import WordTraffic, visualize_graph
 from semantics.inference.obsedian import ObsedianGraph
 from semantics.inference.graph_clustering import GraphClusterer
 from semantics.utils.utils import count_occurence
+from semantics.utils.components import GraphIndex
 from semantics.models.tgcn import TemporalGCNTrainer, TGCNInference
 import os
 import numpy as np
@@ -25,16 +26,12 @@ def main(output_dir, data_path, periods, **kwargs):
     tg = TemporalGraph()
     inference_options = kwargs['inference_options']
     preprocessing_options = kwargs['preprocessing_options']
-    visualization_options = kwargs['visualization_options']
-
-    obsedian_vault = visualization_options.get('obsedian_vault', 'semantics-obsedian')
-    view_period = visualization_options.get('view_period', 0)
-
+    
     for i, period in enumerate(periods[:]):
 
         # loading the data
-        print(f'Loading data from {period} ...', '\n')
         path = data_path.format(period)
+        print(f'Loading data of {period} from {path} ...', '\n')
 
         corpora[period] = Loader.from_xml(
                 path, 
@@ -50,10 +47,7 @@ def main(output_dir, data_path, periods, **kwargs):
         prep = PREPROCESS()
         corpora[period] = list(map(lambda x: prep.forward(text=x, **preprocessing_options), corpora[period]))
 
-
-        print('Number of clean documents: ', len(corpora[period]), '\n')
-
-        print('Number of sentences with the word: ')
+        print('Number of sentences with the word')
         for word in target_word:
             print(word, ': ', count_occurence(corpora[period], word), '\n')
         
@@ -66,7 +60,7 @@ def main(output_dir, data_path, periods, **kwargs):
         word2vec = Word2VecInference(pretrained_model_path= word2vec_path)
 
         nodes = tg.add_graph(
-            target_word= target_word[0],
+            target_word= target_word,
             level = inference_options['level'],
             k = inference_options['MLM_k'],
             c = inference_options['Context_k'],
@@ -92,7 +86,11 @@ def main(output_dir, data_path, periods, **kwargs):
             os.mkdir(f'{output_dir}/inference_{period}')
 
         with open(f'{output_dir}/inference_{period}/nds.json', 'w') as f:
-            json.dump(nodes, f, indent=4)
+            json.dump(
+                {
+                    'similar_nodes': nodes.similar_nodes, 
+                    'context_nodes': nodes.context_nodes
+                }, f, indent=4)
 
     tg.align_graphs()
     tg.label_graphs()
@@ -101,7 +99,11 @@ def main(output_dir, data_path, periods, **kwargs):
         os.mkdir(f'{output_dir}/inference')  
         
     with open(f'{output_dir}/inference/index.json', 'w') as f:
-        json.dump(tg[i].index, f, indent=4)
+        json.dump(
+            {
+                'key_to_index': tg[i].index.key_to_index, 
+                'index_to_key': tg[i].index.index_to_key
+            }, f, indent=4)
         
     for i, period in enumerate(periods):
         print(f'Saving the Graph of {period} ...')
@@ -126,50 +128,66 @@ def main(output_dir, data_path, periods, **kwargs):
         with open(f'{output_dir}/inference_{period}/y_indices.npy', 'wb') as f:
             np.save(f, tg[i].label_mask)
     
-        print('Creating the obsedian graphs')
-        if i == view_period:
-            obsedian_graph = ObsedianGraph(
-            vault_path= obsedian_vault,
-            graph= tg[i],
-            )
-            obsedian_graph.generate_markdowns(folder= f'{period}', add_tag= f'{period}')
-            obsedian_graph.JugglStyle()
-            obsedian_graph.Filter(by_tag= f'{period}')
     
     
+    print('Loading the Graphs ...')
+    index = []
+    xs = []
+    ys = []
+    edge_indices = []
+    edge_features = []
+    y_indices = []
+
+    for period in periods:
+        with open(f'{output_dir}/inference/index.json', 'r') as f:
+            d = json.load(f)
+            i = GraphIndex(index_to_key= d['index_to_key'], key_to_index= d['key_to_index'])
+            index.append(i)
+
+        with open(f'{output_dir}/inference_{period}/edge_indices.npy', 'rb') as f:
+            edge_indices.append(np.load(f))
+        
+        with open(f'{output_dir}/inference_{period}/edge_features.npy', 'rb') as f:
+            edge_features.append(np.load(f))
+
+        with open(f'{output_dir}/inference_{period}/xs.npy', 'rb') as f:
+            xs.append(np.load(f))
+
+        with open(f'{output_dir}/inference_{period}/ys.npy', 'rb') as f:
+            ys.append(np.load(f))
+
+        with open(f'{output_dir}/inference_{period}/y_indices.npy', 'rb') as f:
+            y_indices.append(np.load(f))
+
+
+    tg = TemporalGraph(
+        index= index,
+        xs= xs,
+        ys= ys,
+        edge_indices= edge_indices,
+        edge_features= edge_features,
+        y_indices= y_indices,
+    )
+            
+    print('Creating the obsedian graph')
+    visualization_options = kwargs['visualization_options']
+
+    obsedian_vault = visualization_options.get('obsedian_vault', 'semantics-obsedian')
+    view_period = visualization_options.get('view_period', 0)
+
+    obsedian_graph = ObsedianGraph(
+        vault_path= obsedian_vault,
+        graph= tg[view_period],
+        )
+    obsedian_graph.generate_markdowns(folder= f'{periods[view_period]}', add_tag= f'{periods[view_period]}')
+    obsedian_graph.JugglStyle()
+    obsedian_graph.Filter(by_tag= f'{periods[view_period]}')
+
     
-    # print('Loading the Graphs ...')
-    # index = []
-    # xs = []
-    # ys = []
-    # edge_indices = []
-    # edge_features = []
-    # y_indices = []
-
-    # for period in periods:
-    #     with open(f'{output_dir}/inference/index.json', 'r') as f:
-    #         index.append(json.load(f))
-
-    #     with open(f'{output_dir}/inference_{period}/edge_indices.npy', 'rb') as f:
-    #         edge_indices.append(np.load(f))
         
-    #     with open(f'{output_dir}/inference_{period}/edge_features.npy', 'rb') as f:
-    #         edge_features.append(np.load(f))
+    # print('Modeling the temporal graph ...')
 
-    #     with open(f'{output_dir}/inference_{period}/xs.npy', 'rb') as f:
-    #         xs.append(np.load(f))
-
-    #     with open(f'{output_dir}/inference_{period}/ys.npy', 'rb') as f:
-    #         ys.append(np.load(f))
-
-    #     with open(f'{output_dir}/inference_{period}/y_indices.npy', 'rb') as f:
-    #         y_indices.append(np.load(f))
-
-        
-        
-    # print('Creating the Temporal Graph ...')
-
-    # tg = TemporalGraph(
+    # tg_upto2015 = TemporalGraph(
     #     index= index[:-1],
     #     xs= xs[:-1],
     #     ys= ys[:-1],
@@ -192,7 +210,7 @@ def main(output_dir, data_path, periods, **kwargs):
     # number_edge_features = edge_features[0].shape[1]
     
     
-    # print('Training the Temporal Graph ...')
+    # print('Training the TGCN ...')
     # gnn = TemporalGCNTrainer(node_features= number_node_features, edge_features= number_edge_features, epochs= 100, split_ratio= 0.9, learning_rate= 0.01, device= 'cpu')
 
     # if not os.path.exists(f'{output_dir}/TGCN'):
@@ -200,36 +218,58 @@ def main(output_dir, data_path, periods, **kwargs):
     
     # model_path = f'{output_dir}/TGCN/model'
     # gnn.train(
-    #     graph= tg,
+    #     graph= tg_upto2015,
     #     output_dir= model_path)
     
     
-    # print('Loading the model ...')
+    # print('Loading the TGCN ...')
     # config_path = f'{model_path}.yaml'
     # with open(config_path, 'r') as f:
     #     config = yaml.load(f, Loader=yaml.FullLoader)
 
+    # print('Predicting the last period (2017) using the trained TGCN ...')
     # tgcn = TGCNInference(pretrained_model_path= f'{model_path}.pt', **config)
-
     # y_hat = tgcn.predict(graph= tg_2017)
-    # print('y_hat: ', y_hat)
-    # print('y_hat shape: ', y_hat[0].shape, '\n')
-
     # y = tg_2017[0].edge_features[:, 1].reshape(-1, 1)
-    # print('y', y)
-    # print('y shape: ', y.shape, '\n')
-
     # mse = tgcn.mse_loss(y_hat= y_hat, y= y)
     # print('mse: ', mse, '\n')
-            
-    # tg = TemporalGraph(
-    #     index= index,
-    #     xs= xs,
-    #     ys= ys,
-    #     edge_indices= edge_indices,
-    #     edge_features= edge_features,
-    #     y_indices= y_indices,
-    # )
+
+    print('Creating the graph visualizations ...')     
+    node_types = np.unique(tg[0].node_features[:, 0].tolist())
+    node_colors = ['#d84c3e', '#b4f927', '#13ebef', '#4476ff', '#f9f927'][:len(node_types)]
+    node_color_map = {int(val): color for val, color in zip(node_types, node_colors)}
+    
+    for i, period in enumerate(periods):
+        print(f'Creating the plot for {period} ...')
+        fig = visualize_graph(
+            graph= tg[i],
+            title= f'Word Graph - {periods[i]}',
+            node_color_feature=0,
+            node_color_map= node_color_map,
+            node_size_feature= 0,
+            edge_label_feature= 1,
+            color_bar=True,
+            color_norm= 'auto',
+            target_node= target_word[0],
+            )
+        
+        with open(f'{output_dir}/images/graph_{periods[i]}.png', 'wb') as f:
+            fig.savefig(f)
+    
+    print('Creating the word traffic animation ...')
+    wt = WordTraffic(
+        temporal_graph= tg,
+        title= 'Word Traffic',
+        node_color_feature=0,
+        node_color_map= node_color_map,
+        node_size_feature= 0,
+        edge_label_feature= 1,
+        target_node= target_word[0],
+        radius= 2,
+        distance= 1,
+        )
+    
+    wt.animate(save_path= f'{output_dir}/images/word_traffic.gif', interval= 3000, repeat= True)
 
     # g = GraphClusterer(graph= tg[0])
     print('Done!')
@@ -296,7 +336,7 @@ if __name__ == "__main__":
         "Context_k": 2,
         "level": 2,
         "edge_threshold": 0.1,
-        "accumulate": True,
+        "accumulate": False,
         }
 
     target_word = [
@@ -312,14 +352,13 @@ if __name__ == "__main__":
             # "business",
             # "position",
             # "post",
-            "trump",
+            # "trump",
             # "biden",
             # "obama",
             # "bush",
             # "ford",
             # "nixon",
             # "putin",
-            # "merkel",
             # "us",
             # "usa",
             # "america",
@@ -329,12 +368,21 @@ if __name__ == "__main__":
             # "uk",
             # "france",
             # "italy",
-            # "japan"
+            # "japan",
+            'abuse',
+            'corruption',
+            'crime',
+            'misuse',
+            'offense',
+            'exploitation',
+            'injustice',
+            'misconduct',
+            'misdeed'
         ]
     
     visualization_options = {
         "obsedian_vault": "semantics-obsedian",
-        "view_period": 15
+        "view_period": -1
     }
     
     main(
@@ -343,7 +391,7 @@ if __name__ == "__main__":
         periods, 
         xml_tag = 'fulltext',
         target_word = target_word,
-        #max_documents = 10,
+        max_documents = 10,
         shuffle = True,
         preprocessing_options = preprocessing_options,
         mlm_options = mlm_options,
@@ -351,20 +399,6 @@ if __name__ == "__main__":
         visualization_options = visualization_options
         )
     
-
-    # index, xs, edge_indices, edge_features, ys, y_indices = tg[0]
-
-    # fig = visualize_graph(
-    #     graph= (index, xs, edge_indices, edge_features, ys, y_indices) ,
-    #     title= 'Graph Visualization',
-    #     node_label_feature= 0,
-    #     edge_label_feature= 1
-    #     )
-    
-    # image_dir = f'{output_dir}/images/graph_{periods[0]}.png'
-    # if not os.path.exists(f'{output_dir}/images'):
-    #     os.mkdir(f'{output_dir}/images')
-    # fig.savefig(image_dir)
     
 
 
