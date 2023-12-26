@@ -21,7 +21,9 @@ def visualize_graph(
         color_norm: Optional[Union[Tuple[float, float], Literal['default', 'auto']]] = 'default',
         color_bar: bool = False,
         node_positions: Optional[Dict[int, np.ndarray]] = None,
-        target_node: str = 'trump'
+        target_node: str = 'trump',
+        radius: float = 2, # Distance from target node to level 1 nodes
+        distance: float = 2 # Distance from level 1 nodes to level 2 nodes
     ) -> plt.Figure:
     """
     Visualize a graph.
@@ -57,9 +59,9 @@ def visualize_graph(
     
     nodes = [i for i in range(graph.node_features.shape[0]) if graph.node_features[i].sum() > 0]
     try: 
-        node_labels = {i: graph.index['index_to_key'][i] for i in nodes}
+        node_labels = {i: graph.index.index_to_key[i] for i in nodes}
     except:
-        node_labels = {i: graph.index['index_to_key'][str(i)] for i in nodes}
+        node_labels = {i: graph.index.index_to_key[str(i)] for i in nodes}
 
     node_sizes = [5500 if graph.node_features[node, node_size_feature] == 1 else 
                     4000 if graph.node_features[node, node_size_feature] == 2 else 
@@ -86,11 +88,11 @@ def visualize_graph(
     if node_positions is None:
         # pos = nx.spring_layout(G,  k=2)  # Node positions
         try:
-            target_idx = graph.index['key_to_index'][target_node]
+            target_idx = graph.index.key_to_index[target_node]
         except:
             raise ValueError('Target node not found.')
         
-        pos = create_position_template(graph=G, target_node_idx=target_idx)
+        pos = create_position_template(graph=G, target_node_idx=target_idx, radius=radius, distance=distance)
     else:
         pos = {k:v for k, v in node_positions.items() if k in nodes}
 
@@ -123,7 +125,9 @@ def visualize_graph(
 
 def create_position_template(
         graph: nx.Graph, 
-        target_node_idx: int
+        target_node_idx: int,
+        radius: float = 2, # Distance from target node to level 1 nodes
+        distance: float = 2 # Distance from level 1 nodes to level 2 nodes
         ) -> Dict[int, np.ndarray]:
     # Start with an empty dictionary for positions
     pos = {}
@@ -140,7 +144,6 @@ def create_position_template(
     angle_step = 2 * np.pi / num_level_1
     for index, node in enumerate(level_1_nodes):
         angle = index * angle_step
-        radius = 2 # Distance from target node to level 1 nodes
         pos[node] = np.array([0.5 + radius * np.cos(angle), 0.5 + radius * np.sin(angle)])
 
     # For each level 1 node, calculate the positions of level 2 nodes
@@ -154,7 +157,6 @@ def create_position_template(
         
         for index, node in enumerate(level_2_nodes):
             angle = l1_angle + (index - num_level_2 / 2) * angle_step / 4  # Offset angle for level 2 nodes
-            distance = 2  # Distance from level 1 nodes to level 2 nodes
             pos[node] = pos[l1_node] + np.array([distance * np.cos(angle), distance * np.sin(angle)])
 
     return pos
@@ -181,7 +183,9 @@ class WordTraffic:
             node_color_feature: int = 0,
             edge_label_feature: int = 1,
             node_color_map: Optional[dict] = None,
-            target_node: str = 'trump'
+            target_node: str = 'trump',
+            radius: float = 2, # Distance from target node to level 1 nodes
+            distance: float = 2 # Distance from level 1 nodes to level 2 nodes
         ):
         """
         Initialize the WordTraffic object.
@@ -239,7 +243,7 @@ class WordTraffic:
         else:
             self.node_color_map = node_color_map
         
-        index_to_key = list(map(int, list(temporal_graph[0].index['index_to_key'].keys())))
+        index_to_key = list(temporal_graph[0].index.index_to_key.keys())
 
         G = nx.Graph()
         G.add_nodes_from(index_to_key)
@@ -255,8 +259,8 @@ class WordTraffic:
         for edge in edge_index:
             G.add_edge(*edge)
 
-        target_idx = temporal_graph[0].index['key_to_index'][target_node]
-        self.all_nodes_positions = create_position_template(graph=G, target_node_idx=target_idx)
+        target_idx = temporal_graph[0].index.key_to_index[target_node]
+        self.all_nodes_positions = create_position_template(graph=G, target_node_idx=target_idx, radius=radius, distance=distance)
 
         del G
         del index_to_key
@@ -268,7 +272,7 @@ class WordTraffic:
         Args:
             num: The time step to be viewed.
         """
-        print(f'Viewing graph at time step {num}')
+        # print(f'Viewing graph at time step {num}')
         self.ax.clear()
         current_graph = self.temporal_graph[num]
 
