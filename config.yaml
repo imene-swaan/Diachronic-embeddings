@@ -1,0 +1,170 @@
+
+
+
+
+output_dir: 'output'
+
+
+data_options:
+    input_type: 'xml'
+    data_path: 'input/xml/TheNewYorkTimes{}.xml'
+    xml_tag: 'fulltext'
+    max_documents: 10
+    shuffle: True
+    seed: 42
+
+
+preprocessing_options:
+    remove_stopwords: True
+    remove_punctuation: True 
+    remove_numbers: True
+    lowercase: True
+    lemmatize: True
+    remove_full_stop: True
+    remove_short_words: True
+    
+
+mlm_options:
+    model_name: 'roberta-base'
+    max_length: 128
+    mlm_probability: 0.15
+    batch_size: 32
+    epochs: 3
+    split_ratio: 0.8
+    learning_rate: 5e-5
+    truncation: True
+    padding: 'max_length'
+
+
+temporal_graph_options:
+    MLM_k: 2
+    Context_k: 2
+    level: 2
+    edge_threshold: 0.1
+    accumulate: False
+    keep_k: 
+      0: [4,2]
+      1: [2,1]
+
+periods: [
+        1980,
+        # 1982,
+        # 1985,
+        # 1987,
+        # 1989,
+        # 1990,
+        # 1992,
+        # 1995,
+        # 2000,
+        # 2001,
+        # 2005,
+        # 2008,
+        # 2010,
+        # 2012,
+        # 2015,
+        # 2017
+    ]   
+
+target_words: [
+        "office",
+        "work",
+        "job",
+        "career",
+        "profession",
+        "employment",
+        "occupation",
+        "vocation",
+        "trade",
+        "business",
+        # "position",
+        # "post",
+        # "trump",
+        # "biden",
+        # "obama",
+        # "bush",
+        # "ford",
+        # "nixon",
+        # "putin",
+        # "us",
+        # "usa",
+        # "america",
+        # "russia",
+        # "china",
+        # "germany",
+        # "uk",
+        # "france",
+        # "italy",
+        # "japan",
+        # 'abuse',
+        # 'corruption',
+        # 'power',
+        # 'crime',
+        # 'misuse',
+        # 'drug',
+        # 'violence',
+        # 'child',
+        # 'domestic',
+        # 'offense',
+        # 'exploitation'
+    ]
+
+obsedian_options:
+    obsedian_vault: "semantics-obsedian"
+    view_period: -1
+
+models:
+    roberta_path: '{}/MLM_roberta_{}'
+    word2vec_path: '{}/word2vec_aligned/word2vec_{}_aligned.model'
+    tgcn_path: '{}/TGCN/model'
+
+
+tgcn_options:
+    epochs: 100
+    train_test_split: 0.9
+    learning_rate: 0.01
+    device: 'cpu'
+
+
+wordgraph_options:
+    title: 'Word Graph - {}'
+    node_color_feature: 0
+    node_size_feature: 0
+    edge_label_feature: 1
+    color_bar: True
+    color_norm: 'auto'
+    
+animation_options:
+    wordgraph:
+        title: 'Word Traffic'
+        node_color_feature: 0
+        node_size_feature: 0
+        edge_label_feature: 1
+        radius: 2
+        distance: 1
+    
+    gif:
+        start: 0
+        end: -1
+        repeat: True
+        interval: 3000
+
+
+
+pipeline:
+    load_data: False
+    preprocess: False
+    train_mlm: False
+    train_word2vec: False
+    construct_temporal_graph: False
+    save_temporal_graph: False
+    load_temporal_graph: True
+    visualize_obsedian: False
+    train_tgcn: False
+    load_tgcn: False
+    Infer_tgcn: False
+    visualize_wordgraph: True
+    animate_wordgraph: True
+    cluster_wordgraph: False
+
+
+

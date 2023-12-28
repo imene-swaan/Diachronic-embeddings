@@ -1,6 +1,7 @@
 from pydantic import BaseModel, field_validator
 from typing import Dict, Optional, List, Union
 import numpy as np
+from sympy import Li
 
 
 
@@ -17,6 +18,7 @@ class GraphNodes(BaseModel):
     """
     similar_nodes: Optional[Dict[str, List[str]]] = None
     context_nodes: Optional[Dict[str, List[str]]] = None
+    target_nodes: Optional[List[str]] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -32,11 +34,23 @@ class GraphNodes(BaseModel):
                     raise ValueError(f'All keys in {field.field_name=} must be strings')
                 if not isinstance(val, list):
                     raise ValueError(f'All values in {field.field_name=} must be lists')
-                if len(val) == 0:
-                    raise ValueError(f'All lists in {field.field_name} must be non-empty. the key: ({key}) has an empty list')
+                # if len(val) == 0:
+                #     raise ValueError(f'All lists in {field.field_name} must be non-empty. the key: ({key}) has an empty list')
                 if not all(isinstance(item, str) for item in val):
                     raise ValueError(f'All elements in the lists of {field.field_name=} must be strings')
         return v
+    
+    @field_validator('target_nodes')
+    def check_target_nodes(cls, v):
+        if v is not None:
+            if not isinstance(v, list):
+                raise ValueError('target_nodes must be a list')
+            # if len(v) == 0:
+            #     raise ValueError('target_nodes cannot be an empty list')
+            if not all(isinstance(item, str) for item in v):
+                raise ValueError('All elements in the list must be strings')
+        return v
+
 
   
 
@@ -180,13 +194,14 @@ if __name__ == '__main__':
 
     # print(g.index['index_to_key'][0])
 
-    # data = GraphNodes(similar_nodes={'a': [], 'b': ['a', 'c'], 'c': ['a', 'b']})
+    data = GraphNodes()
+    data.similar_nodes = {'a': ['b', 'c'], 'b': ['a', 'c'], 'c': ['a', 'b']}
 
-    # print(data.similar_nodes['a'])
+    print(data.similar_nodes['a'])
 
-    index_to_key = {0: 'a', 1: 'b', 2: 'c'}
-    key_to_index = {'a': 0, 'b': 1, 'c': 2}
-    GraphIndex(index_to_key=index_to_key, key_to_index=key_to_index)
-    print(GraphIndex(index_to_key=index_to_key, key_to_index=key_to_index))
+    # index_to_key = {0: 'a', 1: 'b', 2: 'c'}
+    # key_to_index = {'a': 0, 'b': 1, 'c': 2}
+    # c = GraphIndex(index_to_key=index_to_key, key_to_index=key_to_index)
+    # print(dict(c))
 
 

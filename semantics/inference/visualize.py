@@ -319,8 +319,9 @@ class WordTraffic:
             >>> word_traffic = WordTraffic(graph, title='Word Traffic', node_label_feature=0, edge_label_feature=1)
             >>> word_traffic.animate(start=0, end=10, repeat=False, interval=1000, save_path='word_traffic.gif')
         """
-        if end is None:
-            end = len(self.temporal_graph)
+        if any([end is None, end == -1, end > len(self.temporal_graph.index)]):
+            end = len(self.temporal_graph.index)
+
         
         anim = FuncAnimation(self.fig, self.view, frames=range(start, end), interval=interval, repeat=repeat)
 
