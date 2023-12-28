@@ -1,7 +1,6 @@
 from pydantic import BaseModel, field_validator
 from typing import Dict, Optional, List, Union
 import numpy as np
-from sympy import Li
 
 
 
