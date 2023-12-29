@@ -3,7 +3,7 @@ from semantics.data.data_loader import Loader
 # from semantics.data.data_loader import split_xml
 from semantics.data.data_preprocessing import PREPROCESS
 from semantics.feature_extraction.roberta import  RobertaInference
-from semantics.feature_extraction.word2vec import Word2VecInference
+from semantics.feature_extraction.word2vec import Word2VecInference, Word2VecTrainer, Word2VecAlign
 from semantics.graphs.temporal_graph import TemporalGraph
 from semantics.inference.visualize import WordTraffic, visualize_graph
 from semantics.inference.obsedian import ObsedianGraph
@@ -81,6 +81,7 @@ def main(**kwargs):
                             random_seed=seed
                             )
                 
+                print('Length of the corpus: ', len(corpora[period]), '\n')
         elif data_options['input_type'] == 'txt':
             for i, period in enumerate(periods[:]):
                 # loading the data
@@ -93,10 +94,13 @@ def main(**kwargs):
                     shuffle=shuffle,
                     random_seed=seed
                     )
+                print('Length of the corpus: ', len(corpora[period]), '\n')
 
         else:
             raise ValueError('Input type is not Implemented')
         
+
+
     # Preprocess the corpora
     if pipeline['preprocess']:
         print('Preprocessing the data ...')
@@ -117,8 +121,45 @@ def main(**kwargs):
     if pipeline['train_mlm']:
         pass
 
+    
+    # Train the word2vec models
     if pipeline['train_word2vec']:
-        pass
+        print('Training the word2vec model ...')
+        word2vec_options = kwargs.get('word2vec_options', None)
+        if word2vec_options is None:
+            raise ValueError('Word2Vec options are not defined')
+        
+        init_options = word2vec_options.get('initialize', None)
+        train_options = word2vec_options.get('train', None)
+        
+
+        word2vec_dir = f'{output_dir}/word2vec'
+        if not os.path.exists(word2vec_dir):
+            os.mkdir(word2vec_dir)
+
+        w2v_paths = []
+        for period in periods:
+            print(f'Training the word2vec model for {period} ...', '\n')
+            word2vec_path = f'{word2vec_dir}/w2v_{period}.model'
+
+            word2vec = Word2VecTrainer(**init_options)
+            word2vec.train(
+                corpora[period], 
+                output_path= word2vec_path,
+                **train_options)
+            
+            w2v_paths.append(word2vec_path)
+            
+
+        word2vec_a_dir = f'{output_dir}/word2vec_aligned'
+        if not os.path.exists(word2vec_a_dir):
+            os.mkdir(word2vec_a_dir)
+
+        align_options = word2vec_options.get('align', None)
+
+        aligner = Word2VecAlign(model_paths= w2v_paths)
+        aligner.align(output_dir= word2vec_a_dir, **align_options)
+        
     
     
     # TODO: fix this
@@ -128,32 +169,60 @@ def main(**kwargs):
     ############
         
     
+    # Construct the temporal graph
     if pipeline['construct_temporal_graph']:
         print('Creating the temporal Graph ...')
         tg = TemporalGraph()
-        temporal_graph_options = kwargs.get('temporal_graph_options', None)
+        temporal_graph_options: dict = kwargs.get('temporal_graph_options', None)
         if temporal_graph_options is None:
             raise ValueError('Temporal graph options are not defined')
         
+        word2vec_path = model_paths.get('word2vec_path', None)
+        roberta_path = model_paths.get('roberta_path', None)
+
         for i, period in enumerate(periods):
-            roberta_path = model_paths['roberta_path'].format(output_dir, period)
-            word2vec_path = model_paths['word2vec_path'].format(output_dir, period)
-            print(f'Adding the Graph from {period} ...', '\n')
+            if roberta_path is not None:
+                roberta_path = roberta_path.format(output_dir, period)
+                roberta = RobertaInference(pretrained_model_path= roberta_path)
+            else:
+                raise ValueError('MLM path is not defined. Please add the path to your pretrained model to the config file. Check the RobertaInference class for more information')
             
-            keep_k = dict(map(lambda item: (int(item[0]), tuple(item[1])) , temporal_graph_options['keep_k'].items()))
+            if word2vec_path is not None:
+                word2vec_path = word2vec_path.format(output_dir, period)
+                word2vec = Word2VecInference(pretrained_model_path= word2vec_path)
+            
+            else:
+                word2vec = None
+            
+            print('\nMLM path: ', roberta_path, '\n')
+            print('Word2Vec path: ', word2vec_path, '\n')
+            
+            print(f'Adding the Graph from {period} ...', '\n')
+
+            level = temporal_graph_options.get('level', 0)
+            k = temporal_graph_options.get('MLM_k', 1)
+            c = temporal_graph_options.get('Context_k', 1)
+            accumulate = temporal_graph_options.get('accumulate', False)
+            edge_threshold = temporal_graph_options.get('edge_threshold', 0.5)
+            use_context_only = temporal_graph_options.get('use_context_only', False)
+            
+            keep_k = temporal_graph_options.get('keep_k', None)
+            if keep_k is not None:
+                keep_k = dict(map(lambda item: (int(item[0]), tuple(item[1])) , keep_k.items()))
          
             
             tg.add_graph(
                 target_word= target_words,
-                level=  temporal_graph_options['level'],
-                k= temporal_graph_options['MLM_k'],
-                c= temporal_graph_options['Context_k'],
+                level=  level,
+                k= k,
+                c= c,
                 dataset= corpora[period],
-                word2vec_model= Word2VecInference(pretrained_model_path= word2vec_path),
-                mlm_model= RobertaInference(pretrained_model_path= roberta_path),
-                edge_threshold= temporal_graph_options['edge_threshold'],
-                accumulate= temporal_graph_options['accumulate'],
-                keep_k= keep_k
+                word2vec_model= word2vec,
+                mlm_model= roberta,
+                edge_threshold= edge_threshold,
+                accumulate= accumulate,
+                keep_k= keep_k,
+                use_only_context= use_context_only
             )
 
 
@@ -192,7 +261,6 @@ def main(**kwargs):
                 os.mkdir(f'{output_dir}/inference_{period}')
 
             nodes = dict(tg.nodes[i])
-            del nodes['target_nodes']
 
             with open(f'{output_dir}/inference_{period}/nodes.json', 'w') as f:
                 json.dump(nodes, f, indent=4)
@@ -355,6 +423,8 @@ def main(**kwargs):
                 target_node= target_words[0],
                 **wordgraph_options
                 )
+            
+            raise
             
             if not os.path.exists(f'{output_dir}/images'):
                 os.mkdir(f'{output_dir}/images')
