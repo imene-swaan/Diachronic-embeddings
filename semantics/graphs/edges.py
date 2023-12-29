@@ -83,46 +83,49 @@ class Edges:
         pmis = []
         edges = []
 
-        for source_node in self.nodes.similar_nodes.keys():
-            for target_node in self.nodes.similar_nodes[source_node]:
-                source_idx = self.index.key_to_index[source_node]
-                target_idx = self.index.key_to_index[target_node]
+        if self.nodes.similar_nodes is not None:
+            for source_node in self.nodes.similar_nodes.keys():
+                for target_node in self.nodes.similar_nodes[source_node]:
+                    source_idx = self.index.key_to_index[source_node]
+                    target_idx = self.index.key_to_index[target_node]
 
-                if ((source_idx, target_idx) in edges) or ((target_idx, source_idx) in edges):
-                    continue
+                    if ((source_idx, target_idx) in edges) or ((target_idx, source_idx) in edges):
+                        continue
 
-                similarity = self.get_similarity(source_idx, target_idx)
+                    similarity = self.get_similarity(source_idx, target_idx)
 
-                if similarity > sim_threshold:
-                    edge_index_1.append(source_idx)
-                    edge_index_2.append(target_idx)
-                    edges.append((source_idx, target_idx))
-                    edge_types.append(1)
-                    similarities.append(similarity)
-                    pmis.append(self.get_pmi(dataset, source_node, target_node))
+                    if similarity > sim_threshold:
+                        edge_index_1.append(source_idx)
+                        edge_index_2.append(target_idx)
+                        edges.append((source_idx, target_idx))
+                        edge_types.append(1)
+                        similarities.append(similarity)
+                        pmis.append(self.get_pmi(dataset, source_node, target_node))
 
+        if self.nodes.context_nodes is not None:
+            for source_node in self.nodes.context_nodes.keys():
+                for target_node in self.nodes.context_nodes[source_node]:
 
-        for source_node in self.nodes.context_nodes.keys():
-            for target_node in self.nodes.context_nodes[source_node]:
+                    source_idx = self.index.key_to_index[source_node]
+                    target_idx = self.index.key_to_index[target_node]
 
-                source_idx = self.index.key_to_index[source_node]
-                target_idx = self.index.key_to_index[target_node]
+                    if ((source_idx, target_idx) in edges) or ((target_idx, source_idx) in edges):
+                        continue
 
-                if ((source_idx, target_idx) in edges) or ((target_idx, source_idx) in edges):
-                    continue
+                    similarity = self.get_similarity(source_idx, target_idx)
 
-                similarity = self.get_similarity(source_idx, target_idx)
-
-                if similarity > sim_threshold:
-                    edge_index_1.append(source_idx)
-                    edge_index_2.append(target_idx)
-                    edges.append((source_idx, target_idx))
-                    edge_types.append(2)
-                    similarities.append(similarity)
-                    pmis.append(self.get_pmi(dataset, source_node, target_node))
+                    if similarity > sim_threshold:
+                        edge_index_1.append(source_idx)
+                        edge_index_2.append(target_idx)
+                        edges.append((source_idx, target_idx))
+                        edge_types.append(2)
+                        similarities.append(similarity)
+                        pmis.append(self.get_pmi(dataset, source_node, target_node))
 
         del edges
         edge_index = np.stack([edge_index_1, edge_index_2])
         edge_features = np.stack([edge_types, similarities, pmis]).T
+
+        assert edge_index.shape[1] == edge_features.shape[0]
         return edge_index, edge_features
 
