@@ -9,9 +9,9 @@ data_options:
     input_type: 'xml'
     data_path: 'input/xml/TheNewYorkTimes{}.xml'
     xml_tag: 'fulltext'
-    max_documents: 10
+    # max_documents: 20000
     shuffle: True
-    seed: 42
+    # seed: 42
 
 
 preprocessing_options:
@@ -29,22 +29,46 @@ mlm_options:
     max_length: 128
     mlm_probability: 0.15
     batch_size: 32
-    epochs: 3
+    epochs: 30
     split_ratio: 0.8
     learning_rate: 5e-5
     truncation: True
     padding: 'max_length'
 
 
+word2vec_options:
+    initialize:
+        # model_path: Optional[str] = None
+        min_count: 50
+        window: 5
+        # negative: 5 
+        ns_exponent: 0.75
+        vector_size: 100
+        workers: 1
+        sg: 1
+
+    train:
+        epochs: 30
+        start_alpha: 0.025
+        end_alpha: 0.00001
+        compute_loss: True
+
+    align:
+        reference: -1
+        method: 'procrustes'
+
+
 temporal_graph_options:
-    MLM_k: 2
+    MLM_k: 3
     Context_k: 2
-    level: 2
+    level: 3
     edge_threshold: 0.1
     accumulate: False
+    use_context_only: False
     keep_k: 
-      0: [4,2]
-      1: [2,1]
+        0: [6,2]
+        1: [3,1]
+        2: [2,0]
 
 periods: [
         1980,
@@ -66,16 +90,17 @@ periods: [
     ]   
 
 target_words: [
-        "office",
-        "work",
-        "job",
-        "career",
-        "profession",
-        "employment",
-        "occupation",
-        "vocation",
-        "trade",
-        "business",
+        # "trump",
+        # "office",
+        # "work",
+        # "job",
+        # "career",
+        # "profession",
+        # "employment",
+        # "occupation",
+        # "vocation",
+        # "trade",
+        # "business",
         # "position",
         # "post",
         # "trump",
@@ -114,7 +139,7 @@ obsedian_options:
 
 models:
     roberta_path: '{}/MLM_roberta_{}'
-    word2vec_path: '{}/word2vec_aligned/word2vec_{}_aligned.model'
+    word2vec_path: '{}/word2vec_aligned/w2v_{}_a.model'
     tgcn_path: '{}/TGCN/model'
 
 
@@ -151,19 +176,19 @@ animation_options:
 
 
 pipeline:
-    load_data: False
-    preprocess: False
+    load_data: True
+    preprocess: True
     train_mlm: False
-    train_word2vec: False
+    train_word2vec: True
     construct_temporal_graph: False
     save_temporal_graph: False
-    load_temporal_graph: True
+    load_temporal_graph: False
     visualize_obsedian: False
     train_tgcn: False
     load_tgcn: False
     Infer_tgcn: False
-    visualize_wordgraph: True
-    animate_wordgraph: True
+    visualize_wordgraph: False
+    animate_wordgraph: False
     cluster_wordgraph: False
 
 
