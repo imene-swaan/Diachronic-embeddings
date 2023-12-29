@@ -1,3 +1,4 @@
+from torch import le
 from semantics.feature_extraction.roberta import RobertaInference
 from semantics.feature_extraction.bert import BertInference
 from semantics.feature_extraction.word2vec import Word2VecInference
@@ -6,12 +7,10 @@ import numpy as np
 from semantics.utils.components import WordGraph, GraphNodes, GraphIndex
 from semantics.graphs.edges import Edges
 from semantics.graphs.nodes import Nodes
+import json
 
-
-
-
-
-
+def print_dict_as_json(dict: Dict[str, List[str]]):
+    print(json.dumps(dict, indent=4), '\n')
 
 class TemporalGraph:
     """
@@ -97,28 +96,32 @@ class TemporalGraph:
             k: int, 
             c: int,
             dataset: List[str], 
-            word2vec_model: Word2VecInference, 
             mlm_model: Union[RobertaInference, BertInference],
+            word2vec_model: Optional[Word2VecInference] = None, 
             edge_threshold: float = 0.5,
             accumulate: bool = False,
-            keep_k: Optional[Dict[int, Tuple[int, int]]] = None
+            keep_k: Optional[Dict[int, Tuple[int, int]]] = None,
+            use_only_context: bool = False
             ) -> None:
         """
         """
 
         # print(f'Adding the nodes of the word graph for the word "{target_word}"...')
-        nodes = Nodes(
-            target= target_word,
-            dataset=dataset,
+        nodes = Nodes(target= target_word)
+        if use_only_context:
+            mlm_model_for_nodes = None
+        
+        else:
+            mlm_model_for_nodes = mlm_model
+        snap_nodes = nodes.get_nodes(
+            dataset= dataset,
             level= level,
             k= k,
             c= c,
-            word2vec_model = word2vec_model,
-            mlm_model = mlm_model,
+            word2vec_model= word2vec_model,
+            mlm_model= mlm_model_for_nodes,
             keep_k= keep_k
-            )
-
-        nodes.generate_nodes()
+        )
 
         
         if accumulate and (len(self.nodes) > 0):
@@ -126,40 +129,47 @@ class TemporalGraph:
             previous_nodes = self.nodes[-1]
 
             for similar_node in previous_nodes.similar_nodes.keys():
-                if similar_node not in nodes.graph_nodes.similar_nodes.keys():
-                    nodes.graph_nodes.similar_nodes[similar_node] = previous_nodes.similar_nodes[similar_node]
+                if similar_node not in snap_nodes.similar_nodes.keys():
+                    snap_nodes.similar_nodes[similar_node] = previous_nodes.similar_nodes[similar_node]
+
                 else:
-                    nodes.graph_nodes.similar_nodes[similar_node] += previous_nodes.similar_nodes[similar_node]
-                    nodes.graph_nodes.similar_nodes[similar_node] = list(set(nodes.graph_nodes.similar_nodes[similar_node]))
+                    snap_nodes.similar_nodes[similar_node] += previous_nodes.similar_nodes[similar_node]
+                    snap_nodes.similar_nodes[similar_node] = list(set(snap_nodes.similar_nodes[similar_node]))
+
 
             for context_node in previous_nodes.context_nodes.keys():
-                if context_node not in nodes.graph_nodes.context_nodes.keys():
-                    nodes.graph_nodes.context_nodes[context_node] = previous_nodes.context_nodes[context_node]
+                if context_node not in snap_nodes.context_nodes.keys():
+                    snap_nodes.context_nodes[context_node] = previous_nodes.context_nodes[context_node]
                 else:
-                    nodes.graph_nodes.context_nodes[context_node] += previous_nodes.context_nodes[context_node]
-                    nodes.graph_nodes.context_nodes[context_node] = list(set(nodes.graph_nodes.context_nodes[context_node]))
+                    snap_nodes.context_nodes[context_node] += previous_nodes.context_nodes[context_node]
+                    snap_nodes.context_nodes[context_node] = list(set(snap_nodes.context_nodes[context_node]))
             
 
         print('Getting their features...', '\n')
-        index, node_feature_matrix, embeddings = nodes.get_node_features()
+        index, node_feature_matrix, embeddings = nodes.get_node_features(dataset= dataset, mlm_model= mlm_model)
+
+        print('Snap nodes:\n')
+        print_dict_as_json(dict(snap_nodes))
+
         print(f'Adding the edges of the word graph for the word "{target_word}"...')
         edges = Edges(
-            index=index,
-            nodes=nodes.graph_nodes,
+            index= index,
+            nodes= snap_nodes,
             node_embeddings=embeddings
         )
+
+        
         edge_index, edge_feature_matrix = edges.get_edge_features(dataset, sim_threshold=edge_threshold)
 
-        print('Constructing the temporal graph...', '\n')
 
+        print('Constructing the temporal graph...', '\n')
         self.index.append(index)
         self.xs.append(np.concatenate((node_feature_matrix, embeddings), axis=1))
         self.edge_indices.append(edge_index)
         self.edge_features.append(edge_feature_matrix)
         self.ys.append(np.array([]))
         self.y_indices.append(np.array([]))
-
-        self.nodes.append(nodes.graph_nodes)
+        self.nodes.append(snap_nodes)
        
     
     def align_graphs(self) -> None:
