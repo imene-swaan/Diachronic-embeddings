@@ -65,7 +65,7 @@ class Word2VecTrainer:
     def train(
             self, 
             data: List[str],
-            output_dir: Optional[Union[str, Path]] = None,
+            output_path: Optional[Union[str, Path]] = None,
             epochs=5,
             start_alpha=0.025,
             end_alpha=0.0001,
@@ -102,8 +102,8 @@ class Word2VecTrainer:
                 compute_loss=compute_loss,
                 **kwargs
                 )
-        if output_dir:
-            self.model.save(output_dir)
+        if output_path:
+            self.model.save(output_path)
 
 
 class Word2VecAlign:
@@ -122,7 +122,6 @@ class Word2VecAlign:
     def __init__(
             self, 
             model_paths: List[str],
-            
             ):
         """
         Args:
@@ -137,20 +136,20 @@ class Word2VecAlign:
         """
         self.model_paths = model_paths
         self.reference_model = None
-        self.models = []
+        self.models: List[Word2Vec] = []
         self.model_names = [Path(model_path).stem for model_path in model_paths]
         self.aligned_models = []
 
-        self.load_models()
+        self._load_models()
 
-    def load_models(self) -> None:
+    def _load_models(self) -> None:
         """
         Load the models
         """
         for model_path in self.model_paths:
             self.models.append(Word2Vec.load(model_path))
 
-    def align_models(
+    def align(
             self,
             reference_index: int = -1,
             output_dir: Optional[str] = None,
@@ -180,13 +179,15 @@ class Word2VecAlign:
 
         
         self.reference_model = self.models[reference_index]
-        self.reference_model.save(f"{output_dir}/{self.model_names[reference_index]}_aligned.model")
+        if output_dir is not None:
+            self.reference_model.save(f"{output_dir}/{self.model_names[reference_index]}_a.model")
         self.aligned_models.append(self.reference_model)
         self.models.pop(reference_index)
 
         for i, model in enumerate(self.models):
             aligned_model = smart_procrustes_align_gensim(self.reference_model,model)
-            aligned_model.save(f"{output_dir}/{self.model_names[i]}_aligned.model")
+            if output_dir is not None:
+                aligned_model.save(f"{output_dir}/{self.model_names[i]}_a.model")
             self.aligned_models.append(aligned_model)
 
         return self.aligned_models
@@ -349,16 +350,33 @@ class Word2VecInference:
         """
 
         try:
-            sims = self.word_vectorizor.model.wv.most_similar(
-                main_word,
-                topn=k
-                )
+            # sims = self.word_vectorizor.model.wv.most_similar(
+            #     main_word,
+            #     topn=k
+            #     )
             
-            words, similarities= tuple(map(list, zip(*sims)))
+            # words, similarities= tuple(map(list, zip(*sims)))
 
-            top_k_words = list(map(lambda x: re.sub(r"\W", '', x), words))
-            stop_words = list(set(stopwords.words('english')))
-            top_k_words = list(filter(lambda x: all([x != main_word, x not in main_word, main_word not in x, len(x) > 3, x not in stop_words]), top_k_words))
+            # top_k_words = list(map(lambda x: re.sub(r"\W", '', x), words))
+            # stop_words = list(set(stopwords.words('english')))
+
+            # print(top_k_words, '\n')
+            # top_k_words = list(filter(lambda x: all([x != main_word, x not in main_word, main_word not in x, len(x) > 3, x not in stop_words]), top_k_words))
+
+            top_k_words = []
+            i = k
+
+            while len(top_k_words) < k:
+                sims = self.word_vectorizor.model.wv.most_similar(main_word, topn= i)
+                words, similarities= tuple(map(list, zip(*sims)))
+
+                words = list(map(lambda x: re.sub(r"\W", '', x), words))
+                stop_words = list(set(stopwords.words('english')))
+                words = list(filter(lambda x: all([x != main_word, x not in main_word, main_word not in x, len(x) > 3, x not in stop_words, x not in top_k_words]), words))
+
+                top_k_words.extend(words)
+                i += 1
+
             return top_k_words, similarities
         
         except KeyError:
