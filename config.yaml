@@ -9,7 +9,7 @@ data_options:
     input_type: 'xml'
     data_path: 'input/xml/TheNewYorkTimes{}.xml'
     xml_tag: 'fulltext'
-    # max_documents: 20000
+    max_documents: 20000
     shuffle: True
     # seed: 42
 
@@ -42,16 +42,16 @@ word2vec_options:
         min_count: 50
         window: 5
         # negative: 5 
-        ns_exponent: 0.75
-        vector_size: 100
-        workers: 1
-        sg: 1
+        # ns_exponent: 0.75
+        vector_size: 300
+        # workers: 1
+        # sg: 1
 
     train:
         epochs: 30
         start_alpha: 0.025
         end_alpha: 0.00001
-        compute_loss: True
+        # compute_loss: True
 
     align:
         reference: -1
@@ -71,7 +71,7 @@ temporal_graph_options:
         2: [2,0]
 
 periods: [
-        1980,
+        # 1980,
         # 1982,
         # 1985,
         # 1987,
@@ -81,7 +81,7 @@ periods: [
         # 1995,
         # 2000,
         # 2001,
-        # 2005,
+        2005,
         # 2008,
         # 2010,
         # 2012,
@@ -180,6 +180,7 @@ pipeline:
     preprocess: True
     train_mlm: False
     train_word2vec: True
+    align_word2vec: False
     construct_temporal_graph: False
     save_temporal_graph: False
     load_temporal_graph: False

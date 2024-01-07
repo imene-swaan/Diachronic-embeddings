@@ -2,7 +2,7 @@ from matplotlib import animation
 from semantics.data.data_loader import Loader
 # from semantics.data.data_loader import split_xml
 from semantics.data.data_preprocessing import PREPROCESS
-from semantics.feature_extraction.roberta import  RobertaInference
+from semantics.feature_extraction.roberta import  RobertaInference, RobertaTrainer
 from semantics.feature_extraction.word2vec import Word2VecInference, Word2VecTrainer, Word2VecAlign
 from semantics.graphs.temporal_graph import TemporalGraph
 from semantics.inference.visualize import WordTraffic, visualize_graph
@@ -16,6 +16,7 @@ import numpy as np
 import json
 import yaml
 from pathlib import Path
+from glob import glob
 
 def main(**kwargs):
     #load the pipeline of the experiment
@@ -81,6 +82,7 @@ def main(**kwargs):
                             random_seed=seed
                             )
                 
+                
                 print('Length of the corpus: ', len(corpora[period]), '\n')
         elif data_options['input_type'] == 'txt':
             for i, period in enumerate(periods[:]):
@@ -113,13 +115,25 @@ def main(**kwargs):
             print(f'Preprocessing data from {period} ...', '\n')
             corpora[period] = list(map(lambda x: prep.forward(text=x, **preprocessing_options), corpora[period]))
 
-            print('Number of sentences with the word')
+            print('Number of sentences with the word ...')
             for word in target_words:
                 print(word, ': ', count_occurence(corpora[period], word), '\n')
 
 
     if pipeline['train_mlm']:
-        pass
+        print('Training the MLM model ...')
+        mlm_options = kwargs.get('mlm_options', None)
+        if mlm_options is None:
+            raise ValueError('MLM options are not defined')
+        mlm_options['learning_rate'] = float(mlm_options['learning_rate'])
+        print('MLM options: ', mlm_options, '\n')
+       
+        trainer = RobertaTrainer(**mlm_options)
+    
+        for period in periods:
+            print(f'Training the MLM model for {period} ...', '\n')
+            roberta_path = f'{output_dir}/MLM_roberta_{period}'
+            trainer.train(corpora[period], output_dir= roberta_path)
 
     
     # Train the word2vec models
@@ -151,6 +165,14 @@ def main(**kwargs):
             w2v_paths.append(word2vec_path)
             
 
+    # Align the word2vec models
+    if pipeline['align_word2vec']:
+        word2vec_options = kwargs.get('word2vec_options', None)
+        if word2vec_options is None:
+            raise ValueError('Word2Vec options are not defined')
+
+        w2v_paths = sorted(glob(f'{output_dir}/word2vec/w2v_*.model'))
+        print('w2v paths: ', w2v_paths, '\n')
         word2vec_a_dir = f'{output_dir}/word2vec_aligned'
         if not os.path.exists(word2vec_a_dir):
             os.mkdir(word2vec_a_dir)
