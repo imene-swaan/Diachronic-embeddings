@@ -91,10 +91,15 @@ class Word2VecTrainer:
             >>> print('Trained model: ', Word2VecTrainer().model)
             Trained model:  Word2Vec(vocab=5, vector_size=100, alpha=0.025)
         """
-        self.model.build_vocab(data)
+        from gensim.models.phrases import Phrases, Phraser
+        sent = [doc.split() for doc in data]
+        phrases = Phrases(sent, min_count=30)
+        bigram = Phraser(phrases)
+        sentences = bigram[sent]
+        self.model.build_vocab(sentences)
         total_examples = self.model.corpus_count
         self.model.train(
-                data,
+                sentences,
                 total_examples=total_examples,
                 epochs=epochs,
                 start_alpha=start_alpha,
@@ -102,6 +107,7 @@ class Word2VecTrainer:
                 compute_loss=compute_loss,
                 **kwargs
                 )
+        self.model.init_sims(replace=True)
         if output_path:
             self.model.save(output_path)
 
@@ -151,7 +157,7 @@ class Word2VecAlign:
 
     def align(
             self,
-            reference_index: int = -1,
+            reference: int = -1,
             output_dir: Optional[str] = None,
             method: str = "procrustes",
             ) -> List[Word2Vec]:
@@ -159,7 +165,7 @@ class Word2VecAlign:
         Align the models
 
         Args: 
-            reference_index (int, optional): Index of the reference model, by default -1
+            reference (int, optional): Index of the reference model, by default -1
             output_dir (str, optional): Path to save the aligned models, by default None
             method (str, optional): Alignment method, by default "procrustes"
       
@@ -178,11 +184,11 @@ class Word2VecAlign:
             raise NotImplementedError("Only procrustes alignment is implemented. Please use method='procrustes'")
 
         
-        self.reference_model = self.models[reference_index]
+        self.reference_model = self.models[reference]
         if output_dir is not None:
-            self.reference_model.save(f"{output_dir}/{self.model_names[reference_index]}_a.model")
+            self.reference_model.save(f"{output_dir}/{self.model_names[reference]}_a.model")
         self.aligned_models.append(self.reference_model)
-        self.models.pop(reference_index)
+        self.models.pop(reference)
 
         for i, model in enumerate(self.models):
             aligned_model = smart_procrustes_align_gensim(self.reference_model,model)
@@ -291,7 +297,7 @@ class Word2VecInference:
             word_vectorizor (Word2VecEmbeddings): The Word2VecEmbeddings object
         """
         self.word_vectorizor = Word2VecEmbeddings(pretrained_model_path)
-    
+
     def get_embedding(self, word:str, norm: bool = False) -> List[float]:
         """
         Infer the vector of a word
@@ -349,11 +355,13 @@ class Word2VecInference:
             (['another'], [0.9999999403953552])
         """
 
+        
         try:
             # sims = self.word_vectorizor.model.wv.most_similar(
             #     main_word,
             #     topn=k
             #     )
+      
             
             # words, similarities= tuple(map(list, zip(*sims)))
 
@@ -386,4 +394,9 @@ class Word2VecInference:
 
 
 if __name__ == "__main__":
-    pass
+    # w = Word2VecEmbeddings('output/word2vec_aligned/w2v_1980_a.model')
+    # print(w.infer_vector('trump'))
+
+
+    s = Word2VecInference('output/word2vec/w2v_1980.model')
+    print(s.get_top_k_words('trump', k=2))
