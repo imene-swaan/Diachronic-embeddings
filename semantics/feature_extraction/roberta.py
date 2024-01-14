@@ -570,7 +570,7 @@ class RobertaInference:
                 top_k_tokens = torch.topk(logit_set, k).indices
                 top_k_words = [self.tokenizer.decode(token.item()).strip() for token in top_k_tokens]
 
-                stop_words = list(set(stopwords.words('english'))) + ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelveth']
+                stop_words = list(set(stopwords.words('english'))) + ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelveth', 'also', 'would', 'could', 'south', 'north', 'east', 'west', 'even', 'should', 'might', 'must', 'many', 'much', 'several', 'often', 'sometimes', 'always', 'never', 'however', 'although', 'though', 'yet']
 
                 for word in top_k_words:
                     word = re.sub(r"\W", '', word)
@@ -579,8 +579,6 @@ class RobertaInference:
                             try:
                                 w2n.word_to_num(word)
                             except:
-                                if word in ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth']:
-                                    continue
                                 top_k.append(word)
                         else:
                             top_k.append(word)
