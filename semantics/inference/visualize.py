@@ -7,6 +7,8 @@ from semantics.utils.components import WordGraph
 from semantics.utils.utils import generate_colors
 import numpy as np
 from typing import Optional, Union, Tuple, Literal, List, Dict
+import json
+from collections import deque
 
 
 
@@ -58,6 +60,7 @@ def visualize_graph(
     ax.set_title(title)
     
     nodes = [i for i in range(graph.node_features.shape[0]) if graph.node_features[i].sum() > 0]
+    
     try: 
         node_labels = {i: graph.index.index_to_key[i] for i in nodes}
     except:
@@ -92,7 +95,7 @@ def visualize_graph(
         except:
             raise ValueError('Target node not found.')
         
-        pos = create_position_template(graph=G, target_node_idx=target_idx, radius=radius, distance=distance)
+        pos = create_position_template(graph=G, target_node_idx=target_idx)
     else:
         pos = {k:v for k, v in node_positions.items() if k in nodes}
 
@@ -123,11 +126,13 @@ def visualize_graph(
     ax.axis('off')
     return fig
 
+
 def create_position_template(
         graph: nx.Graph, 
         target_node_idx: int,
-        radius: float = 2, # Distance from target node to level 1 nodes
-        distance: float = 2 # Distance from level 1 nodes to level 2 nodes
+        radius_level_1: float = 2,  # Distance from target node to level 1 nodes
+        radius_level_2: float = 2,  # Distance from level 1 nodes to level 2 nodes
+        radius_level_3: float = 1.5 # Distance from level 2 nodes to level 3 nodes
         ) -> Dict[int, np.ndarray]:
     # Start with an empty dictionary for positions
     pos = {}
@@ -137,29 +142,108 @@ def create_position_template(
 
     # Get level 1 nodes (nodes directly connected to the target node)
     level_1_nodes = list(graph.neighbors(target_node_idx))
-    num_level_1 = len(level_1_nodes)
-
 
     # Calculate the positions of level 1 nodes in a circle around the target node
-    angle_step = 2 * np.pi / num_level_1
+    angle_step = 2 * np.pi / len(level_1_nodes)
     for index, node in enumerate(level_1_nodes):
         angle = index * angle_step
-        pos[node] = np.array([0.5 + radius * np.cos(angle), 0.5 + radius * np.sin(angle)])
+        pos[node] = np.array([0.5 + radius_level_1 * np.cos(angle), 0.5 + radius_level_1 * np.sin(angle)])
 
-    # For each level 1 node, calculate the positions of level 2 nodes
+    # Calculate positions for level 2 and level 3 nodes
     for l1_node in level_1_nodes:
         level_2_nodes = [n for n in graph.neighbors(l1_node) if n not in level_1_nodes and n != target_node_idx]
-        num_level_2 = len(level_2_nodes)
-        if num_level_2 == 0:
-            continue
-        angle_step = 2 * np.pi / num_level_2
-        l1_angle = np.arctan2(pos[l1_node][1] - 0.5, pos[l1_node][0] - 0.5)
         
-        for index, node in enumerate(level_2_nodes):
-            angle = l1_angle + (index - num_level_2 / 2) * angle_step / 4  # Offset angle for level 2 nodes
-            pos[node] = pos[l1_node] + np.array([distance * np.cos(angle), distance * np.sin(angle)])
+        angle_step_l2 = 2 * np.pi / max(1, len(level_2_nodes))  # Avoid division by zero
+        l1_angle = np.arctan2(pos[l1_node][1] - 0.5, pos[l1_node][0] - 0.5)
+
+        for index, l2_node in enumerate(level_2_nodes):
+            angle = l1_angle + (index - len(level_2_nodes) / 2) * angle_step_l2 / 4  # Offset angle for level 2 nodes
+            pos[l2_node] = pos[l1_node] + np.array([radius_level_2 * np.cos(angle), radius_level_2 * np.sin(angle)])
+
+            # Handling level 3 nodes
+            level_3_nodes = [n for n in graph.neighbors(l2_node) if n not in level_1_nodes and n not in level_2_nodes and n != target_node_idx]
+            angle_step_l3 = 2 * np.pi / max(1, len(level_3_nodes))  # Avoid division by zero
+            l2_angle = np.arctan2(pos[l2_node][1] - pos[l1_node][1], pos[l2_node][0] - pos[l1_node][0])
+
+            for index_l3, l3_node in enumerate(level_3_nodes):
+                angle_l3 = l2_angle + (index_l3 - len(level_3_nodes) / 2) * angle_step_l3 / 4
+                pos[l3_node] = pos[l2_node] + np.array([radius_level_3 * np.cos(angle_l3), radius_level_3 * np.sin(angle_l3)])
 
     return pos
+
+
+def create_position_template_max(graph: nx.Graph, target_node_idx: int, 
+                             distance: float = 2, max_level: int = None) -> Dict[int, np.ndarray]:
+    # Initialize position dict and queue for breadth-first traversal
+    pos = {target_node_idx: np.array([0.5, 0.5])}
+    queue = deque([(target_node_idx, 0)])  # Tuple of (node, level)
+    # Set to keep track of placed nodes
+    placed_nodes = {target_node_idx}
+
+    while queue:
+        current_node, current_level = queue.popleft()
+
+        # Check if we have reached the maximum level
+        if max_level is not None and current_level >= max_level:
+            continue
+
+        # Get neighbors not already placed
+        neighbors = [n for n in graph.neighbors(current_node) if n not in placed_nodes]
+        num_neighbors = len(neighbors)
+        if num_neighbors == 0:
+            continue
+
+        angle_step = 2 * np.pi / num_neighbors
+        base_angle = np.arctan2(pos[current_node][1] - 0.5, pos[current_node][0] - 0.5)
+
+        for index, node in enumerate(neighbors):
+            angle = base_angle + (index - num_neighbors / 2) * angle_step / 4
+            pos[node] = pos[current_node] + np.array([0.5 + distance * np.cos(angle), 0.5 + distance * np.sin(angle)])
+            placed_nodes.add(node)
+            queue.append((node, current_level + 1))
+
+    return pos
+
+# def create_position_template(
+#         graph: nx.Graph, 
+#         target_node_idx: int,
+#         radius: float = 2, # Distance from target node to level 1 nodes
+#         distance: float = 2, # Distance from level 1 nodes to level 2 nodes
+#         max_level: int = 2
+#         ) -> Dict[int, np.ndarray]:
+#     # Start with an empty dictionary for positions
+#     pos = {}
+    
+#     print('\nTarget Node:', target_node_idx, '\n')
+#     # Place the target node in the center
+#     pos[target_node_idx] = np.array([0.5, 0.5])
+
+#     # Get level 1 nodes (nodes directly connected to the target node)
+#     level_1_nodes = list(graph.neighbors(target_node_idx))
+#     num_level_1 = len(level_1_nodes)
+
+
+#     # Calculate the positions of level 1 nodes in a circle around the target node
+#     angle_step = 2 * np.pi / num_level_1
+#     for index, node in enumerate(level_1_nodes):
+#         print(node, '\n')
+#         angle = index * angle_step
+#         pos[node] = np.array([0.5 + radius * np.cos(angle), 0.5 + radius * np.sin(angle)])
+
+#     # For each level 1 node, calculate the positions of level 2 nodes
+#     for l1_node in level_1_nodes:
+#         level_2_nodes = [n for n in graph.neighbors(l1_node) if n not in level_1_nodes and n != target_node_idx]
+#         num_level_2 = len(level_2_nodes)
+#         if num_level_2 == 0:
+#             continue
+#         angle_step = 2 * np.pi / num_level_2
+#         l1_angle = np.arctan2(pos[l1_node][1] - 0.5, pos[l1_node][0] - 0.5)
+        
+#         for index, node in enumerate(level_2_nodes):
+#             # print(node, '\n')
+#             angle = l1_angle + (index - num_level_2 / 2) * angle_step / 4  # Offset angle for level 2 nodes
+#             pos[node] = pos[l1_node] + np.array([distance * np.cos(angle), distance * np.sin(angle)])
+#     return pos
 
 
 class WordTraffic:
