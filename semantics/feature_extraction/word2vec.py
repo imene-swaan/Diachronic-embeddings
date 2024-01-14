@@ -379,7 +379,7 @@ class Word2VecInference:
                 words, similarities= tuple(map(list, zip(*sims)))
 
                 words = list(map(lambda x: re.sub(r"\W", '', x), words))
-                stop_words = list(set(stopwords.words('english')))
+                stop_words = list(set(stopwords.words('english'))) + ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelveth', 'also', 'would', 'could', 'south', 'north', 'east', 'west', 'even', 'should', 'might', 'must', 'many', 'much', 'several', 'often', 'sometimes', 'always', 'never', 'however', 'although', 'though', 'yet']
                 words = list(filter(lambda x: all([x != main_word, x not in main_word, main_word not in x, len(x) > 3, x not in stop_words, x not in top_k_words]), words))
 
                 top_k_words.extend(words)
