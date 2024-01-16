@@ -74,7 +74,7 @@ class TemporalGCNTrainer:
         # self.subset = subset
 
         self.model = TemporalGCN(node_features, edge_features).to(self.device)
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr= learning_rate)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr= float(learning_rate))
     
     def train(
             self, 
@@ -89,6 +89,7 @@ class TemporalGCNTrainer:
 
         train_dataset, test_dataset = temporal_signal_split(dataset, train_ratio=self.split_ratio)
 
+    
         
         for epoch in range(self.epochs):
             total_loss = 0
@@ -209,7 +210,7 @@ class TGCNInference:
         self.vocab = True
 
 
-    def predict(self, graph: TemporalGraph) -> TemporalGraph:
+    def predict(self, graph: TemporalGraph) -> list:
         if not self.vocab:
             raise ValueError(
                 'The model is not loaded'
@@ -237,4 +238,4 @@ class TGCNInference:
             y = torch.from_numpy(y)
         
         
-        return F.mse_loss(y_hat, y)
+        return F.mse_loss(y_hat, y).item()
