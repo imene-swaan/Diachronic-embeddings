@@ -7,7 +7,7 @@ from semantics.feature_extraction.word2vec import Word2VecInference, Word2VecTra
 from semantics.graphs.temporal_graph import TemporalGraph
 from semantics.inference.visualize import WordTraffic, visualize_graph
 from semantics.inference.obsedian import ObsedianGraph
-from semantics.inference.graph_clustering import GraphClusterer
+# from semantics.inference.graph_clustering import GrphClusterer
 from semantics.utils.utils import count_occurence
 from semantics.utils.components import GraphIndex
 from semantics.models.tgcn import TemporalGCNTrainer, TGCNInference
@@ -178,7 +178,8 @@ def main(**kwargs):
             os.mkdir(word2vec_a_dir)
 
         align_options = word2vec_options.get('align', None)
-
+        if align_options is None:
+            raise ValueError('Align options are not defined')
         aligner = Word2VecAlign(model_paths= w2v_paths)
         aligner.align(output_dir= word2vec_a_dir, **align_options)
         
@@ -199,18 +200,18 @@ def main(**kwargs):
         if temporal_graph_options is None:
             raise ValueError('Temporal graph options are not defined')
         
-        word2vec_path = model_paths.get('word2vec_path', None)
-        roberta_path = model_paths.get('roberta_path', None)
+        word2vec_path_template: str = model_paths.get('word2vec_path', None)
+        roberta_path_template: str = model_paths.get('roberta_path', None)
 
         for i, period in enumerate(periods):
-            if roberta_path is not None:
-                roberta_path = roberta_path.format(output_dir, period)
+            if roberta_path_template is not None:
+                roberta_path = roberta_path_template.format(output_dir, period)
                 roberta = RobertaInference(pretrained_model_path= roberta_path)
             else:
                 raise ValueError('MLM path is not defined. Please add the path to your pretrained model to the config file. Check the RobertaInference class for more information')
             
-            if word2vec_path is not None:
-                word2vec_path = word2vec_path.format(output_dir, period)
+            if word2vec_path_template is not None:
+                word2vec_path = word2vec_path_template.format(output_dir, period)
                 word2vec = Word2VecInference(pretrained_model_path= word2vec_path)
             
             else:
@@ -429,30 +430,42 @@ def main(**kwargs):
     
     if pipeline['visualize_wordgraph']:
         print('Creating the graph visualizations ...')  
-        node_types = np.unique(tg[0].node_features[:, 0].tolist())
-        node_colors = ['#d84c3e', '#b4f927', '#13ebef', '#4476ff', '#f9f927'][:len(node_types)]
-        node_color_map = {int(val): color for val, color in zip(node_types, node_colors)}
 
         wordgraph_options = kwargs.get('wordgraph_options', None)
         if wordgraph_options is None:
             raise ValueError
+        
+        node_color_feature: int = wordgraph_options.get('node_color_feature', None)
+        if node_color_feature is None:
+            raise ValueError('Node color feature is not defined')
+        
+        # node_types = np.unique(tg[0].node_features[:, node_color_feature].tolist())
+        # node_colors = ['#d84c3e', '#b4f927', '#13ebef', '#4476ff'][:len(node_types)]
+        # node_color_map = {int(val): color for val, color in zip(node_types, node_colors)}
+
+        node_color_map = {
+            # 0: '#d84c3e',
+            1: "#b4f927",
+            2: "#13ebef",
+            3: "#4476ff"
+        }
+        if not os.path.exists(f'{output_dir}/images'):
+            os.mkdir(f'{output_dir}/images')
 
         for i, period in enumerate(periods):
-            print(f'Creating the plot for {period} ...')
+            print(f'Creating the plot for {period}, target {target_words[0]}...')
             fig = visualize_graph(
                 graph= tg[i],
                 node_color_map= node_color_map,
                 target_node= target_words[0],
                 **wordgraph_options
                 )
-            
-            raise
-            
-            if not os.path.exists(f'{output_dir}/images'):
-                os.mkdir(f'{output_dir}/images')
 
+           
             with open(f'{output_dir}/images/graph_{periods[i]}.png', 'wb') as f:
                 fig.savefig(f)
+
+       
     
     if pipeline['animate_wordgraph']:
         print('Creating the word traffic animation ...')
