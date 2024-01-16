@@ -4,7 +4,6 @@ output/
 DS_Store
 trial1/
 *.ttf
-*.png
 .idea/
 .env
 __pycache__/
@@ -14,4 +13,7 @@ semantics-obsedian/
 .DS_Store
 output_1/
 *.jp2
-.vscode/settings.json
+.vscode/
+*.ipynb_checkpoints/
+*.pyc
+.cache/
