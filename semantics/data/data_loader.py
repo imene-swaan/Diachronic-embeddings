@@ -163,19 +163,23 @@ class Loader():
             >>> from semantics.data.data_loader import Loader
             >>> texts = ['This is a test.', 'This is another test.', 'This is a third test.']
             >>> print('Original texts: ', texts)
-            >>> print('Filtered texts: ', Loader(texts).forward(target_words=['third'], max_documents=1, shuffle=False))
-            Original texts:  ['This is a test.', 'This is another test.', 'This is a third test.
+            Original texts:  ['This is a test.', 'This is another test.', 'This is a third test.', 'This is also a third test.']
+            >>> print('Filtered texts: ', Loader(texts).sample(target_words=['third'], max_documents=1, shuffle=False))
             Filtered texts:  ['This is a third test.']
+            >>> print('Filtered texts: ', Loader(texts).sample(target_words='third', max_documents=1, shuffle=True, random_seed=42))
+            Filtered texts:  ['This is also a third test.']
         """
 
         if target_words is not None:
-            if len(target_words) > 0:
-                relevant_texts = []
-                for text in self.texts:
-                    if any([' ' + word + ' ' in text for word in target_words]):
-                        relevant_texts.append(text)
+            if isinstance(target_words, str):
+                target_words = [target_words]
 
-                self.texts = relevant_texts
+            relevant_texts = []
+            for text in self.texts:
+                if any([' ' + word + ' ' in text for word in target_words]):
+                    relevant_texts.append(text)
+
+            self.texts = relevant_texts
 
             
         
