@@ -175,19 +175,19 @@ animation_options:
 
 
 pipeline:
-    load_data: True
-    preprocess: True
+    load_data: False
+    preprocess: False
     train_mlm: False
     train_word2vec: False
     align_word2vec: False
-    construct_temporal_graph: True
-    save_temporal_graph: True
+    construct_temporal_graph: False
+    save_temporal_graph: False
     load_temporal_graph: True
-    visualize_obsedian: True
+    visualize_obsedian: False
     train_tgcn: True
     load_tgcn: True
     Infer_tgcn: True
-    visualize_wordgraph: False
+    visualize_wordgraph: True
     animate_wordgraph: False
     cluster_wordgraph: False
 

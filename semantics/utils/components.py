@@ -14,6 +14,17 @@ class GraphNodes(BaseModel):
         similar_nodes (Optional, Dict[str, List[str]]): dictionary of similar nodes for each node of the graph. Default: None
         context_nodes (Optional, Dict[str, List[str]]): dictionary of context nodes for each node of the graph. Default: None
 
+        
+    Examples:
+        >>> data = GraphNodes(
+        ...     similar_nodes={'pet': ['dog', 'cat'], 'dog': ['pet', 'cat'], 'cat': ['pet', 'dog']},
+        ...     context_nodes={'pet': ['animal', 'companion'], 'dog': ['animal', 'companion'], 'cat': ['animal', 'companion']}
+        ... )
+        >>> print(data.similar_nodes['a'])
+        ['b', 'c']
+        >>> print(data.context_nodes)
+        {'a': ['b', 'c'], 'b': ['a', 'c'], 'c': ['a', 'b']}
+
     """
     similar_nodes: Optional[Dict[str, List[str]]] = None
     context_nodes: Optional[Dict[str, List[str]]] = None
@@ -34,8 +45,9 @@ class GraphNodes(BaseModel):
                     raise ValueError(f'All values in {field.field_name=} must be lists')
                 # if len(val) == 0:
                 #     raise ValueError(f'All lists in {field.field_name} must be non-empty. the key: ({key}) has an empty list')
-                if not all(isinstance(item, str) for item in val):
-                    raise ValueError(f'All elements in the lists of {field.field_name=} must be strings')
+                if len(val) > 0:
+                    if not all(isinstance(item, str) for item in val):
+                        raise ValueError(f'All elements in the lists of {field.field_name=} must be strings')
         return v
 
 

@@ -1,7 +1,3 @@
-from hmac import new
-from re import T
-from click import Option
-from regex import E
 from semantics.feature_extraction.roberta import RobertaInference
 from semantics.feature_extraction.bert import BertInference
 from semantics.feature_extraction.word2vec import Word2VecInference
@@ -11,10 +7,8 @@ from semantics.utils.utils import count_occurence, most_frequent
 import tqdm
 from semantics.utils.components import  GraphNodes, TargetWords, GraphIndex
 from pydantic import ValidationError
-import json
 
-def print_dict_as_json(dict: Dict[str, List[str]]):
-    print(json.dumps(dict, indent=4), '\n')
+
 class Nodes:
     def __init__(
             self,
@@ -28,24 +22,23 @@ class Nodes:
             raise ValueError('The target word must be a string, a list of strings, or a dictionary. Check the TargetWords class for more information.')
 
 
+        if isinstance(target, str):
+            self.graph_nodes = GraphNodes()
+            self.initial_target = [target]
+
+
+        elif isinstance(target, list):
+            similar_nodes= {}
+            for w in target:
+                similar_nodes[w] = [word for word in target if word != w]
+            self.graph_nodes = GraphNodes(similar_nodes= similar_nodes)
+            self.initial_target = target
+
         else:
-            if isinstance(target, str):
-                self.graph_nodes = GraphNodes()
-                self.initial_target = [target]
+            self.graph_nodes = GraphNodes(similar_nodes= target)
+            self.initial_target = list(set(sum(list(target.values()), [])))
 
-
-            elif isinstance(target, list):
-                similar_nodes= {}
-                for w in target:
-                    similar_nodes[w] = [word for word in target if word != w]
-                self.graph_nodes = GraphNodes(similar_nodes= similar_nodes)
-                self.initial_target = target
-
-            else:
-                self.graph_nodes = GraphNodes(similar_nodes= target)
-                self.initial_target = list(set(sum(list(target.values()), [])))
-
-            self.target = self.initial_target.copy()
+        self.target = self.initial_target.copy()
             
 
     def get_nodes(
