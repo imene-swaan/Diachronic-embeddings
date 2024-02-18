@@ -1,12 +1,14 @@
 from semantics.feature_extraction.roberta import RobertaInference
 from semantics.feature_extraction.bert import BertInference
 from semantics.feature_extraction.word2vec import Word2VecInference
+from semantics.data.data_loader import Loader
 from typing import List, Union, Dict, Optional, Tuple
 import numpy as np
 from semantics.utils.utils import count_occurence, most_frequent
 import tqdm
 from semantics.utils.components import  GraphNodes, TargetWords, GraphIndex
 from pydantic import ValidationError
+
 
 
 class Nodes:
@@ -243,11 +245,17 @@ class NodesBuilder:
             word = [word]
         
         print(f'Getting the similar nodes for the words: {word} ...')
-
-        progress_bar = tqdm.tqdm(total=len(self.dataset))
         similar_nodes = {w: [] for w in word}
-        
-        for sentence in self.dataset:
+
+        relevant_dataset = Loader(self.dataset).sample(
+            target_words=word,
+            max_documents=1000,
+            shuffle=True
+            )
+        progress_bar = tqdm.tqdm(total=len(relevant_dataset))
+
+
+        for sentence in relevant_dataset:
             for w in word:
                 similar_nodes[w] += self.mlm.get_top_k_words(main_word=w, doc = sentence, k= self.k)
             progress_bar.update(1)
