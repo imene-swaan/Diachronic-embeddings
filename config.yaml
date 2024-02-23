@@ -144,7 +144,7 @@ models:
 
 
 tgcn_options:
-    epochs: 100
+    epochs: 10
     split_ratio: 0.9
     learning_rate: 5e-5
     device: 'cpu'
@@ -176,21 +176,23 @@ animation_options:
 
 
 pipeline:
-    load_data: True
+    load_data: False
     preprocess: False
     save_preprocessed: False
     train_mlm: False
     train_word2vec: False
     align_word2vec: False
-    construct_temporal_graph: True
-    save_temporal_graph: True
+    construct_temporal_graph: False
+    save_temporal_graph: False
     load_temporal_graph: True
-    visualize_obsedian: True
-    train_tgcn: False
+    visualize_obsedian: False
+    train_tgcn: True
     load_tgcn: True
-    Infer_tgcn: False
+    Infer_tgcn: True
     Tgcn_embeddings: True
-    visualize_wordgraph: True
+    load_embeddings: True
+    semantic_score: True
+    visualize_wordgraph: False
     animate_wordgraph: False
     cluster_wordgraph: False
 

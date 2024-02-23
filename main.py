@@ -7,6 +7,7 @@ from semantics.feature_extraction.word2vec import Word2VecInference, Word2VecTra
 from semantics.graphs.temporal_graph import TemporalGraph
 from semantics.inference.visualize import WordTraffic, visualize_graph
 from semantics.inference.obsedian import ObsedianGraph
+from semantics.inference.semantic_shift import SemanticShift
 # from semantics.inference.graph_clustering import GrphClusterer
 from semantics.utils.utils import count_occurence
 from semantics.utils.components import GraphIndex
@@ -457,20 +458,39 @@ def main(**kwargs):
     
     if pipeline['Tgcn_embeddings']:
         embeddings = tgcn.get_embedding(graph= tg)
-        print('Embeddings shape: ', embeddings[0].shape, '\n')
-        print('Embeddings type: ', type(embeddings[0]), '\n')
         print('Embeddings length: ', len(embeddings), '\n')
 
-        raise NotImplementedError
-
+       
         # save the embeddings
         if not os.path.exists(f'{tgcn_dir}/embeddings'):
             os.mkdir(f'{tgcn_dir}/embeddings')
         
         for i, period in enumerate(periods):
             with open(f'{tgcn_dir}/embeddings/emb_{period}.npy', 'wb') as f:
-                np.save(f, embeddings[i].numpy())
+                print('Shape of embeddings: ', embeddings[i].shape, '\n')
+                np.save(f, embeddings[i])
 
+
+    if pipeline['load_embeddings']:
+        embeddings = []
+        for i, period in enumerate(periods):
+            with open(f'{tgcn_dir}/embeddings/emb_{period}.npy', 'rb') as f:
+                embeddings.append(np.load(f))
+        
+        print('Embeddings length: ', len(embeddings), '\n')
+
+    
+    if pipeline['semantic_score']:
+        if embeddings is None:
+            raise ValueError('Embeddings are not defined')
+        
+        print('Calculating the semantic score ...')
+        ss = SemanticShift(embeddings= embeddings)
+        sorted_pairs = ss.get_pair_similarities(labels = periods)
+        for pair in sorted_pairs:
+            print(f"Pair {pair[0]}: Similarity = {pair[1]}")
+        
+        raise
     
     if pipeline['visualize_wordgraph']:
         print('Creating the graph visualizations ...')  
