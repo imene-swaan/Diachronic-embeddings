@@ -1,5 +1,7 @@
 import re
+import spacy
 
+spacy.load('en_core_web_sm')
 
 
 
@@ -15,14 +17,16 @@ class PREPROCESS():
         pass
 
     def forward(self,
-                text,
+                text: str,
                 remove_punctuation: bool = True,
                 remove_numbers: bool = True,
                 lowercase: bool = True,
                 lemmatize: bool = True,
+                stem: bool = False,
                 remove_stopwords: bool = True,    
                 remove_full_stop: bool = True,
-                remove_short_words: bool = True        
+                remove_short_words: bool = True,
+                to_singular: bool = False,   
         ):
 
         """
@@ -50,7 +54,7 @@ class PREPROCESS():
             Preprocessed text:  test
         """
     
-        newtext = re.sub('\n', ' ', text) # Remove ordinary linebreaks (there shouldn't be, so this might be redundant)
+        newtext = re.sub('\n', ' ', text).strip() # Remove ordinary linebreaks (there shouldn't be, so this might be redundant)
 
         if remove_punctuation:
             newtext = re.sub(r'[^a-zA-Z0-9\s\.]', '', str(newtext)) # Remove anything that is not a space, a letter, a dot, or a number
@@ -69,6 +73,11 @@ class PREPROCESS():
             newtext = list(map(lambda x: lemmatizer.lemmatize(x, "a"), newtext))
             newtext = ' '.join(list(map(lambda x: lemmatizer.lemmatize(x, "v"), newtext)))
         
+        if stem:
+            from nltk.stem import PorterStemmer
+            stemmer = PorterStemmer()
+            newtext = ' '.join(list(map(lambda x: stemmer.stem(x), newtext.split())))
+        
         if remove_stopwords:
             from nltk.corpus import stopwords
             stop_words = set(stopwords.words('english'))
@@ -80,11 +89,26 @@ class PREPROCESS():
         if remove_short_words:
             newtext = ' '.join(list(filter(lambda x: len(x) > 2, newtext.split())))
 
+        if to_singular:
+            nlp = spacy.load('en_core_web_sm')
+            words = newtext.split(' ')
+
+            singulars = []
+            for word in words:
+                try:
+                    doc = nlp(word)
+                    singular = doc[0].lemma_
+                    singulars.append(singular)
+                except:
+                    singulars.append(word)
+               
+            newtext = ' '.join(singulars)
+
         return newtext
         
 
 if __name__ == '__main__':
     # Test
-    text = 'This is a test. 1234'
+    text = 'This is a president_elect trump. 1234'
     print('Original text: ', text)
-    print('Preprocessed text: ', PREPROCESS().forward(text, remove_punctuation=True, remove_numbers=True, lowercase=True, lemmatize=True, remove_stopwords=True))
+    print('Preprocessed text: ', PREPROCESS().forward(text, stem=True))
