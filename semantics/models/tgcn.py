@@ -5,7 +5,7 @@ from torch_geometric_temporal.signal import temporal_signal_split
 import torch
 import torch.nn.functional as F
 from torch_geometric_temporal.nn.recurrent import TGCN
-from typing import Optional
+from typing import Optional, List
 import tqdm
 import yaml
 import os
@@ -23,6 +23,7 @@ class TemporalGCN(torch.nn.Module):
         self.conv = TGCN(in_channels=32, out_channels=32)  # Temporal GNN layer
         # (edges, 96) -> (edges, 1)
         self.linear = torch.nn.Linear(96, 1)  # Linear layer for final edge prediction
+
 
     def forward(self, x, edge_index, edge_attr, return_embedding=False):
         # Encode node and edge features
@@ -245,7 +246,7 @@ class TGCNInference:
         return F.mse_loss(y_hat, y).item()
 
 
-    def get_embedding(self, graph: TemporalGraph) -> list:
+    def get_embedding(self, graph: TemporalGraph) -> List[np.ndarray]:
         if not self.vocab:
             raise ValueError(
                 'The model is not loaded'
@@ -258,6 +259,22 @@ class TGCNInference:
         embeddings = []
         for snapshot in dataset:
             snapshot = snapshot.to('cpu')
-            embeddings.append(self.model(snapshot.x, snapshot.edge_index, snapshot.edge_attr, return_embedding=True))
+            # embeddings.append(self.model(snapshot.x, snapshot.edge_index, snapshot.edge_attr, return_embedding=True))
+
+            conv: torch.Tensor = self.model(
+                snapshot.x, 
+                snapshot.edge_index, 
+                snapshot.edge_attr, 
+                return_embedding=True
+                )
+            
+            conv = conv.detach().numpy()
+            emb = conv.flatten()
+            embeddings.append(emb)
         
         return embeddings
+    
+
+    
+
+    
