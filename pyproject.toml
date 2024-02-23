@@ -28,6 +28,7 @@ pytesseract = "^0.3.10"
 easyocr = "^1.7.1"
 word2number = "^1.1"
 python-louvain = "^0.16"
+spacy = "^3.7.4"
 
 [tool.poetry.dev-dependencies]
 poethepoet = "^0.24.3"
@@ -37,6 +38,8 @@ poethepoet = "^0.24.3"
 [tool.poe.tasks]
 torch-scatter = "python -m pip install torch-scatter -f https://data.pyg.org/whl/torch-2.1.0+cpu.html"
 torch-sparse = "python -m pip install torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.1.0+cpu.html"
+en_core_web_sm = "python -m spacy download en_core_web_sm"
+
 
 
 
