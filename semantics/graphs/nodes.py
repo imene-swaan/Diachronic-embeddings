@@ -2,12 +2,14 @@ from semantics.feature_extraction.roberta import RobertaInference
 from semantics.feature_extraction.bert import BertInference
 from semantics.feature_extraction.word2vec import Word2VecInference
 from semantics.data.data_loader import Loader
+from semantics.data.data_preprocessing import PREPROCESS
 from typing import List, Union, Dict, Optional, Tuple
 import numpy as np
 from semantics.utils.utils import count_occurence, most_frequent
 import tqdm
 from semantics.utils.components import  GraphNodes, TargetWords, GraphIndex
 from pydantic import ValidationError
+import torch
 
 
 
@@ -26,7 +28,7 @@ class Nodes:
 
         if isinstance(target, str):
             self.graph_nodes = GraphNodes()
-            self.initial_target = [target]
+            self.target = [target]
 
 
         elif isinstance(target, list):
@@ -34,13 +36,12 @@ class Nodes:
             for w in target:
                 similar_nodes[w] = [word for word in target if word != w]
             self.graph_nodes = GraphNodes(similar_nodes= similar_nodes)
-            self.initial_target = target
+            self.target = target
 
         else:
             self.graph_nodes = GraphNodes(similar_nodes= target)
-            self.initial_target = list(set(sum(list(target.values()), [])))
+            self.target = list(set(sum(list(target.values()), [])))
 
-        self.target = self.initial_target.copy()
             
 
     def get_nodes(
@@ -94,8 +95,13 @@ class Nodes:
                 mlm_model=mlm_model,
             )
 
+            all_targets = set()
+            current_target = self.target
+
+
             for i in range(level):
-                similar_nodes, context_nodes = nb.add_level(target=self.target, keep_k=keep_k[i])
+                similar_nodes, context_nodes = nb.add_level(target=current_target, keep_k=keep_k[i])
+                all_targets.update(current_target)
                 
                 new_target = []
                 if similar_nodes is not None:
@@ -129,7 +135,12 @@ class Nodes:
                                 self.graph_nodes.context_nodes[key] = value
                         
                 new_target = list(set(new_target))
-                self.target = [word for word in new_target if word not in self.target]
+                current_target = []
+                for word in new_target:
+                    if word in all_targets:
+                        continue
+                    current_target.append(word)
+
             return self.graph_nodes
 
 
@@ -148,11 +159,11 @@ class Nodes:
 
         all_words_count = count_occurence(dataset)
 
-        for node in self.initial_target:
+        for node in self.target:
             all_words.append(node)
             node_types.append(1)
             frequencies.append(count_occurence(dataset, node) / all_words_count)
-            embeddings.append(mlm_model.get_embedding(main_word=node).mean(axis=0))
+            # embeddings.append(mlm_model.get_embedding(main_word=node).mean(axis=0))
         
         if self.graph_nodes.similar_nodes is not None:
             for node_list in self.graph_nodes.similar_nodes.values():
@@ -163,7 +174,7 @@ class Nodes:
                     all_words.append(node)
                     node_types.append(2)
                     frequencies.append(count_occurence(dataset, node) / all_words_count)
-                    embeddings.append(mlm_model.get_embedding(main_word=node).mean(axis=0))
+                    # embeddings.append(mlm_model.get_embedding(main_word=node).mean(axis=0))
             
         if self.graph_nodes.context_nodes is not None:
             for node_list in self.graph_nodes.context_nodes.values():
@@ -174,13 +185,48 @@ class Nodes:
                     all_words.append(node)
                     node_types.append(3)
                     frequencies.append(count_occurence(dataset, node) / all_words_count)
-                    embeddings.append(mlm_model.get_embedding(main_word=node).mean(axis=0))
+                    # embeddings.append(mlm_model.get_embedding(main_word=node).mean(axis=0))
             
         index_to_key = {idx: word for idx, word in enumerate(all_words)}
         key_to_index = {word: idx for idx, word in enumerate(all_words)}
 
+
+        word_embeddings: Dict[str, List[torch.Tensor]] = {}
+        for i, word in enumerate(all_words):
+            print(f'Getting the embeddings for the {i} word: {word} ...\n')
+            relevant_dataset = Loader(dataset).sample(target_words=word, max_documents=100, shuffle=True)
+            progress_bar = tqdm.tqdm(total=len(relevant_dataset))
+            word_embeddings[word] = list()
+            for text in relevant_dataset:
+                emb = mlm_model.get_embedding(main_word=word, doc=text)
+                if emb.shape[0] == 0:
+                    continue
+
+                word_embeddings[word].append(emb)
+                progress_bar.update(1)
+
+            if len(word_embeddings[word]) == 0:
+                # raise ValueError(f'No embeddings found for the word: {word}')
+                embeddings.append(mlm_model.get_embedding(main_word=word))
+
+            elif len(word_embeddings[word]) == 1:
+                emb = word_embeddings[word][0]
+                embeddings.append(emb)
+
+            else:
+                emb = torch.stack(word_embeddings[word])
+                avg_emb = torch.mean(emb, dim=0)
+                embeddings.append(avg_emb)
+
+        print(len(embeddings))
+        print(embeddings[0].shape)
+        assert len(embeddings) == len(all_words)
+        assert any([emb.shape == (768,) for emb in embeddings])
+                
         del all_words
-        embeddings = np.array(embeddings)
+        del word_embeddings
+        
+        embeddings = torch.stack(embeddings).numpy()
         node_features = np.stack([node_types, frequencies]).T
 
         index = GraphIndex(index_to_key=index_to_key, key_to_index=key_to_index)
@@ -209,6 +255,8 @@ class NodesBuilder:
         self.c = c
         self.word2vec = word2vec_model
         self.mlm = mlm_model
+
+        self.preprocessor = PREPROCESS()
 
    
 
@@ -262,6 +310,7 @@ class NodesBuilder:
 
         for w in word:
             if len(similar_nodes[w]) > 0:
+                similar_nodes[w] = list(map(lambda x: self.preprocessor.forward(x, to_singular= True), similar_nodes[w]))
                 similar_nodes[w], _ = most_frequent(similar_nodes[w], keep_k)
             else:
                 del similar_nodes[w]
@@ -283,6 +332,7 @@ class NodesBuilder:
         print(f'Getting the context nodes for the words: {word} ...')
         for w in word:
             k_words, _ = self.word2vec.get_top_k_words(w, self.c)
+            k_words = list(map(lambda x: self.preprocessor.forward(x, to_singular= True), k_words))
             
             if len(k_words) > 0:
                 context_nodes[w] = k_words[:keep_k]
