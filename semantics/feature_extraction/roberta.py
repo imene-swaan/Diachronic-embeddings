@@ -347,7 +347,7 @@ class RobertaEmbedding:
         self.MLM.eval()
         self.vocab = True
 
-    def infer_vector(self, doc:str, main_word:str) -> torch.Tensor:
+    def infer_vector(self, doc:str, main_word:str) -> torch.Tensor | None:
         """
         This method is used to infer the vector embeddings of a word from a document.
 
@@ -373,20 +373,17 @@ class RobertaEmbedding:
      
         input_ids = self.tokenizer(doc, return_tensors="pt", max_length=512, truncation=True).input_ids
         token = self.tokenizer.encode(main_word, add_special_tokens=False)[0]
-
         word_token_index = torch.where(input_ids == token)[1]
-        emb = []
 
         try:
             with torch.no_grad():
                 embeddings = self.model(input_ids).last_hidden_state
                
             emb = [embeddings[0, idx] for idx in word_token_index]
-            return torch.stack(emb)
+            return torch.stack(emb).mean(dim=0)
         
-        except:
-            print(f'The word: "{main_word}" does not exist in the list of tokens')
-            return torch.tensor(np.array(emb))
+        except IndexError:
+            raise ValueError(f'The word: "{main_word}" does not exist in the list of tokens')
 
 
 
@@ -518,9 +515,11 @@ class RobertaInference:
                 f'The Embedding model {self.word_vectorizor.__class__.__name__} has not been initialized'
             )
         
+        doc = self._cutDoc(doc=doc, main_word=main_word)
         if doc is None:
-            doc = ' ' + main_word.strip() + ' '
-            
+            emb = torch.empty(0)
+        
+        
         if mask:
             doc = doc.replace(main_word, self.tokenizer.mask_token)
             main_word = self.tokenizer.mask_token
@@ -528,8 +527,13 @@ class RobertaInference:
         else:
             main_word = ' ' + main_word.strip()
             
-        embeddings = self.word_vectorizor.infer_vector(doc=doc, main_word=main_word)
-        return embeddings
+        try:
+            emb = self.word_vectorizor.infer_vector(doc=doc, main_word=main_word)
+            return emb
+        
+        except ValueError:
+            # print(f'The word: "{main_word}" does not exist in the list of tokens')
+            return torch.empty(0)
 
     def get_top_k_words(
             self,
@@ -558,9 +562,11 @@ class RobertaInference:
             raise ValueError(
                 f'The Embedding model {self.word_vectorizor.__class__.__name__} has not been initialized'
             )
-        if main_word not in doc:
-            return []
         
+        doc = self._cutDoc(doc=doc, main_word=main_word)
+        if doc is None:
+            return []
+
         masked_doc = doc.replace(main_word, '<mask>')
         try:
             logits = self.word_vectorizor.infer_mask_logits(doc=masked_doc)
@@ -589,6 +595,47 @@ class RobertaInference:
             return []
 
 
+    def _cutDoc(
+            self, 
+            main_word: str, 
+            doc: Optional[str] = None, 
+            max_length: int = 512
+            ) -> Optional[str]:
+
+        main_word = ' ' + main_word.strip() + ' '
+        if doc is None:
+            doc = main_word
+            return doc
+        
+        tokens = self.tokenizer.tokenize(doc)
+        main_token = self.tokenizer.tokenize(main_word)[0]
+       
+        try:
+            main_index = tokens.index(main_token)
+        
+        except ValueError:
+            return None
+        
+        start = max(0, main_index - max_length//2)
+        end = start + max_length
+
+        if end > len(tokens):
+            end = len(tokens)
+            start = max(0, end - max_length)
+
+        # Convert the tokens back to ids for decoding
+        token_ids = self.tokenizer.convert_tokens_to_ids(tokens[start:end])
+
+        # Decode the token ids back to a string
+        sliced_doc = self.tokenizer.decode(token_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True)
+
+        return sliced_doc
+        
+
+
+        
+        
+
 
 
 if __name__ == "__main__":
@@ -596,15 +643,17 @@ if __name__ == "__main__":
     #     pretrained_model_path= "../../output/MLM_roberta_1980"
     # )
     
-    # sentence = "The brown office is very big"
-    # main_word = " office"
+    sentence = "The brown office is very big"
+    main_word = " office"
 
     # # emb = model.infer_mask_logits(doc=sentence)
     # # print(emb.shape)
 
-    # model = RobertaInference(
-    #     pretrained_model_path= "../../output/MLM_roberta_1980"
-    # )
+    model = RobertaInference(
+        pretrained_model_path= "output/MLM_roberta_1980"
+    )
+
+    model._cutDoc(doc=sentence, main_word=main_word, max_length=512)
 
     # # top_k = model.get_top_k_words(
     # #     word="office",
@@ -620,19 +669,19 @@ if __name__ == "__main__":
     # print(emb.shape)
 
 
-    model = RobertaTrainer(
-        model_name="roberta-base",
-        max_length=128,
-        mlm_probability=0.15,
-        batch_size=4,
-        learning_rate=1e-5,
-        epochs=3,
-        warmup_steps=500,
-        split_ratio=0.8
-    )
+    # model = RobertaTrainer(
+    #     model_name="roberta-base",
+    #     max_length=128,
+    #     mlm_probability=0.15,
+    #     batch_size=4,
+    #     learning_rate=1e-5,
+    #     epochs=3,
+    #     warmup_steps=500,
+    #     split_ratio=0.8
+    # )
 
-    model.train(
-        data=["The brown fox jumps over the lazy dog", "The brown fox jumps over the lazy dog", "Hello world!"],
-        output_dir="../../output/MLM_roberta_1980"
-    )
+    # model.train(
+    #     data=["The brown fox jumps over the lazy dog", "The brown fox jumps over the lazy dog", "Hello world!"],
+    #     output_dir="../../output/MLM_roberta_1980"
+    # )
 
