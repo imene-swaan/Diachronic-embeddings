@@ -24,7 +24,7 @@ class TemporalGCN(torch.nn.Module):
         # (edges, 96) -> (edges, 1)
         self.linear = torch.nn.Linear(96, 1)  # Linear layer for final edge prediction
 
-    def forward(self, x, edge_index, edge_attr):
+    def forward(self, x, edge_index, edge_attr, return_embedding=False):
         # Encode node and edge features
 
         # (nodes, node_features) -> (nodes, 32)
@@ -37,6 +37,10 @@ class TemporalGCN(torch.nn.Module):
 
         # (nodes, 32)
         h = self.conv(x_encoded, edge_index)
+
+        if return_embedding:
+            # Return the spatial and temporal features (embeddings) directly
+            return h
         
 
         # Aggregate node features for each edge
@@ -239,3 +243,21 @@ class TGCNInference:
         
         
         return F.mse_loss(y_hat, y).item()
+
+
+    def get_embedding(self, graph: TemporalGraph) -> list:
+        if not self.vocab:
+            raise ValueError(
+                'The model is not loaded'
+            )
+        
+        dataset = DynamicGraphTemporalSignal(
+            graph.edge_indices, graph.edge_features, graph.xs, graph.ys, y_indices= graph.y_indices
+        )
+
+        embeddings = []
+        for snapshot in dataset:
+            snapshot = snapshot.to('cpu')
+            embeddings.append(self.model(snapshot.x, snapshot.edge_index, snapshot.edge_attr, return_embedding=True))
+        
+        return embeddings
