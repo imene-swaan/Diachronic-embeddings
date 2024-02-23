@@ -42,6 +42,7 @@ def main(**kwargs):
     if target_words is None:
         raise ValueError('Target words are not defined')
     
+    save_preprocessed = pipeline['save_preprocessed']
 
     # load the corpora
     if pipeline['load_data']:
@@ -57,6 +58,12 @@ def main(**kwargs):
         if data_path is None:
             raise ValueError('Data path is not defined')
         
+        sample = data_options.get('sample', False)
+        if sample:
+            target = target_words
+        else:
+            target = None
+
         max_documents = data_options.get('max_documents', None)
         shuffle = data_options.get('shuffle', None)
         seed = data_options.get('seed', None)
@@ -70,13 +77,13 @@ def main(**kwargs):
             for i, period in enumerate(periods[:]):
                 # loading the data
                 path = data_path.format(period)
-                print(f'Loading data of {period} from {path} ...', '\n')
+                print(f'of {period} from {path} ...', '\n')
 
                 corpora[period] = Loader.from_xml(
                         path, 
                         xml_tag
                         ).sample(
-                            target_words= target_words, 
+                            target_words= target,
                             max_documents=max_documents,
                             shuffle=shuffle,
                             random_seed=seed
@@ -88,10 +95,10 @@ def main(**kwargs):
             for i, period in enumerate(periods[:]):
                 # loading the data
                 path = data_path.format(period)
-                print(f'Loading data of {period} from {path} ...', '\n')
+                print(f'of {period} from {path} ...', '\n')
 
                 corpora[period] = Loader.from_txt(path).sample(
-                    target_words= target_words, 
+                    target_words= target,
                     max_documents=max_documents,
                     shuffle=shuffle,
                     random_seed=seed
@@ -100,7 +107,7 @@ def main(**kwargs):
 
         else:
             raise ValueError('Input type is not Implemented')
-        
+    
 
 
     # Preprocess the corpora
@@ -112,12 +119,26 @@ def main(**kwargs):
 
         prep = PREPROCESS()
         for period in periods:
-            print(f'Preprocessing data from {period} ...', '\n')
+            print(f'from {period} ...', '\n')
             corpora[period] = list(map(lambda x: prep.forward(text=x, **preprocessing_options), corpora[period]))
+
+            if save_preprocessed:
+                input_dir = Path(data_path.format(period)).parent.parent
+                file_name = Path(data_path.format(period)).stem
+
+                if not os.path.exists(f'{input_dir}/txt'):
+                    os.mkdir(f'{input_dir}/txt')
+                save_path = f'{input_dir}/txt/{file_name}.txt'
+                print(f'Saving to {save_path} ...', '\n')
+                with open(save_path, 'w') as f:
+                    for item in corpora[period]:
+                        f.write(item + '\n')
+            
 
             print('Number of sentences with the word ...')
             for word in target_words:
                 print(word, ': ', count_occurence(corpora[period], word), '\n')
+
 
 
     if pipeline['train_mlm']:
@@ -424,9 +445,32 @@ def main(**kwargs):
         )
 
         y_hat = tgcn.predict(graph= tg_2017)
+
+        print('y_hat length: ', len(y_hat), '\n')
+        print('y_hat type: ', type(y_hat[0]), '\n')
+        print('y_hat shape: ', y_hat[0].shape, '\n')
+
+
         y = tg_2017[0].edge_features[:, 1].reshape(-1, 1)
         mse = tgcn.mse_loss(y_hat= y_hat, y= y)
         print('mse: ', mse, '\n')
+    
+    if pipeline['Tgcn_embeddings']:
+        embeddings = tgcn.get_embedding(graph= tg)
+        print('Embeddings shape: ', embeddings[0].shape, '\n')
+        print('Embeddings type: ', type(embeddings[0]), '\n')
+        print('Embeddings length: ', len(embeddings), '\n')
+
+        raise NotImplementedError
+
+        # save the embeddings
+        if not os.path.exists(f'{tgcn_dir}/embeddings'):
+            os.mkdir(f'{tgcn_dir}/embeddings')
+        
+        for i, period in enumerate(periods):
+            with open(f'{tgcn_dir}/embeddings/emb_{period}.npy', 'wb') as f:
+                np.save(f, embeddings[i].numpy())
+
     
     if pipeline['visualize_wordgraph']:
         print('Creating the graph visualizations ...')  

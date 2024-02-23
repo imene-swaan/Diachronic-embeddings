@@ -6,9 +6,10 @@ output_dir: 'output'
 
 
 data_options:
-    input_type: 'xml'
-    data_path: 'input/xml/TheNewYorkTimes{}.xml'
-    xml_tag: 'fulltext'
+    input_type: 'txt' # 'xml'
+    data_path: 'input/txt/TheNewYorkTimes{}.txt' # 'input/xml/TheNewYorkTimes{}.xml'
+    # xml_tag: 'fulltext'
+    sample: False
     # max_documents: 100
     shuffle: True
     # seed: 42
@@ -59,16 +60,16 @@ word2vec_options:
 
 
 temporal_graph_options:
-    MLM_k: 2
-    Context_k: 4
-    level: 3
+    MLM_k: 1
+    Context_k: 3
+    level: 2
     edge_threshold: 0.1
     accumulate: True
     use_context_only: False
     keep_k: 
         0: [6,3]
-        1: [2,2]
-        2: [1,0]
+        1: [2,1]
+        # 2: [1,0]
 
 periods: [
         1980,
@@ -175,18 +176,20 @@ animation_options:
 
 
 pipeline:
-    load_data: False
+    load_data: True
     preprocess: False
+    save_preprocessed: False
     train_mlm: False
     train_word2vec: False
     align_word2vec: False
-    construct_temporal_graph: False
-    save_temporal_graph: False
+    construct_temporal_graph: True
+    save_temporal_graph: True
     load_temporal_graph: True
-    visualize_obsedian: False
-    train_tgcn: True
+    visualize_obsedian: True
+    train_tgcn: False
     load_tgcn: True
-    Infer_tgcn: True
+    Infer_tgcn: False
+    Tgcn_embeddings: True
     visualize_wordgraph: True
     animate_wordgraph: False
     cluster_wordgraph: False
