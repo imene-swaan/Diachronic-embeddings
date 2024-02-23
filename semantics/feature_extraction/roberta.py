@@ -347,7 +347,7 @@ class RobertaEmbedding:
         self.MLM.eval()
         self.vocab = True
 
-    def infer_vector(self, doc:str, main_word:str) -> torch.Tensor | None:
+    def infer_vector(self, doc:str, main_word:str) -> Optional[torch.Tensor]:
         """
         This method is used to infer the vector embeddings of a word from a document.
 
@@ -388,7 +388,7 @@ class RobertaEmbedding:
 
 
     
-    def infer_mask_logits(self, doc:str) -> torch.Tensor:
+    def infer_mask_logits(self, doc:str) -> Optional[torch.Tensor]:
         """
         This method is used to infer the logits of the mask token in a document.
 
@@ -396,7 +396,7 @@ class RobertaEmbedding:
             doc (str): Document to process where the mask token is present.
 
         Returns: 
-            logits (torch.Tensor): Tensor of stacked logits of shape (num_embeddings, logits_size) where num_embeddings is the number of times the mask token appears in the doc withing the max_length.
+            logits (Optional[torch.Tensor]): Tensor of stacked logits of shape (num_embeddings, logits_size) where num_embeddings is the number of times the mask token appears in the doc withing the max_length.
 
         Examples:
             >>> model = RobertaEmbedding()
