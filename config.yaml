@@ -64,7 +64,7 @@ temporal_graph_options:
     Context_k: 3
     level: 2
     edge_threshold: 0.1
-    accumulate: True
+    accumulate: False
     use_context_only: False
     keep_k: 
         0: [6,3]
@@ -144,10 +144,12 @@ models:
 
 
 tgcn_options:
-    epochs: 10
-    split_ratio: 0.9
-    learning_rate: 5e-5
+    size: 300
+    epochs: 100
+    split_ratio: 0.8
+    learning_rate: 5e-3
     device: 'cpu'
+    loss_func: 'mae' # 'mse'
 
 
 wordgraph_options:
@@ -171,7 +173,17 @@ animation_options:
         start: 0
         end: -1
         repeat: True
-        interval: 3000
+        interval: 2000
+
+
+clustering_options:
+    n_clusters: 5
+    method: 'girvan_newman' # kclique', 'louvain'
+    wordgraph:
+        node_size_feature: 0
+        edge_label_feature: 1
+        color_bar: True
+        color_norm: 'auto'
 
 
 
@@ -186,15 +198,15 @@ pipeline:
     save_temporal_graph: False
     load_temporal_graph: True
     visualize_obsedian: False
-    train_tgcn: True
-    load_tgcn: True
-    Infer_tgcn: True
-    Tgcn_embeddings: True
-    load_embeddings: True
-    semantic_score: True
+    train_tgcn: False
+    load_tgcn: False
+    Infer_tgcn: False
+    Tgcn_embeddings: False
+    load_embeddings: False
+    semantic_score: False
     visualize_wordgraph: False
     animate_wordgraph: False
-    cluster_wordgraph: False
+    cluster_wordgraph: True
 
 
 
