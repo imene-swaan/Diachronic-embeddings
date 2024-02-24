@@ -87,6 +87,28 @@ class TemporalGraph:
             )
         return graph
    
+    
+    def __setitem__(self, idx, graph: WordGraph) -> None:
+        """
+        Sets the snapshot at the specified index.
+
+        Parameters:
+            idx (int): Index of the item to set.
+            graph (WordGraph): The snapshot to set at the specified index.
+        
+        Example:
+            >>> temporal_graph = TemporalGraph()
+            >>> graph = WordGraph()
+            >>> temporal_graph[0] = graph
+            
+        """
+        self.index[idx] = graph.index
+        self.xs[idx] = graph.node_features
+        self.edge_indices[idx] = graph.edge_index
+        self.edge_features[idx] = graph.edge_features
+        self.ys[idx] = graph.labels
+        self.y_indices[idx] = graph.label_mask
+
 
 
     def add_graph(
@@ -262,7 +284,14 @@ class TemporalGraph:
             
             self.ys[i] = np.array(labels)
             self.y_indices[i] = np.stack([label_mask_1, label_mask_2])
-            
+    
+
+    def ffill(self):
+        self.align_graphs()
+
+        
+
+
 
 def is_dynamic(sets):
     union_of_all_sets = set().union(*sets)
