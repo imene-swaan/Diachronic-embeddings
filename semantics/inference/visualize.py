@@ -24,6 +24,7 @@ def visualize_graph(
         color_bar: bool = False,
         node_positions: Optional[Dict[int, np.ndarray]] = None,
         target_node: str = 'trump',
+        legend: bool = False,
         radius: float = 2, # Distance from target node to level 1 nodes
         distance: float = 2 # Distance from level 1 nodes to level 2 nodes
     ) -> plt.Figure:
@@ -123,6 +124,12 @@ def visualize_graph(
         sm.set_array([])
         plt.colorbar(sm, ax=ax, orientation= 'vertical', shrink=0.8, label= 'Similarity')
    
+    # add legend from node_color_map
+    if legend:
+        for key, value in node_color_map.items():
+            ax.plot([],[],color=value, label=f'Cluster {key}', linewidth=5)
+        ax.legend(title='Colors', fontsize=20, title_fontsize=20)
+
     ax.axis('off')
     return fig
 
