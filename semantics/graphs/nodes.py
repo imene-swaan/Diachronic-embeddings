@@ -311,6 +311,10 @@ class NodesBuilder:
         for w in word:
             if len(similar_nodes[w]) > 0:
                 similar_nodes[w] = list(map(lambda x: self.preprocessor.forward(x, to_singular= True), similar_nodes[w]))
+
+                # filter out the words that are not in the word2vec vocabulary
+                # similar_nodes[w] = list(filter(lambda x: x in self.word2vec.vocab, similar_nodes[w]))
+
                 similar_nodes[w], _ = most_frequent(similar_nodes[w], keep_k)
             else:
                 del similar_nodes[w]
