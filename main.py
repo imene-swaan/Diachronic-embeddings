@@ -8,9 +8,9 @@ from semantics.graphs.temporal_graph import TemporalGraph
 from semantics.inference.visualize import WordTraffic, visualize_graph
 from semantics.inference.obsedian import ObsedianGraph
 from semantics.inference.semantic_shift import SemanticShift
-# from semantics.inference.graph_clustering import GrphClusterer
+from semantics.inference.graph_clustering import GraphClustering
 from semantics.utils.utils import count_occurence
-from semantics.utils.components import GraphIndex
+from semantics.utils.components import GraphIndex, WordGraph
 from semantics.models.tgcn import TemporalGCNTrainer, TGCNInference
 import os
 import numpy as np
@@ -457,7 +457,10 @@ def main(**kwargs):
         print('mse: ', mse, '\n')
     
     if pipeline['Tgcn_embeddings']:
-        embeddings = tgcn.get_embedding(graph= tg)
+        tgcn_path = model_paths['tgcn_path'].format(output_dir)
+        tgcn_dir = str(Path(tgcn_path).parent)
+
+        embeddings = tgcn.get_embedding(graph= tg, to_vector= 'flatten')
         print('Embeddings length: ', len(embeddings), '\n')
 
        
@@ -467,30 +470,48 @@ def main(**kwargs):
         
         for i, period in enumerate(periods):
             with open(f'{tgcn_dir}/embeddings/emb_{period}.npy', 'wb') as f:
-                print('Shape of embeddings: ', embeddings[i].shape, '\n')
+                # print('Shape of embeddings: ', embeddings[i].shape, '\n')
                 np.save(f, embeddings[i])
 
 
     if pipeline['load_embeddings']:
+        tgcn_path = model_paths['tgcn_path'].format(output_dir)
+        tgcn_dir = str(Path(tgcn_path).parent)
+
         embeddings = []
         for i, period in enumerate(periods):
             with open(f'{tgcn_dir}/embeddings/emb_{period}.npy', 'rb') as f:
                 embeddings.append(np.load(f))
         
-        print('Embeddings length: ', len(embeddings), '\n')
+        # print('Embeddings length: ', len(embeddings), '\n')
 
     
     if pipeline['semantic_score']:
         if embeddings is None:
             raise ValueError('Embeddings are not defined')
         
-        print('Calculating the semantic score ...')
+        print('Calculating the semantic shift score ...')
         ss = SemanticShift(embeddings= embeddings)
-        sorted_pairs = ss.get_pair_similarities(labels = periods)
+        sorted_pairs = ss.get_pair_shift(labels = periods, top_n= 10)
         for pair in sorted_pairs:
-            print(f"Pair {pair[0]}: Similarity = {pair[1]}")
+            print(f"Pair {pair[0]}: Shift = {pair[1]}")
         
-        raise
+        print('\nCalculating the sequence shift score ...')
+        sequence_shift = ss.get_sequence_shift(labels= periods, to_score= True)
+        for pair in sequence_shift:
+            print(f"Pair {pair[0]}: Shift = {pair[1]}")
+        
+        print('\nCalculating the reference shift score ...')
+        reference_shift = ss.get_ref_shift(ref= -1, labels= periods)
+        for pair in reference_shift:
+            print(f"Pair {pair[0]}: Shift = {pair[1]}")
+        
+        print('\nCalculating the changepoints ...')
+        breaks = ss.ChangePointDetection(
+            penalty=0.1,
+            labels= periods
+            )
+        print('Breaks: ', breaks, '\n')
     
     if pipeline['visualize_wordgraph']:
         print('Creating the graph visualizations ...')  
@@ -547,8 +568,68 @@ def main(**kwargs):
         wt.animate(save_path= save_path, **animation_options['gif'])
 
     if pipeline['cluster_wordgraph']:
-        # g = GraphClusterer(graph= tg[0])
-        pass
+        print('Clustering the word graph ...')
+        clustering_options = kwargs.get('clustering_options', None)
+        if clustering_options is None:
+            raise ValueError('Clustering options are not defined')
+        
+        k = clustering_options.get('n_clusters', None)
+        method = clustering_options.get('method', None)
+
+        for i, period in enumerate(periods):
+            print(f'of {period} ...')
+            gc = GraphClustering(graph= tg[i])
+            communities = gc.get_clusters(method= method, k = k, label= True, structure= False)
+            print('Communities: ', communities, '\n')
+            
+            raw_clusters = gc.get_clusters(method= method, k = k, label= False, structure= True)
+
+
+            # adding clusters to the node features
+            new_feature = np.zeros((tg[i].node_features.shape[0], 1))
+
+            for j, cluster in raw_clusters.items():
+                for node in cluster:
+                    new_feature[node] = j
+            
+            new_node_features = np.concatenate((tg[i].node_features, new_feature), axis= 1)
+            tg[i] = WordGraph(
+                index= tg[i].index,
+                node_features= new_node_features,
+                edge_index= tg[i].edge_index,
+                edge_features= tg[i].edge_features,
+                labels= tg[i].labels,
+                label_mask= tg[i].label_mask
+            )
+
+            # visualize the clusters
+            node_color_feature = -1
+            node_color_map = {
+                # 0: '#d84c3e',
+                1: '#b4f927',
+                2: '#13ebef',
+                3: '#4476ff',
+                4: '#f9f927',
+                5: '#d84c3e',
+            }
+            
+
+            if not os.path.exists(f'{output_dir}/cluster_images'):  
+                os.mkdir(f'{output_dir}/cluster_images')
+
+            
+            fig = visualize_graph(
+                graph= tg[i],
+                title= f'Graph of {period}',
+                node_color_feature= node_color_feature,
+                node_color_map= node_color_map,
+                target_node= target_words[0],
+                legend= True,
+                **clustering_options['wordgraph']
+                )
+            
+            with open(f'{output_dir}/cluster_images/graph_{periods[i]}.png', 'wb') as f:
+                fig.savefig(f)
     
     print('Done!')
 
