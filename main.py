@@ -5,11 +5,11 @@ from semantics.data.data_preprocessing import PREPROCESS
 from semantics.feature_extraction.roberta import  RobertaInference, RobertaTrainer
 from semantics.feature_extraction.word2vec import Word2VecInference, Word2VecTrainer, Word2VecAlign
 from semantics.graphs.temporal_graph import TemporalGraph
-from semantics.inference.visualize import WordTraffic, visualize_graph
+from semantics.inference.visualize import WordTraffic, visualize_graph, visualize_change
 from semantics.inference.obsedian import ObsedianGraph
 from semantics.inference.semantic_shift import SemanticShift
 from semantics.inference.graph_clustering import GraphClustering
-from semantics.utils.utils import count_occurence
+from semantics.utils.utils import count_occurence, generate_colors
 from semantics.utils.components import GraphIndex, WordGraph
 from semantics.models.tgcn import TemporalGCNTrainer, TGCNInference
 import os
@@ -283,7 +283,10 @@ def main(**kwargs):
             
 
         tg.align_graphs()
-        tg.label_graphs()
+        label_feature_idx = temporal_graph_options.get('label_feature_idx', None)
+        tg.label_graphs(label_feature_idx= label_feature_idx)
+    
+    
     
     if pipeline['save_temporal_graph']:
         print('Saving the temporal Graph ...')
@@ -392,6 +395,183 @@ def main(**kwargs):
         obsedian_graph.JugglStyle()
         obsedian_graph.Filter(by_tag= f'{periods[view_period]}')
     
+
+
+    if pipeline['visualize_wordgraph']:
+        print('Creating the graph visualizations ...')  
+
+        wordgraph_options = kwargs.get('wordgraph_options', None)
+        if wordgraph_options is None:
+            raise ValueError
+        
+        node_color_feature: int = wordgraph_options.get('node_color_feature', None)
+        if node_color_feature is None:
+            raise ValueError('Node color feature is not defined')
+        
+
+        node_color_map = {
+            # 0: '#d84c3e',
+            1: "#b4f927",
+            2: "#13ebef",
+            3: "#4476ff"
+        }
+        if not os.path.exists(f'{output_dir}/images'):
+            os.mkdir(f'{output_dir}/images')
+
+        for i, period in enumerate(periods):
+            print(f'Creating the plot for {period}, target {target_words[0]}...')
+            fig = visualize_graph(
+                graph= tg[i],
+                node_color_map= node_color_map,
+                target_node= target_words[0],
+                **wordgraph_options
+                )
+
+           
+            with open(f'{output_dir}/images/graph_{periods[i]}.png', 'wb') as f:
+                fig.savefig(f)
+
+       
+    
+    if pipeline['animate_wordgraph']:
+        print('Creating the word traffic animation ...')
+        animation_options = kwargs.get('animation_options', None)
+        if animation_options is None:
+            raise ValueError
+        
+        wt = WordTraffic(
+            temporal_graph= tg,
+            node_color_map= node_color_map,
+            target_node= target_words[0],
+            **animation_options['wordgraph']
+            )
+        save_path = f'{output_dir}/images/word_traffic.gif'
+        wt.animate(save_path= save_path, **animation_options['gif'])
+
+    if pipeline['cluster_wordgraph']:
+        print('Clustering the word graph ...')
+        clustering_options = kwargs.get('clustering_options', None)
+        if clustering_options is None:
+            raise ValueError('Clustering options are not defined')
+        
+        k = clustering_options.get('n_clusters', None)
+        method = clustering_options.get('method', None)
+
+        clusted_tg = tg.copy()
+
+        for i, period in enumerate(periods):
+            print(f'of {period} ...')
+
+            # detach the target word from the graph by removing the edges
+            g = tg[i]
+            edges = g.edge_index.T
+            target = target_words[0]
+            target_index = g.index.key_to_index[target]
+            
+            new_edges = []
+            for edge in edges:
+                if target_index in edge:
+                    continue
+                new_edges.append(edge)
+            
+            new_edges = np.array(new_edges).T
+            
+            g = WordGraph(
+                index= g.index,
+                node_features= g.node_features,
+                edge_index= new_edges,
+                edge_features= g.edge_features,
+                labels= g.labels,
+                label_mask= g.label_mask
+            )
+
+
+            gc = GraphClustering(graph= g)
+            communities = gc.get_clusters(method= method, k = k, label= True, structure= False)
+            print('Communities: ', communities, '\n')
+            
+            raw_clusters = gc.get_clusters(method= method, k = k, label= False, structure= True)
+            print('Raw clusters: ', raw_clusters, '\n')
+
+
+            # adding clusters to the node features
+            new_feature = np.zeros((tg[i].node_features.shape[0], 1))
+
+            for j, cluster in raw_clusters.items():
+                for node in cluster:
+                    new_feature[node] = j
+            
+            new_node_features = np.concatenate((tg[i].node_features, new_feature), axis= 1)
+            clusted_tg[i] = WordGraph(
+                index= tg[i].index,
+                node_features= new_node_features,
+                edge_index= tg[i].edge_index,
+                edge_features= tg[i].edge_features,
+                labels= tg[i].labels,
+                label_mask= tg[i].label_mask
+            )
+
+            # visualize the clusters
+            node_color_feature = -1
+            unique_clusters = np.unique(new_feature)
+            colors = generate_colors(len(unique_clusters))
+            node_color_map = {int(val): color for val, color in zip(unique_clusters, colors)}
+            # node_color_map = {
+            #     # 0: '#d84c3e',
+            #     1: '#b4f927',
+            #     2: '#13ebef',
+            #     3: '#4476ff',
+            #     4: '#f9f927',
+            #     5: '#d84c3e',
+            #     6: '#12ebef',
+            #     7: '#4400ff',
+            #     8: '#f9f927',
+
+
+            # }
+            
+
+            if not os.path.exists(f'{output_dir}/cluster_images'):  
+                os.mkdir(f'{output_dir}/cluster_images')
+
+            
+            fig = visualize_graph(
+                graph= clusted_tg[i],
+                title= f'Graph of {period}',
+                node_color_feature= node_color_feature,
+                node_color_map= node_color_map,
+                target_node= target_words[0],
+                legend= True,
+                **clustering_options['wordgraph']
+                )
+            
+            with open(f'{output_dir}/cluster_images/graph_{periods[i]}.png', 'wb') as f:
+                fig.savefig(f)
+    
+
+
+    if pipeline['fill_temporal_graph']:
+        print('Filling the temporal Graph ...')
+        roberta_path_template: str = model_paths.get('roberta_path', None)
+        if roberta_path_template is None:
+            raise ValueError('MLM path is not defined. Please add the path to your pretrained model to the config file. Check the RobertaInference class for more information')
+        
+        filled_tg = tg.copy()
+        
+
+        for i, period in enumerate(periods):
+            roberta_path = roberta_path_template.format(output_dir, period)
+            roberta = RobertaInference(pretrained_model_path= roberta_path)
+            print(f'of {period} ...')
+            filled_tg.ffill(
+                snap_index= i, 
+                dataset= corpora[period],
+                mlm_model= roberta
+                )
+        
+        filled_tg.label_graphs(label_feature_idx= None)
+            
+    
     if pipeline['train_tgcn']:
         print('Modeling the temporal graph with TGCN ...')
 
@@ -400,14 +580,8 @@ def main(**kwargs):
             raise ValueError('TGCN options are not defined')
         
 
-        tg_upto2015 = TemporalGraph(
-            index= index[:-1],
-            xs= xs[:-1],
-            ys= ys[:-1],
-            edge_indices= edge_indices[:-1],
-            edge_features= edge_features[:-1],
-            y_indices= y_indices[:-1],
-        )
+        tg_upto2015 = filled_tg.copy()
+        del tg_upto2015[-1]
 
         number_node_features = xs[0].shape[1]
         number_edge_features = edge_features[0].shape[1]
@@ -436,25 +610,22 @@ def main(**kwargs):
         )
     
     if pipeline['Infer_tgcn']:
-        tg_2017 = TemporalGraph(
-            index= index[-1:],
-            xs= xs[-1:],
-            ys= ys[-1:],
-            edge_indices= edge_indices[-1:],
-            edge_features= edge_features[-1:],
-            y_indices= y_indices[-1:],
-        )
+        tg_2017 = filled_tg.copy()
+        del tg_2017[:-1]
 
         y_hat = tgcn.predict(graph= tg_2017)
 
-        print('y_hat length: ', len(y_hat), '\n')
-        print('y_hat type: ', type(y_hat[0]), '\n')
-        print('y_hat shape: ', y_hat[0].shape, '\n')
+        # print('y_hat length: ', len(y_hat), '\n')
+        # print('y_hat type: ', type(y_hat[0]), '\n')
+        # print('y_hat shape: ', y_hat[0].shape, '\n')
 
 
         y = tg_2017[0].edge_features[:, 1].reshape(-1, 1)
         mse = tgcn.mse_loss(y_hat= y_hat, y= y)
         print('mse: ', mse, '\n')
+        mae = tgcn.mae_loss(y_hat= y_hat, y= y)
+        print('mae: ', mae, '\n')
+
     
     if pipeline['Tgcn_embeddings']:
         tgcn_path = model_paths['tgcn_path'].format(output_dir)
@@ -512,124 +683,16 @@ def main(**kwargs):
             labels= periods
             )
         print('Breaks: ', breaks, '\n')
+
+        fig = visualize_change(
+            ts = [x[1] for x in reference_shift],
+            breaks = breaks,
+            labels = periods
+        )
+        with open(f'{output_dir}/images/change.png', 'wb') as f:
+            fig.savefig(f)
     
-    if pipeline['visualize_wordgraph']:
-        print('Creating the graph visualizations ...')  
 
-        wordgraph_options = kwargs.get('wordgraph_options', None)
-        if wordgraph_options is None:
-            raise ValueError
-        
-        node_color_feature: int = wordgraph_options.get('node_color_feature', None)
-        if node_color_feature is None:
-            raise ValueError('Node color feature is not defined')
-        
-        # node_types = np.unique(tg[0].node_features[:, node_color_feature].tolist())
-        # node_colors = ['#d84c3e', '#b4f927', '#13ebef', '#4476ff'][:len(node_types)]
-        # node_color_map = {int(val): color for val, color in zip(node_types, node_colors)}
-
-        node_color_map = {
-            # 0: '#d84c3e',
-            1: "#b4f927",
-            2: "#13ebef",
-            3: "#4476ff"
-        }
-        if not os.path.exists(f'{output_dir}/images'):
-            os.mkdir(f'{output_dir}/images')
-
-        for i, period in enumerate(periods):
-            print(f'Creating the plot for {period}, target {target_words[0]}...')
-            fig = visualize_graph(
-                graph= tg[i],
-                node_color_map= node_color_map,
-                target_node= target_words[0],
-                **wordgraph_options
-                )
-
-           
-            with open(f'{output_dir}/images/graph_{periods[i]}.png', 'wb') as f:
-                fig.savefig(f)
-
-       
-    
-    if pipeline['animate_wordgraph']:
-        print('Creating the word traffic animation ...')
-        animation_options = kwargs.get('animation_options', None)
-        if animation_options is None:
-            raise ValueError
-        
-        wt = WordTraffic(
-            temporal_graph= tg,
-            node_color_map= node_color_map,
-            target_node= target_words[0],
-            **animation_options['wordgraph']
-            )
-        save_path = f'{output_dir}/images/word_traffic.gif'
-        wt.animate(save_path= save_path, **animation_options['gif'])
-
-    if pipeline['cluster_wordgraph']:
-        print('Clustering the word graph ...')
-        clustering_options = kwargs.get('clustering_options', None)
-        if clustering_options is None:
-            raise ValueError('Clustering options are not defined')
-        
-        k = clustering_options.get('n_clusters', None)
-        method = clustering_options.get('method', None)
-
-        for i, period in enumerate(periods):
-            print(f'of {period} ...')
-            gc = GraphClustering(graph= tg[i])
-            communities = gc.get_clusters(method= method, k = k, label= True, structure= False)
-            print('Communities: ', communities, '\n')
-            
-            raw_clusters = gc.get_clusters(method= method, k = k, label= False, structure= True)
-
-
-            # adding clusters to the node features
-            new_feature = np.zeros((tg[i].node_features.shape[0], 1))
-
-            for j, cluster in raw_clusters.items():
-                for node in cluster:
-                    new_feature[node] = j
-            
-            new_node_features = np.concatenate((tg[i].node_features, new_feature), axis= 1)
-            tg[i] = WordGraph(
-                index= tg[i].index,
-                node_features= new_node_features,
-                edge_index= tg[i].edge_index,
-                edge_features= tg[i].edge_features,
-                labels= tg[i].labels,
-                label_mask= tg[i].label_mask
-            )
-
-            # visualize the clusters
-            node_color_feature = -1
-            node_color_map = {
-                # 0: '#d84c3e',
-                1: '#b4f927',
-                2: '#13ebef',
-                3: '#4476ff',
-                4: '#f9f927',
-                5: '#d84c3e',
-            }
-            
-
-            if not os.path.exists(f'{output_dir}/cluster_images'):  
-                os.mkdir(f'{output_dir}/cluster_images')
-
-            
-            fig = visualize_graph(
-                graph= tg[i],
-                title= f'Graph of {period}',
-                node_color_feature= node_color_feature,
-                node_color_map= node_color_map,
-                target_node= target_words[0],
-                legend= True,
-                **clustering_options['wordgraph']
-                )
-            
-            with open(f'{output_dir}/cluster_images/graph_{periods[i]}.png', 'wb') as f:
-                fig.savefig(f)
     
     print('Done!')
 
