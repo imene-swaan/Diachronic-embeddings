@@ -305,7 +305,14 @@ class NodesBuilder:
 
         for sentence in relevant_dataset:
             for w in word:
-                similar_nodes[w] += self.mlm.get_top_k_words(main_word=w, doc = sentence, k= self.k)
+                similar_nodes[w] += self.mlm.get_top_k_words(
+                    main_word=w, 
+                    doc = sentence, 
+                    k= self.k,
+                    min_length= 3,
+                    remove_numbers= True,
+                    pot_tag= ['NN', 'NNS', 'NNP', 'NNPS']
+                    )
             progress_bar.update(1)
 
         for w in word:
@@ -325,7 +332,7 @@ class NodesBuilder:
     def _get_context_nodes(
             self, 
             word: Union[str, List[str]],
-            keep_k: int = 50
+            keep_k: int = 50,
             ) -> Dict[str, List[str]]:
         """
         """
@@ -335,7 +342,7 @@ class NodesBuilder:
         context_nodes = {}
         print(f'Getting the context nodes for the words: {word} ...')
         for w in word:
-            k_words, _ = self.word2vec.get_top_k_words(w, self.c)
+            k_words, _ = self.word2vec.get_top_k_words(w, self.c, pot_tag= ['NN', 'NNS', 'NNP', 'NNPS'])
             k_words = list(map(lambda x: self.preprocessor.forward(x, to_singular= True), k_words))
             
             if len(k_words) > 0:
