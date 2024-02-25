@@ -1,13 +1,16 @@
-from torch import le
 from semantics.feature_extraction.roberta import RobertaInference
 from semantics.feature_extraction.bert import BertInference
 from semantics.feature_extraction.word2vec import Word2VecInference
 from typing import List, Union, Dict, Optional, Tuple
 import numpy as np
 from semantics.utils.components import WordGraph, GraphNodes, GraphIndex
+from semantics.utils.utils import count_occurence
 from semantics.graphs.edges import Edges
 from semantics.graphs.nodes import Nodes
+from semantics.data.data_loader import Loader
+import torch
 import json
+import itertools
 
 def print_dict_as_json(dict: Dict[str, List[str]]):
     print(json.dumps(dict, indent=4), '\n')
@@ -109,7 +112,37 @@ class TemporalGraph:
         self.ys[idx] = graph.labels
         self.y_indices[idx] = graph.label_mask
 
+    def __delitem__(self, idx) -> None:
+        """
+        Deletes the snapshot at the specified index.
 
+        Parameters:
+            idx (int): Index of the item to delete.
+        
+        Example:
+            >>> temporal_graph = TemporalGraph()
+            >>> del temporal_graph[0]
+            
+        """
+        del self.index[idx]
+        del self.xs[idx]
+        del self.edge_indices[idx]
+        del self.edge_features[idx]
+        del self.ys[idx]
+        del self.y_indices[idx]
+
+    def copy(self) -> 'TemporalGraph':
+        """
+        Returns a copy of the temporal graph.
+        """
+        return TemporalGraph(
+            index=self.index.copy(),
+            xs=self.xs.copy(),
+            edge_indices=self.edge_indices.copy(),
+            edge_features=self.edge_features.copy(),
+            ys=self.ys.copy(),
+            y_indices=self.y_indices.copy()
+        )
 
     def add_graph(
             self,
@@ -249,7 +282,7 @@ class TemporalGraph:
                 self.xs[i] = reordered_node_feature_matrix
                 self.edge_indices[i] = updated_previous_edge_index
     
-    def label_graphs(self, label_feature_idx: int = 1) -> None:
+    def label_graphs(self, label_feature_idx: Optional[int] = None) -> None:
         """
         This method is used to label the edges of the temporal graph with the edge feature values in the next snapshot.
 
@@ -257,37 +290,131 @@ class TemporalGraph:
             label_feature_idx (int): the index of the edge feature to use as a label. Default: 1.
         """
         for i in range(len(self.xs)-1):
-            current_graph = self[i]
+
+            # current_graph = self[i]
             next_graph = self[i+1]
 
-            current_edge_index = current_graph.edge_index
+            all_possible_node_pairs = set(itertools.combinations(list(self[i].index.index_to_key.keys()), 2))
 
-            next_edge_index = next_graph.edge_index
-            next_edge_features = next_graph.edge_features
-
-            current_edges = [tuple(edge) for edge in current_edge_index.T]
-            next_edges  = [tuple(edge) for edge in next_edge_index.T]
-
+            # current_edges = [tuple(edge) for edge in current_graph.edge_index.T]
+            next_edges  = [tuple(edge) for edge in next_graph.edge_index.T]
+            
             labels = []
             label_mask_1 = []
             label_mask_2 = []
 
-            for edge in current_edges:
-                if edge in next_edges:
-                    label_mask_1.append(edge[0])
-                    label_mask_2.append(edge[1])
+            for pair in all_possible_node_pairs:
+                if pair in next_edges or pair[::-1] in next_edges:
+                    label_mask_1.append(pair[0])
+                    label_mask_2.append(pair[1])
 
-                    next_index = next_edges.index(edge)
-                    label = next_edge_features[next_index][label_feature_idx]
-                    labels.append(label)
+                    if label_feature_idx is not None:
+                        next_index = next_edges.index(pair) if pair in next_edges else next_edges.index(pair[::-1])
+                        label = next_graph.edge_features[next_index][label_feature_idx]
+                        labels.append(label)
+                    
+                    else:
+                        labels.append(1)
+                
+                else:
+                    label_mask_1.append(pair[0])
+                    label_mask_2.append(pair[1])
+                    labels.append(0)
             
+
             
+
             self.ys[i] = np.array(labels)
             self.y_indices[i] = np.stack([label_mask_1, label_mask_2])
+
+    
+           
+
+            # labels = []
+            # label_mask_1 = []
+            # label_mask_2 = []
+
+            # for edge in current_edges:
+            #     if edge in next_edges:
+            #         label_mask_1.append(edge[0])
+            #         label_mask_2.append(edge[1])
+
+            #         next_index = next_edges.index(edge)
+            #         label = next_graph.edge_features[next_index][label_feature_idx]
+            #         labels.append(label)
+            
+            
+            # self.ys[i] = np.array(labels)
+            # self.y_indices[i] = np.stack([label_mask_1, label_mask_2])
     
 
-    def ffill(self):
-        self.align_graphs()
+    def ffill(
+        self,
+        snap_index: int,
+        dataset: List[str], 
+        mlm_model: Union[RobertaInference, BertInference],
+        ) -> None:
+        
+        all_words_count = count_occurence(dataset)
+        graph = self[snap_index]
+
+        node_indecies = [i for i in range(graph.node_features.shape[0]) if np.all(graph.node_features[i, :] == 0)]
+        node_labels = {i: graph.index.index_to_key[i] for i in node_indecies}
+
+        missing_node_features = {}
+
+
+        for idx, word in node_labels.items():
+            embeddings = []
+            relevant_dataset = Loader(dataset).sample(target_words=word, max_documents=100, shuffle=True)
+        
+            for text in relevant_dataset:
+                emb = mlm_model.get_embedding(main_word=word, doc=text)
+                if emb.shape[0] == 0:
+                    continue
+
+                embeddings.append(emb)
+            
+
+            if len(embeddings) == 0:
+                emb = mlm_model.get_embedding(main_word=word)
+                
+
+            elif len(embeddings) == 1:
+                emb = embeddings[0]
+            
+
+            else:
+                all_emb = torch.stack(embeddings)
+                emb = torch.mean(all_emb, dim=0)
+            
+            embedding = emb.detach().numpy()
+            frequency = count_occurence(dataset, word) / all_words_count     
+
+            node_feature = np.concatenate((4, frequency, embedding))
+            missing_node_features[idx] = node_feature
+
+
+        node_features = graph.node_features
+
+        for idx in node_labels.keys():
+            node_features[idx] = missing_node_features[idx]
+
+        
+        self[snap_index] = WordGraph(
+            index=graph.index,
+            node_features=node_features,
+            edge_index=graph.edge_index,
+            edge_features=graph.edge_features,
+            labels=graph.labels,
+            label_mask=graph.label_mask
+        )
+            
+
+
+                    
+
+        
 
         
 
