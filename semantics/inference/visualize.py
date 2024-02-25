@@ -127,6 +127,8 @@ def visualize_graph(
     # add legend from node_color_map
     if legend:
         for key, value in node_color_map.items():
+            if key == 0:
+                continue
             ax.plot([],[],color=value, label=f'Cluster {key}', linewidth=5)
         ax.legend(title='Colors', fontsize=20, title_fontsize=20)
 
