@@ -11,6 +11,7 @@ from semantics.data.data_loader import Loader
 import torch
 import json
 import itertools
+import tqdm
 
 def print_dict_as_json(dict: Dict[str, List[str]]):
     print(json.dumps(dict, indent=4), '\n')
@@ -365,8 +366,11 @@ class TemporalGraph:
 
 
         for idx, word in node_labels.items():
+            print(f'Getting the embeddings for the {i} word: {word} ...\n')
             embeddings = []
             relevant_dataset = Loader(dataset).sample(target_words=word, max_documents=100, shuffle=True)
+
+            progress_bar = tqdm.tqdm(total=len(relevant_dataset))
         
             for text in relevant_dataset:
                 emb = mlm_model.get_embedding(main_word=word, doc=text)
@@ -374,6 +378,7 @@ class TemporalGraph:
                     continue
 
                 embeddings.append(emb)
+                progress_bar.update(1)
             
 
             if len(embeddings) == 0:
@@ -389,9 +394,9 @@ class TemporalGraph:
                 emb = torch.mean(all_emb, dim=0)
             
             embedding = emb.detach().numpy()
-            frequency = count_occurence(dataset, word) / all_words_count     
+            frequency = count_occurence(dataset, word) / all_words_count
 
-            node_feature = np.concatenate((4, frequency, embedding))
+            node_feature = np.concatenate((np.array([4]), np.array([frequency]), embedding))
             missing_node_features[idx] = node_feature
 
 
