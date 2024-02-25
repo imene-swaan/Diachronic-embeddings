@@ -17,7 +17,8 @@ from nltk.corpus import stopwords
 import re
 from word2number import w2n
 from nltk.tag import pos_tag
-
+import nltk
+nltk.download('averaged_perceptron_tagger')
 
 
 logging.basicConfig(level=logging.INFO)
@@ -542,7 +543,7 @@ class RobertaInference:
             k: int = 3,
             min_length: int = 3,
             remove_numbers : bool = True,
-            pot_tag: Union[bool, str] = False
+            pot_tag: Union[bool, str, List[str]] = False
             ) -> List[str]:
         """
         This method is used to infer the vector embeddings of a main_word from a document.
@@ -577,7 +578,11 @@ class RobertaInference:
                 top_k_tokens = torch.topk(logit_set, k).indices
                 top_k_words = [self.tokenizer.decode(token.item()).strip() for token in top_k_tokens]
                 if isinstance(pot_tag, str):
-                    top_k_words = [word for word in top_k_words if pos_tag([word])[0][1] == pot_tag]
+                    pot_tag = [pot_tag]
+                
+                if isinstance(pot_tag, list):
+                    top_k_words = [word for word in top_k_words if pos_tag([word])[0][1] in pot_tag]
+                    
                 elif pot_tag:
                     main_pos = pos_tag([main_word])[0][1]
                     top_k_words = [word for word in top_k_words if pos_tag([word])[0][1] == main_pos]

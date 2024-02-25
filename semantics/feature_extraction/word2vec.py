@@ -7,6 +7,10 @@ from pathlib import Path
 from typing import List, Optional, Union
 import re
 from nltk.corpus import stopwords
+from nltk.tag import pos_tag
+import nltk
+nltk.download('averaged_perceptron_tagger')
+
 
 class Word2VecTrainer:  
     """
@@ -338,6 +342,7 @@ class Word2VecInference:
             self,
             main_word: str,
             k: int = 10,
+            pot_tag: Union[bool, str, List[str]] = False
             ):
         """
         Get the top k most similar words to a word in the vocabulary of the model. Default k = 10
@@ -373,6 +378,8 @@ class Word2VecInference:
 
             top_k_words = []
             i = k
+            if isinstance(pot_tag, str):
+                pot_tag = [pot_tag]
 
             while len(top_k_words) < k:
                 sims = self.word_vectorizor.model.wv.most_similar(main_word, topn= i)
@@ -381,6 +388,14 @@ class Word2VecInference:
                 words = list(map(lambda x: re.sub(r"\W", '', x), words))
                 stop_words = list(set(stopwords.words('english'))) + ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelveth', 'also', 'would', 'could', 'south', 'north', 'east', 'west', 'even', 'should', 'might', 'must', 'many', 'much', 'several', 'often', 'sometimes', 'always', 'never', 'however', 'although', 'though', 'yet']
                 words = list(filter(lambda x: all([x != main_word, x not in main_word, main_word not in x, len(x) > 3, x not in stop_words, x not in top_k_words]), words))
+
+                
+                if isinstance(pot_tag, list):
+                    words = [word for word in words if pos_tag([word])[0][1] in pot_tag]
+                    
+                elif pot_tag:
+                    main_pos = pos_tag([main_word])[0][1]
+                    words = [word for word in words if pos_tag([word])[0][1] == main_pos]
 
                 top_k_words.extend(words)
                 i += 1
