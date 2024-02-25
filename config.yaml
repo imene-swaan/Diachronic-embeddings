@@ -66,6 +66,7 @@ temporal_graph_options:
     edge_threshold: 0.1
     accumulate: False
     use_context_only: False
+    label_feature_idx: 1
     keep_k: 
         0: [6,3]
         1: [2,1]
@@ -136,11 +137,12 @@ target_words: [
 obsedian_options:
     obsedian_vault: "semantics-obsedian"
     view_period: -1
+    view_graph: "clustering" # "wordgraph", "clustering"
 
 models:
     roberta_path: '{}/MLM_roberta_{}'
     word2vec_path: '{}/word2vec_aligned/w2v_{}_a.model'
-    tgcn_path: '{}/TGCN/model'
+    tgcn_path: '{}/TGCN_f/model'
 
 
 tgcn_options:
@@ -177,8 +179,8 @@ animation_options:
 
 
 clustering_options:
-    n_clusters: 5
-    method: 'girvan_newman' # kclique', 'louvain'
+    n_clusters: 3
+    method: 'connected_components' # kclique', 'louvain', 'connected_components', 'girvan_newman'
     wordgraph:
         node_size_feature: 0
         edge_label_feature: 1
@@ -188,7 +190,7 @@ clustering_options:
 
 
 pipeline:
-    load_data: False
+    load_data: True
     preprocess: False
     save_preprocessed: False
     train_mlm: False
@@ -197,16 +199,19 @@ pipeline:
     construct_temporal_graph: False
     save_temporal_graph: False
     load_temporal_graph: True
+    visualize_wordgraph: False
+    animate_wordgraph: False
+    cluster_wordgraph: False
     visualize_obsedian: False
-    train_tgcn: False
-    load_tgcn: False
-    Infer_tgcn: False
+    fill_temporal_graph: True
+    save_filled_temporal_graph: True
+    load_filled_temporal_graph: True
+    train_tgcn: True
+    load_tgcn: True
+    Infer_tgcn: True
     Tgcn_embeddings: False
     load_embeddings: False
     semantic_score: False
-    visualize_wordgraph: False
-    animate_wordgraph: False
-    cluster_wordgraph: True
 
 
 
