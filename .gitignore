@@ -1,6 +1,7 @@
 input/
 notebooks/
 output/
+output_accumulated/
 DS_Store
 trial1/
 *.ttf
