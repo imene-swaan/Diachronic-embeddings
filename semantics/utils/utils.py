@@ -4,7 +4,7 @@ import random
 import numpy as np
 from typing import List, Union, Optional, Tuple
 from collections import Counter
-
+import colorsys
 
 
 def generate_colors(num_colors=3, range_min=0.0, range_max=1.0):
@@ -17,11 +17,28 @@ def generate_colors(num_colors=3, range_min=0.0, range_max=1.0):
     Returns:
         colors (List[str]): A list of colors in hex format.
     """
-    return ['#{:02x}{:02x}{:02x}'.format(
-        int(random.uniform(range_min, range_max) * 255),
-        int(random.uniform(range_min, range_max) * 255),
-        int(random.uniform(range_min, range_max) * 255)
-    ) for _ in range(num_colors)]
+    colors = []
+    for i in range(num_colors):
+        # Evenly distribute hue across the spectrum
+        hue = i / num_colors
+        # Set saturation and lightness to high values for shiny colors
+        saturation = 0.9  # High saturation for vivid color
+        lightness = 0.5   # Balanced lightness for shininess
+        
+        # Convert HSL to RGB
+        r, g, b = colorsys.hls_to_rgb(hue, lightness, saturation)
+        
+        # Convert RGB from 0-1 range to 0-255 range and format as hex
+        color = '#{0:02x}{1:02x}{2:02x}'.format(int(r*255), int(g*255), int(b*255))
+        colors.append(color)
+    
+    return colors
+
+    # ['#{:02x}{:02x}{:02x}'.format(
+    #     int(random.uniform(range_min, range_max) * 255),
+    #     int(random.uniform(range_min, range_max) * 255),
+    #     int(random.uniform(range_min, range_max) * 255)
+    # ) for _ in range(num_colors)]
 
 
 
