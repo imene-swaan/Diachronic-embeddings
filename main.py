@@ -373,29 +373,7 @@ def main(**kwargs):
             y_indices= y_indices,
         )
     
-    if pipeline['visualize_obsedian']:
-        print('Creating the obsedian graph')
-        obsedian_options = kwargs.get('obsedian_options', None)
-        if obsedian_options is None:
-            raise ValueError('Obsedian options are not defined')
-
-        obsedian_vault = obsedian_options.get('obsedian_vault', None)
-        if obsedian_vault is None:
-            raise ValueError('Obsedian vault is not defined')
-        
-        view_period = obsedian_options.get('view_period', None)
-        if view_period is None:
-            raise ValueError('View period (snapshot) is not defined')
-
-        obsedian_graph = ObsedianGraph(
-            vault_path= obsedian_vault,
-            graph= tg[view_period],
-            )
-        obsedian_graph.generate_markdowns(folder= f'{periods[view_period]}', add_tag= f'{periods[view_period]}')
-        obsedian_graph.JugglStyle()
-        obsedian_graph.Filter(by_tag= f'{periods[view_period]}')
     
-
 
     if pipeline['visualize_wordgraph']:
         print('Creating the graph visualizations ...')  
@@ -549,6 +527,41 @@ def main(**kwargs):
                 fig.savefig(f)
     
 
+    if pipeline['visualize_obsedian']:
+        print('Creating the obsedian graph')
+        obsedian_options = kwargs.get('obsedian_options', None)
+        if obsedian_options is None:
+            raise ValueError('Obsedian options are not defined')
+
+        obsedian_vault = obsedian_options.get('obsedian_vault', None)
+        if obsedian_vault is None:
+            raise ValueError('Obsedian vault is not defined')
+        
+        view_period = obsedian_options.get('view_period', None)
+        if view_period is None:
+            raise ValueError('View period (snapshot) is not defined')
+
+        view_graph = obsedian_options.get('view_graph', "wordgraph")
+        if view_graph == "wordgraph":
+            obsedian_graph = ObsedianGraph(
+                vault_path= obsedian_vault,
+                graph= tg[view_period],
+                )
+        
+        elif view_graph == "clustering":
+            obsedian_graph = ObsedianGraph(
+                vault_path= obsedian_vault,
+                graph= clusted_tg[view_period],
+                )
+        
+        else:
+            raise ValueError('View graph is not defined')
+        
+        obsedian_graph.generate_markdowns(folder= f'{periods[view_period]}', add_tag= f'{periods[view_period]}')
+        obsedian_graph.JugglStyle()
+        obsedian_graph.Filter(by_tag= f'{periods[view_period]}')
+    
+
 
     if pipeline['fill_temporal_graph']:
         print('Filling the temporal Graph ...')
@@ -570,6 +583,92 @@ def main(**kwargs):
                 )
         
         filled_tg.label_graphs(label_feature_idx= None)
+    
+
+    if pipeline['save_filled_temporal_graph']:
+        print('Saving the filled temporal Graph ...')
+        if not os.path.exists(f'{output_dir}/inference_filled'):
+            os.mkdir(f'{output_dir}/inference_filled') 
+
+        with open(f'{output_dir}/inference_filled/index.json', 'w') as f:
+            json.dump(dict(filled_tg[0].index), f, indent=4)
+            
+        
+        for i, period in enumerate(periods):
+            print(f'Saving the Graph of {period} ...')
+            print('xs: ', filled_tg[i].node_features.shape)
+            print('edge_indices: ', filled_tg[i].edge_index.shape)
+            print('edge_features: ', filled_tg[i].edge_features.shape)
+            print('ys: ', filled_tg[i].labels.shape)
+            print('y_indices: ', filled_tg[i].label_mask.shape, '\n')
+
+            if not os.path.exists(f'{output_dir}/inference_filled/inference_{period}'):
+                os.mkdir(f'{output_dir}/inference_filled/inference_{period}')
+            
+            nodes = dict(filled_tg.nodes[i])
+
+            with open(f'{output_dir}/inference_filled/inference_{period}/nodes.json', 'w') as f:
+                json.dump(nodes, f, indent=4)
+
+            with open(f'{output_dir}/inference_filled/inference_{period}/edge_indices.npy', 'wb') as f:
+                np.save(f, filled_tg[i].edge_index)
+
+            with open(f'{output_dir}/inference_filled/inference_{period}/edge_features.npy', 'wb') as f:
+                np.save(f, filled_tg[i].edge_features)
+
+            with open(f'{output_dir}/inference_filled/inference_{period}/xs.npy', 'wb') as f:
+                np.save(f, filled_tg[i].node_features)
+
+            with open(f'{output_dir}/inference_filled/inference_{period}/ys.npy', 'wb') as f:
+                np.save(f, filled_tg[i].labels)
+
+            with open(f'{output_dir}/inference_filled/inference_{period}/y_indices.npy', 'wb') as f:
+                np.save(f, filled_tg[i].label_mask)
+
+
+    if pipeline['load_filled_temporal_graph']:
+        print('Loading the filled Graphs ...')
+        xs = []
+        ys = []
+        edge_indices = []
+        edge_features = []
+        y_indices = []
+
+        with open(f'{output_dir}/inference_filled/index.json', 'r') as f:
+            d = json.load(f)
+
+        index_to_key = dict(map(lambda item: (int(item[0]), item[1]), d['index_to_key'].items()))
+        graph_index = GraphIndex(index_to_key= index_to_key, key_to_index= d['key_to_index'])
+        index = [graph_index] * len(periods)
+
+        for period in periods:
+            print(f'Loading the Graph of {period} ...', '\n')
+            with open(f'{output_dir}/inference_filled/inference_{period}/edge_indices.npy', 'rb') as f:
+                edge_indices.append(np.load(f))
+            
+            with open(f'{output_dir}/inference_filled/inference_{period}/edge_features.npy', 'rb') as f:
+                edge_features.append(np.load(f))
+
+            with open(f'{output_dir}/inference_filled/inference_{period}/xs.npy', 'rb') as f:
+                xs.append(np.load(f))
+
+            with open(f'{output_dir}/inference_filled/inference_{period}/ys.npy', 'rb') as f:
+                ys.append(np.load(f))
+
+            with open(f'{output_dir}/inference_filled/inference_{period}/y_indices.npy', 'rb') as f:
+                y_indices.append(np.load(f))
+
+
+        filled_tg = TemporalGraph(
+            index= index,
+            xs= xs,
+            ys= ys,
+            edge_indices= edge_indices,
+            edge_features= edge_features,
+            y_indices= y_indices,
+        )
+
+        
             
     
     if pipeline['train_tgcn']:
@@ -580,8 +679,10 @@ def main(**kwargs):
             raise ValueError('TGCN options are not defined')
         
 
-        tg_upto2015 = filled_tg.copy()
-        del tg_upto2015[-1]
+        tg_upto2012 = filled_tg.copy()
+        del tg_upto2012[-1] # remove 2017
+        del tg_upto2012[-1] # remove 2015
+
 
         number_node_features = xs[0].shape[1]
         number_edge_features = edge_features[0].shape[1]
@@ -595,7 +696,7 @@ def main(**kwargs):
             os.mkdir(tgcn_dir)
         
         gnn.train(
-            graph= tg_upto2015,
+            graph= tg_upto2012,
             output_dir= tgcn_path)
     
     if pipeline['load_tgcn']:
@@ -610,15 +711,29 @@ def main(**kwargs):
         )
     
     if pipeline['Infer_tgcn']:
+        tg_2015 = filled_tg.copy()
+        del tg_2015[-1] # remove 2017
+        del tg_2015[:-1] # remove everything before 2015
+
         tg_2017 = filled_tg.copy()
-        del tg_2017[:-1]
+        del tg_2017[:-1] # remove everything before 2017
 
-        y_hat = tgcn.predict(graph= tg_2017)
 
-        # print('y_hat length: ', len(y_hat), '\n')
-        # print('y_hat type: ', type(y_hat[0]), '\n')
-        # print('y_hat shape: ', y_hat[0].shape, '\n')
+        y_hat = tgcn.predict(graph= tg_2015)
 
+        print('y_hat: ', y_hat, '\n')
+        print('Shape of y_hat: ', y_hat.shape, '\n')
+
+        y = tg_2015[0].labels.reshape(-1, 1)
+
+        print('y: ', y, '\n')
+        print('Shape of y: ', y.shape, '\n')
+
+        ys = tg_2015[0].label_mask.reshape(-1, 1)
+        print('ys: ', ys, '\n')
+        print('Shape of ys: ', ys.shape, '\n')
+
+        raise ValueError('Stop here')
 
         y = tg_2017[0].edge_features[:, 1].reshape(-1, 1)
         mse = tgcn.mse_loss(y_hat= y_hat, y= y)
