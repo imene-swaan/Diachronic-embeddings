@@ -425,6 +425,29 @@ class WordTraffic:
 
 
     
+def visualize_change(
+        ts: list, 
+        breaks: list, 
+        periods: list, 
+        target: Optional[str] = None, 
+        title: str = 'Change Point Detection'
+        ) -> plt.Figure:
+    fig = plt.figure(figsize=(20, 10))
+    plt.plot(periods, ts, label= target)
+    plt.ylim(0.1, 1.1)
+    plt.xlabel('Time')
+    plt.ylabel('Score')
+
+    for brk in breaks:
+        plt.axvline(x=brk, color='r', linestyle='--')
+    
+    plt.legend()
+    plt.title(title)
+    plt.grid()
+    plt.xticks(rotation=45)
+
+    return fig
+
 
 
 
