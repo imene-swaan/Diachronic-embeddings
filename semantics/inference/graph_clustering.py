@@ -46,7 +46,7 @@ class GraphClustering:
 
     def get_clusters(
             self,
-            method: Literal['louvain', 'kclique', 'girvan_newman'] = 'louvain',
+            method: Literal['louvain', 'kclique', 'girvan_newman', 'connected_components'] = 'girvan_newman',
             k: Optional[int] = None,
             label: bool = True,
             structure: bool = False
@@ -58,6 +58,8 @@ class GraphClustering:
             return self._kclique(k, label, structure)
         elif method == 'girvan_newman':
             return self._girvan_newman(k=k, label=label, structure=structure)
+        elif method == 'connected_components':
+            return self._byConnectedComponents(label, structure)
         else:
             raise ValueError(f'Unknown clustering method: {method}')
     
@@ -105,28 +107,44 @@ class GraphClustering:
         
         return clusters
     
-    def _girvan_newman(self, k: int = 4, label: bool = True, structure: bool = False):
+    def _girvan_newman(self, k: Optional[int] = None, label: bool = True, structure: bool = False):
         comp = community.girvan_newman(self.graph)
 
         dendrogram = []
-        for communities in itertools.islice(comp, k-1):
+        for communities in itertools.islice(comp, None):
             clusters = list(sorted(c) for c in communities)
             if label:
                 labeled_clusters = [[self.labels[i] for i in c] for c in clusters]
                 dendrogram.append(labeled_clusters)
             else:
                 dendrogram.append(clusters)
-        
+
         if k is not None:
+            # find the clustering with k clusters or the last clustering
+            lengths = [len(c) for c in dendrogram]
+            diff = [abs(k - l) for l in lengths]
+            min_diff_index = diff.index(min(diff))
+            clustering = dendrogram[min_diff_index]
+            
             if structure:
-                c = self._StructureClustering(dendrogram[-1])
-                return c
-            else:
-                return dendrogram[-1]
+                clustering = self._StructureClustering(clustering)
+                
+            return clustering
+        
         else:
             return dendrogram
             
 
+    def _byConnectedComponents(self, label: bool = True, structure: bool = False):
+        comp = list(nx.connected_components(self.graph))
+        clusters = list(sorted(c) for c in comp)
+        if label:
+            clusters = [[self.labels[i] for i in c] for c in clusters]
+        
+        if structure:
+            clusters = self._StructureClustering(clusters)
+            
+        return clusters
         
         
         
