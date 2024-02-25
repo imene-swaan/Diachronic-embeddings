@@ -269,6 +269,17 @@ class TGCNInference:
         
         
         return F.mse_loss(y_hat, y).item()
+    
+    def mae_loss(self, y_hat, y):
+        if isinstance(y_hat, list):
+            y_hat = torch.cat(y_hat)
+        if isinstance(y, list):
+            y = torch.cat(y)
+        
+        if isinstance(y, np.ndarray):
+            y = torch.from_numpy(y)
+        
+        return F.l1_loss(y_hat, y).item()
 
 
     def get_embedding(
