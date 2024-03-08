@@ -359,14 +359,15 @@ class TemporalGraph:
         all_words_count = count_occurence(dataset)
         graph = self[snap_index]
 
+        print('Current nodes: ', len([i for i in range(graph.node_features.shape[0]) if not np.all(graph.node_features[i, :] == 0)]), '\n')
         node_indecies = [i for i in range(graph.node_features.shape[0]) if np.all(graph.node_features[i, :] == 0)]
         node_labels = {i: graph.index.index_to_key[i] for i in node_indecies}
 
         missing_node_features = {}
 
-
+        print('Total number of missing words:', len(node_indecies), '\n')
         for idx, word in node_labels.items():
-            print(f'Getting the embeddings for the {i} word: {word} ...\n')
+            print(f'Getting the embeddings for the {idx} word: {word} ...\n')
             embeddings = []
             relevant_dataset = Loader(dataset).sample(target_words=word, max_documents=100, shuffle=True)
 
@@ -404,6 +405,24 @@ class TemporalGraph:
 
         for idx in node_labels.keys():
             node_features[idx] = missing_node_features[idx]
+
+
+        # Add all pairs edges is needed
+        # all_possible_node_pairs = set(itertools.combinations(list(graph.index.index_to_key.keys()), 2))
+
+        # current_edges = [tuple(edge) for edge in graph.edge_index.T]
+
+        # new_edge_index_1 = []
+        # new_edge_index_2 = []
+
+
+
+        # for pair in all_possible_node_pairs:
+        #     if pair not in current_edges and pair[::-1] not in current_edges:
+        #         node_1 = pair[0]
+        #         node_2 = pair[1]
+
+                
 
         
         self[snap_index] = WordGraph(

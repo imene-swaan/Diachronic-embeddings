@@ -9,7 +9,7 @@ import re
 from nltk.corpus import stopwords
 from nltk.tag import pos_tag
 import nltk
-nltk.download('averaged_perceptron_tagger')
+# nltk.download('averaged_perceptron_tagger')
 
 
 class Word2VecTrainer:  

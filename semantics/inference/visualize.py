@@ -4,12 +4,14 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.colors as mcolors
 from semantics.graphs.temporal_graph import TemporalGraph
 from semantics.utils.components import WordGraph
-from semantics.utils.utils import generate_colors
+from semantics.utils.utils import generate_colors, count_occurence
+from semantics.data.data_loader import Loader
 import numpy as np
 from typing import Optional, Union, Tuple, Literal, List, Dict
 import json
 from collections import deque
-
+import imageio
+import os
 
 
 def visualize_graph(
@@ -58,19 +60,43 @@ def visualize_graph(
     else:
         fig = ax.figure
 
-    ax.set_title(title)
+    plt.title(title, fontsize=35)
     
     nodes = [i for i in range(graph.node_features.shape[0]) if graph.node_features[i].sum() > 0]
+    nodes = [i for i in nodes if graph.node_features[i, node_color_feature] not in [0,-1]]
+
+    print('Nodes:', nodes)
+   
+
     
+    # feature unique values if row is not empty
+    unique_values = np.unique(graph.node_features[nodes, node_color_feature].tolist())
+    unique_clusters = [1,2,3,4,5,6]  # [int(val) for val in unique_values]
+
+    # target_idx = graph.index.key_to_index[target_node]
+    # edges = list(map(tuple, graph.edge_index.T.tolist()))
+    # edges = list(filter(lambda x: target_idx in x, edges))
+    # print(edges)
+    # nodes = [i for i in range(graph.node_features.shape[0]) if (i, target_idx) in edges or (target_idx, i) in edges] + [target_idx]
+    # print(nodes)
+    # print('Target:', target_idx)
+
+
     try: 
         node_labels = {i: graph.index.index_to_key[i] for i in nodes}
     except:
         node_labels = {i: graph.index.index_to_key[str(i)] for i in nodes}
 
+    # node_labels = {i: 'Contextual' for i in nodes if graph.node_features[i, node_color_feature] == 2}
+    # node_labels.update({i: 'Interchangeable' for i in nodes if graph.node_features[i, node_color_feature] == 3})
+    # node_labels.update({i: 'Target' for i in nodes if graph.node_features[i, node_color_feature] == 1})
+
     node_sizes = [5500 if graph.node_features[node, node_size_feature] == 1 else 
                     4000 if graph.node_features[node, node_size_feature] == 2 else 
                     2000 if graph.node_features[node, node_size_feature] == 3 else 
                     50 for node in nodes]
+
+    # node_sizes = [10500] * len(nodes)
     
     if node_color_map is None:
         node_types = np.unique(graph.node_features[:, node_color_feature].tolist())
@@ -82,7 +108,10 @@ def visualize_graph(
         node_colors = [node_color_map[graph.node_features[node, node_color_feature]] for node in nodes]
 
     edges = list(map(tuple, graph.edge_index.T.tolist()))
+    edges = [e for e in edges if e[0] in nodes and e[1] in nodes and e[0] != e[1]]
     edge_labels = {(int(k[0]), int(k[1])): np.round(v, 2) for k, v in zip(edges, graph.edge_features[:, edge_label_feature])}
+
+    
 
     G = nx.Graph()
     G.add_nodes_from(nodes)
@@ -113,6 +142,7 @@ def visualize_graph(
     
     edge_colors = [cmap(norm(weight)) for weight in edge_weights]
     edge_widths = [weight * 10 for weight in edge_weights]
+
     nx.draw(G, pos, with_labels=False, node_color= node_colors, edge_color=edge_colors,
                 width=edge_widths, node_size=node_sizes, font_size=25)
 
@@ -127,7 +157,10 @@ def visualize_graph(
     # add legend from node_color_map
     if legend:
         for key, value in node_color_map.items():
-            if key == 0:
+            # if key == 0:
+            #     continue
+
+            if key not in unique_clusters:
                 continue
             ax.plot([],[],color=value, label=f'Cluster {key}', linewidth=5)
         ax.legend(title='Colors', fontsize=20, title_fontsize=20)
@@ -276,9 +309,7 @@ class WordTraffic:
             node_color_feature: int = 0,
             edge_label_feature: int = 1,
             node_color_map: Optional[dict] = None,
-            target_node: str = 'trump',
-            radius: float = 2, # Distance from target node to level 1 nodes
-            distance: float = 2 # Distance from level 1 nodes to level 2 nodes
+            target_node: str = 'trump'
         ):
         """
         Initialize the WordTraffic object.
@@ -353,7 +384,7 @@ class WordTraffic:
             G.add_edge(*edge)
 
         target_idx = temporal_graph[0].index.key_to_index[target_node]
-        self.all_nodes_positions = create_position_template(graph=G, target_node_idx=target_idx, radius=radius, distance=distance)
+        self.all_nodes_positions = create_position_template(graph=G, target_node_idx=target_idx)
 
         del G
         del index_to_key
@@ -436,23 +467,104 @@ def visualize_change(
         ) -> plt.Figure:
     fig = plt.figure(figsize=(20, 10))
     plt.plot(periods, ts, label= target)
-    plt.ylim(0.1, 1.1)
-    plt.xlabel('Time')
-    plt.ylabel('Score')
+    # plt.ylim(0.1, 1.1)
+    plt.xlabel('Time', fontsize=20)
+    plt.ylabel('Semantif Shift Score', fontsize=20)
 
     for brk in breaks:
         plt.axvline(x=brk, color='r', linestyle='--')
     
     plt.legend()
-    plt.title(title)
+    plt.title(title, fontsize=25)
     plt.grid()
-    plt.xticks(rotation=45)
+    plt.xticks(rotation=45, fontsize=20)
 
     return fig
 
 
 
+def WordFrequency(
+        data: Dict[str, List[str]],
+        main_word: str,
+        labels: List[str],
+        type: Literal['relative', 'total'] = 'total'
+        ) -> plt.Figure:
+    
+    frequencies = []
+    
+    for label in labels:
+        all_words_count = count_occurence(data[label])
+        if type == 'total':
+            f = count_occurence(data[label], main_word)
+        else:
+            f = count_occurence(data[label], main_word) / all_words_count
+        frequencies.append(f)
+   
+    fig, _ = plt.subplots(figsize=(8, 5))
+    plt.plot(labels, frequencies)
+    plt.title(f'{type} frequency of {main_word} across time')
+    plt.xlabel('Time')
+    plt.ylabel(f'{type} frequency')
+    plt.xticks(ticks=labels, rotation=45)
+    plt.tight_layout()
+    
+    return fig
 
+
+
+# def visualize_change(
+#         ts: list,
+#         periods: list,
+#         min_max_y: Tuple[float, float] = (0.1, 1.1),
+#         title: str = 'Line plot of change detection.'
+#     ):
+#     fig = plt.figure(figsize=(8, 5))
+#     plt.plot(periods, ts)
+#     plt.ylim(min_max_y)
+#     plt.xlabel('Time')
+#     plt.ylabel('Score')
+#     plt.title(title)
+#     plt.grid()
+#     plt.xticks(rotation=45)
+
+#     return fig
+
+
+
+
+def plotTseries(
+        ts: List[List[float]],
+        legend: List[str],
+        time: Optional[List[str]] = None,
+        title: str = 'Time Series Plot',
+        colors: List[str] = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
+    ):
+
+    fig = plt.figure(figsize=(8, 5))
+    for i in range(len(ts)):
+        plt.plot(time, ts[i],  label=legend[i], color = colors[i])
+    
+    # plt.ylim(0.0, 1.0)
+    plt.xlabel('Time')
+    plt.ylabel('Count')
+    plt.title(title)
+    plt.legend()
+    plt.grid()
+    plt.xticks(ticks=time, rotation=45)
+    plt.tight_layout()
+    return fig
+
+
+
+
+    
+def animate(filenames: List[str], save_path: str):
+    with imageio.get_writer(f'{save_path}/my_animation.gif', mode='I', duration=20, loop=0) as writer:
+        for filename in filenames:
+            image = imageio.imread(filename)
+            # Append each frame multiple times to slow down the animation
+            for _ in range(100):  # Adjust the range as needed to control the speed
+                writer.append_data(image)
 
 if __name__ == '__main__':
     pass

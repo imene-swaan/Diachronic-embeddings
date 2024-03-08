@@ -1,6 +1,7 @@
 input/
 notebooks/
 output/
+output_trump/
 output_accumulated/
 DS_Store
 trial1/

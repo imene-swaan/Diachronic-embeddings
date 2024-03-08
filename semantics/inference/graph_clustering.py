@@ -7,6 +7,7 @@ import community as community_louvain
 import numpy as np
 from typing import Literal, Optional, Union, List
 import itertools
+import pandas as pd
 
 def wordgraph_to_networkx(
         graph: WordGraph,
@@ -146,11 +147,112 @@ class GraphClustering:
             
         return clusters
         
+
+
+class ClusterMerger:
+    def __init__(self, overlap_threshold=0.0):
+        self.overlap_threshold = overlap_threshold
+        self.merged_clusters = {}
+        self.next_cluster_id = 0  # New attribute to track the next available unique ID
+
+    @staticmethod
+    def calculate_overlap(cluster_a, cluster_b):
+        """Calculate the percentage of overlap between two clusters."""
+        set_a = set(cluster_a)
+        set_b = set(cluster_b)
+        intersection = set_a.intersection(set_b)
+        smallest_set_size = min(len(set_a), len(set_b))
+        if smallest_set_size == 0:
+            return 0
+        overlap_percentage = len(intersection) / smallest_set_size
+        return overlap_percentage
+
+    def merge_clusters(self, clusters_by_year):
+        """Merge clusters through years based on the initialized overlap threshold."""
+        first = True
+        previous_year = None
+
+        indecies = set()
+
+        for year, clusters in clusters_by_year.items():
+            if year not in self.merged_clusters:
+                self.merged_clusters[year] = {}
+            
+            if first:
+                for i, cluster in enumerate(clusters):
+                    self.merged_clusters[year][i] = cluster
+                    indecies.add(i)
+                first = False
+                previous_year = year
+                continue
+
+
+            
+            for current_cluster in clusters:
+                max_overlap = 0
+                max_overlap_key = None
+
+       
+                for k, v in self.merged_clusters[previous_year].items():
+                    overlap = self.calculate_overlap(current_cluster, v)
+                    if overlap > max_overlap and overlap > self.overlap_threshold:
+                        max_overlap = overlap
+                        max_overlap_key = k
+               
+                
+                if max_overlap_key is not None:
+                    # change the cluster ID to the previous year's cluster ID
+                    if max_overlap_key in self.merged_clusters[year].keys():
+                        self.merged_clusters[year][max_overlap_key].extend(current_cluster)
+                    
+                    else:
+                        self.merged_clusters[year][max_overlap_key] = current_cluster
+                    
+                        
+                else:
+                    new_id = max(indecies) + 1
+                    indecies.add(new_id)
+                    self.merged_clusters[year][new_id] = current_cluster
+            
+            previous_year = year
+
         
+        # cluster distribution
         
+        cluster_counts = {}
+        for year, clusters in self.merged_clusters.items():
+            for k, v in clusters.items():
+                if k in cluster_counts.keys():
+                    cluster_counts[k] += 1
+                else:
+                    cluster_counts[k] = 1
+
+        
+        redundant_index = -1
+        clean_clusters = {}
+
+        for year, clusters in self.merged_clusters.items():
+            clean_clusters[year] = {}
+            for k in sorted(clusters.keys()):
+                if cluster_counts[k] > 1:
+                    clean_clusters[year][k] = clusters[k]
+                       
+                
+                else:
+                    if redundant_index in clean_clusters[year].keys():
+                        clean_clusters[year][redundant_index].extend(clusters[k])
+                    else:
+                        clean_clusters[year][redundant_index] = clusters[k]
 
 
+        self.clean_clusters = clean_clusters
+        # self.clean_clusters = self.merged_clusters
 
+    def get_merged_clusters(self):
+        """Get the merged clusters along with their unique IDs."""
+        return self.clean_clusters
+    
+    
 
 
 if __name__ == '__main__':

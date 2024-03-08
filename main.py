@@ -5,19 +5,21 @@ from semantics.data.data_preprocessing import PREPROCESS
 from semantics.feature_extraction.roberta import  RobertaInference, RobertaTrainer
 from semantics.feature_extraction.word2vec import Word2VecInference, Word2VecTrainer, Word2VecAlign
 from semantics.graphs.temporal_graph import TemporalGraph
-from semantics.inference.visualize import WordTraffic, visualize_graph, visualize_change
+from semantics.inference.visualize import WordTraffic, visualize_graph, visualize_change, animate, WordFrequency, plotTseries
 from semantics.inference.obsedian import ObsedianGraph
 from semantics.inference.semantic_shift import SemanticShift
-from semantics.inference.graph_clustering import GraphClustering
+from semantics.inference.graph_clustering import GraphClustering, ClusterMerger
 from semantics.utils.utils import count_occurence, generate_colors
 from semantics.utils.components import GraphIndex, WordGraph
 from semantics.models.tgcn import TemporalGCNTrainer, TGCNInference
+from semantics.models.link_prediction import TemporalGCNTrainer, LPInference
 import os
 import numpy as np
 import json
 import yaml
 from pathlib import Path
 from glob import glob
+import pandas as pd
 
 def main(**kwargs):
     #load the pipeline of the experiment
@@ -373,6 +375,47 @@ def main(**kwargs):
             y_indices= y_indices,
         )
     
+    if pipeline['descriptive_stats']:
+        print('Calculating the descriptive statistics ...')
+        n = []
+        e = []
+        for i, period in enumerate(periods):
+            print(f'of {period} ...')
+            
+            # count the number of nodes (node features row is not all zeros)
+            number_of_nodes = np.count_nonzero(tg[i].node_features, axis= 0)[0]
+            number_of_edges = tg[i].edge_index.shape[1]
+            n.append(number_of_nodes)
+            e.append(number_of_edges)
+
+            print('Number of nodes: ', number_of_nodes)
+            print('Number of edges: ', number_of_edges, '\n')
+        
+     
+        if not os.path.exists(f'{output_dir}/images_desc'):
+            os.mkdir(f'{output_dir}/images_desc')
+
+        fig = WordFrequency(
+            data= corpora,
+            main_word= target_words[0],
+            labels= periods,
+            type= 'relative'
+            )
+        
+        with open(f'{output_dir}/images_desc/word_frequency.png', 'wb') as f:
+            fig.savefig(f)
+
+        fig = plotTseries(
+            ts = [n, e],
+            legend= ['Number of nodes', 'Number of edges'],
+            time = periods,
+            title = ' '
+        )
+        
+        
+        with open(f'{output_dir}/images_desc/ts.png', 'wb') as f:
+            fig.savefig(f)
+
     
 
     if pipeline['visualize_wordgraph']:
@@ -393,8 +436,8 @@ def main(**kwargs):
             2: "#13ebef",
             3: "#4476ff"
         }
-        if not os.path.exists(f'{output_dir}/images'):
-            os.mkdir(f'{output_dir}/images')
+        if not os.path.exists(f'{output_dir}/images_l1'):
+            os.mkdir(f'{output_dir}/images_l1')
 
         for i, period in enumerate(periods):
             print(f'Creating the plot for {period}, target {target_words[0]}...')
@@ -402,11 +445,12 @@ def main(**kwargs):
                 graph= tg[i],
                 node_color_map= node_color_map,
                 target_node= target_words[0],
+                title= f'Graph of {period}',
                 **wordgraph_options
                 )
 
            
-            with open(f'{output_dir}/images/graph_{periods[i]}.png', 'wb') as f:
+            with open(f'{output_dir}/images_l1/graph_{periods[i]}.png', 'wb') as f:
                 fig.savefig(f)
 
        
@@ -436,6 +480,10 @@ def main(**kwargs):
         method = clustering_options.get('method', None)
 
         clusted_tg = tg.copy()
+        file_names = []
+      
+
+        clusterings = {}
 
         for i, period in enumerate(periods):
             print(f'of {period} ...')
@@ -466,11 +514,104 @@ def main(**kwargs):
 
             gc = GraphClustering(graph= g)
             communities = gc.get_clusters(method= method, k = k, label= True, structure= False)
-            print('Communities: ', communities, '\n')
+            # print('Communities: ', communities, '\n')
             
-            raw_clusters = gc.get_clusters(method= method, k = k, label= False, structure= True)
-            print('Raw clusters: ', raw_clusters, '\n')
+            raw_clusters = gc.get_clusters(method= method, k = k, label= False, structure= False)
 
+            # clusterings[period] = communities
+            clusterings[period] = raw_clusters
+
+
+        # print('Clusterings: ', clusterings, '\n')
+        # align the clusters
+        aligner = ClusterMerger()
+        aligner.merge_clusters(clusterings)
+        aligned_clusters = aligner.get_merged_clusters()
+        print('Aligned clusters: ', aligned_clusters, '\n')
+
+        # with open(f'{output_dir}/aligned_clusters.json', 'w') as f:
+        #     json.dump(aligned_clusters, f, indent=4)
+
+        # raise ValueError('Stop here')
+
+        with open(f'{output_dir}/aligned_clusters.json', 'r') as f:
+            aligned_clusters = json.load(f)
+
+        aligned_clusters = dict(map(lambda item: (int(item[0]), dict(map(lambda x: (int(x[0]), x[1]), item[1].items()))), aligned_clusters.items()))
+        unique_cluster_ids = set(cid for clusters in aligned_clusters.values() for cid in clusters)
+
+        total_nodes_per_period = {period: sum(len(cluster) for cluster in clusters.values()) for period, clusters in aligned_clusters.items()}
+
+        # The sense distribution
+        sense_distribution = []
+        for i, period in enumerate(periods):
+            d = {'period': period}
+            for cluster_id in unique_cluster_ids:
+                if cluster_id == -1 or cluster_id in [9,8,7,10]:
+                    continue
+                if cluster_id in aligned_clusters[period]:
+                    d[f"cluster_{cluster_id}"] = np.round(len(aligned_clusters[period][cluster_id]) / total_nodes_per_period[period], 2)
+
+                else:
+                    d[f"cluster_{cluster_id}"] = 0
+            
+            sense_distribution.append(d)
+        
+        df = pd.DataFrame(sense_distribution)
+        df.to_csv(f'{output_dir}/sense_distribution.csv', index= False)
+
+        fig = plotTseries(
+            ts= [
+                df[f'cluster_{cluster_id}'] for cluster_id in [1,2,3,4,5,6]
+            ],
+            legend = [
+                "Web-Animal",
+                "Web-Network",
+                "Web-Internet",
+                "Web-Business",
+                "Web-Social-Media",
+                "Web-Search-Engine",
+                # "Trump-business",
+                # "Trump-Reform-Party",
+                # "Trump-Election",
+                # "Trump-Donald",
+                # "Trump-President"
+            ],
+            time= periods,
+            colors = [
+                "#a5f20c",
+                "#0ca5f2",
+                "#a50cf2",
+                "#f20c0c",
+                "#f2a50c",
+                "#0cf2a5",
+                # "#f20ca5",
+                # "#0cf20c",
+                # "#f20c89",
+                # "#0cf236"
+            ]
+            )
+        
+        with open(f'{output_dir}/images_l1/sense_distribution.png', 'wb') as f:
+            fig.savefig(f)
+
+        # visualize the clusters
+        colors = generate_colors(len(unique_cluster_ids))
+        np.random.shuffle(colors)
+        node_color_map = {int(val): color for val, color in zip(unique_cluster_ids, colors)}
+        # save node color map
+        # with open(f'{output_dir}/node_color_map.json', 'w') as f:
+        #     json.dump(node_color_map, f, indent=4)
+
+        
+        with open(f'{output_dir}/node_color_map.json', 'r') as f:
+            node_color_map = json.load(f)
+        
+        node_color_map = {int(key): value for key, value in node_color_map.items()}
+
+
+        for i, period in enumerate(periods):
+            raw_clusters = aligned_clusters[period]
 
             # adding clusters to the node features
             new_feature = np.zeros((tg[i].node_features.shape[0], 1))
@@ -491,26 +632,13 @@ def main(**kwargs):
 
             # visualize the clusters
             node_color_feature = -1
-            unique_clusters = np.unique(new_feature)
-            colors = generate_colors(len(unique_clusters))
-            node_color_map = {int(val): color for val, color in zip(unique_clusters, colors)}
-            # node_color_map = {
-            #     # 0: '#d84c3e',
-            #     1: '#b4f927',
-            #     2: '#13ebef',
-            #     3: '#4476ff',
-            #     4: '#f9f927',
-            #     5: '#d84c3e',
-            #     6: '#12ebef',
-            #     7: '#4400ff',
-            #     8: '#f9f927',
+            # unique_clusters = np.unique(new_feature)
+            # colors = generate_colors(len(unique_clusters))
+            # node_color_map = {int(val): color for val, color in zip(unique_clusters, colors)}
+              
 
-
-            # }
-            
-
-            if not os.path.exists(f'{output_dir}/cluster_images'):  
-                os.mkdir(f'{output_dir}/cluster_images')
+            if not os.path.exists(f'{output_dir}/cluster_images_emp'):  
+                os.mkdir(f'{output_dir}/cluster_images_emp')
 
             
             fig = visualize_graph(
@@ -523,8 +651,19 @@ def main(**kwargs):
                 **clustering_options['wordgraph']
                 )
             
-            with open(f'{output_dir}/cluster_images/graph_{periods[i]}.png', 'wb') as f:
+            with open(f'{output_dir}/cluster_images_emp/graph_{periods[i]}.png', 'wb') as f:
                 fig.savefig(f)
+
+            file_names.append(f'{output_dir}/cluster_images_emp/graph_{periods[i]}.png')
+
+
+
+
+        animate(
+            filenames = file_names, 
+            save_path= f'{output_dir}/cluster_images_emp')
+       
+        
     
 
     if pipeline['visualize_obsedian']:
@@ -605,10 +744,10 @@ def main(**kwargs):
             if not os.path.exists(f'{output_dir}/inference_filled/inference_{period}'):
                 os.mkdir(f'{output_dir}/inference_filled/inference_{period}')
             
-            nodes = dict(filled_tg.nodes[i])
+            # nodes = dict(filled_tg.nodes[i])
 
-            with open(f'{output_dir}/inference_filled/inference_{period}/nodes.json', 'w') as f:
-                json.dump(nodes, f, indent=4)
+            # with open(f'{output_dir}/inference_filled/inference_{period}/nodes.json', 'w') as f:
+            #     json.dump(nodes, f, indent=4)
 
             with open(f'{output_dir}/inference_filled/inference_{period}/edge_indices.npy', 'wb') as f:
                 np.save(f, filled_tg[i].edge_index)
@@ -642,7 +781,7 @@ def main(**kwargs):
         index = [graph_index] * len(periods)
 
         for period in periods:
-            print(f'Loading the Graph of {period} ...', '\n')
+            print(f'Loading the filled Graph of {period} ...', '\n')
             with open(f'{output_dir}/inference_filled/inference_{period}/edge_indices.npy', 'rb') as f:
                 edge_indices.append(np.load(f))
             
@@ -668,8 +807,26 @@ def main(**kwargs):
             y_indices= y_indices,
         )
 
+    if pipeline['train_link_prediction']:
+        print('Training the link prediction model ...')
+        lp_path = model_paths['lp_path'].format(output_dir)
+        lp_dir = str(Path(lp_path).parent)
+
+        if not os.path.exists(lp_dir):
+            os.mkdir(lp_dir)
         
-            
+        tgcn = TemporalGCNTrainer(
+            node_features= filled_tg[0].node_features.shape[1],
+            edge_features= filled_tg[0].edge_features.shape[1],
+            size= 512,
+            epochs= 200,
+            learning_rate= 0.001,
+        ).train(
+            graph= filled_tg,
+            output_dir= lp_path
+        )
+        
+       
     
     if pipeline['train_tgcn']:
         print('Modeling the temporal graph with TGCN ...')
@@ -700,15 +857,26 @@ def main(**kwargs):
             output_dir= tgcn_path)
     
     if pipeline['load_tgcn']:
-        tgcn_path = model_paths['tgcn_path'].format(output_dir)
+        lp_path = model_paths['lp_path'].format(output_dir)
 
-        with open(f'{tgcn_path}.yaml', 'r') as f:
+        with open(f'{lp_path}.yaml', 'r') as f:
             config = yaml.load(f, Loader=yaml.FullLoader)
         
-        tgcn = TGCNInference(
-            pretrained_model_path= f'{tgcn_path}.pt',
+        tgcn = LPInference(
+            pretrained_model_path= f'{lp_path}.pt',
             **config
         )
+
+        losses = config['losses'][:100]
+
+        fig = plotTseries(
+            ts= [losses],
+            legend= ['Loss'],
+            title= 'The Training Loss',
+        )
+        with open(f'{output_dir}/images_desc/loss.png', 'wb') as f:
+            fig.savefig(f)
+
     
     if pipeline['Infer_tgcn']:
         tg_2015 = filled_tg.copy()
@@ -718,28 +886,71 @@ def main(**kwargs):
         tg_2017 = filled_tg.copy()
         del tg_2017[:-1] # remove everything before 2017
 
-
-        y_hat = tgcn.predict(graph= tg_2015)
-
-        print('y_hat: ', y_hat, '\n')
-        print('Shape of y_hat: ', y_hat.shape, '\n')
-
         y = tg_2015[0].labels.reshape(-1, 1)
-
         print('y: ', y, '\n')
         print('Shape of y: ', y.shape, '\n')
 
-        ys = tg_2015[0].label_mask.reshape(-1, 1)
-        print('ys: ', ys, '\n')
-        print('Shape of ys: ', ys.shape, '\n')
+        y_hat = tgcn.predict(graph= tg_2015)
 
-        raise ValueError('Stop here')
+       
+        
+        
 
-        y = tg_2017[0].edge_features[:, 1].reshape(-1, 1)
-        mse = tgcn.mse_loss(y_hat= y_hat, y= y)
-        print('mse: ', mse, '\n')
-        mae = tgcn.mae_loss(y_hat= y_hat, y= y)
-        print('mae: ', mae, '\n')
+        import torch
+        num_nodes = tg_2017[0].node_features.shape[0]
+        indices = torch.triu_indices(num_nodes, num_nodes, offset=1).numpy().T
+        # convert list of lists to list of tuples
+        indices = list(map(tuple, indices))
+
+        # take only the indices where y_hat is 1
+        indices = [indices[i] for i in np.where(y_hat == 1)[0]]
+        indices = np.array(indices).T
+
+        y_hat_graph_2017  = WordGraph(
+            index= tg_2017[0].index,
+            node_features= tg_2017[0].node_features,
+            edge_index= indices,
+            edge_features= tg_2017[0].edge_features,
+            labels= tg_2017[0].labels,
+            label_mask= tg_2017[0].label_mask
+
+        )
+
+        # clusted_tg[i] = WordGraph(
+        #     index= tg[i].index,
+        #     node_features= new_node_features,
+        #     edge_index= tg[i].edge_index,
+        #     edge_features= tg[i].edge_features,
+        #     labels= tg[i].labels,
+        #     label_mask= tg[i].label_mask
+        # )
+
+        # visualize the clusters
+       
+        # unique_clusters = np.unique(new_feature)
+        # colors = generate_colors(len(unique_clusters))
+        # node_color_map = {int(val): color for val, color in zip(unique_clusters, colors)}
+            
+
+        if not os.path.exists(f'{output_dir}/cluster_images'):  
+            os.mkdir(f'{output_dir}/cluster_images')
+
+        
+        fig = visualize_graph(
+            graph= y_hat_graph_2017,
+            title= f'Predicted Graph of {period}',
+            # node_color_feature= node_color_feature,
+            # node_color_map= node_color_map,
+            target_node= target_words[0],
+            legend= False,
+            color_bar=True
+            # **clustering_options['wordgraph']
+            )
+        
+        with open(f'{output_dir}/cluster_images/graph_{periods[i]}_predicted.png', 'wb') as f:
+            fig.savefig(f)
+
+
 
     
     if pipeline['Tgcn_embeddings']:
@@ -802,7 +1013,7 @@ def main(**kwargs):
         fig = visualize_change(
             ts = [x[1] for x in reference_shift],
             breaks = breaks,
-            labels = periods
+            periods = periods
         )
         with open(f'{output_dir}/images/change.png', 'wb') as f:
             fig.savefig(f)
@@ -814,7 +1025,9 @@ def main(**kwargs):
     
              
         
-        
+
+
+
 
 
 

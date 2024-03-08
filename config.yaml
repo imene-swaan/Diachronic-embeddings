@@ -74,16 +74,16 @@ temporal_graph_options:
 
 periods: [
         1980,
-        1982,
+        # 1982,
         1985,
-        1987,
-        1989,
+        # 1987,
+        # 1989,
         1990,
         1995,
         2000,
-        2001,
+        # 2001,
         2005,
-        2008,
+        # 2008,
         2010,
         2012,
         2015,
@@ -91,7 +91,7 @@ periods: [
     ]   
 
 target_words: [
-        "trump",
+        "web",
         # "office",
         # "work",
         # "job",
@@ -142,12 +142,13 @@ obsedian_options:
 models:
     roberta_path: '{}/MLM_roberta_{}'
     word2vec_path: '{}/word2vec_aligned/w2v_{}_a.model'
-    tgcn_path: '{}/TGCN_f/model'
+    tgcn_path: '{}/TGCN/model'
+    lp_path: '{}/LinkPrediction/model'
 
 
 tgcn_options:
-    size: 300
-    epochs: 100
+    size: 3000
+    epochs: 1000
     split_ratio: 0.8
     learning_rate: 5e-3
     device: 'cpu'
@@ -155,7 +156,7 @@ tgcn_options:
 
 
 wordgraph_options:
-    title: 'Word Graph - {}'
+    # title: 'Word Graph - {}'
     node_color_feature: 0
     node_size_feature: 0
     edge_label_feature: 1
@@ -190,7 +191,7 @@ clustering_options:
 
 
 pipeline:
-    load_data: True
+    load_data: False
     preprocess: False
     save_preprocessed: False
     train_mlm: False
@@ -199,16 +200,19 @@ pipeline:
     construct_temporal_graph: False
     save_temporal_graph: False
     load_temporal_graph: True
+    descriptive_stats: False
     visualize_wordgraph: False
     animate_wordgraph: False
-    cluster_wordgraph: False
+    cluster_wordgraph: True
     visualize_obsedian: False
-    fill_temporal_graph: True
-    save_filled_temporal_graph: True
-    load_filled_temporal_graph: True
-    train_tgcn: True
-    load_tgcn: True
-    Infer_tgcn: True
+    fill_temporal_graph: False
+    save_filled_temporal_graph: False
+    load_filled_temporal_graph: False
+    train_link_prediction: False
+    load_link_prediction: False
+    train_tgcn: False
+    load_tgcn: False
+    Infer_tgcn: False
     Tgcn_embeddings: False
     load_embeddings: False
     semantic_score: False

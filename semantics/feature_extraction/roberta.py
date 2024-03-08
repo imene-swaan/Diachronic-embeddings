@@ -17,8 +17,8 @@ from nltk.corpus import stopwords
 import re
 from word2number import w2n
 from nltk.tag import pos_tag
-import nltk
-nltk.download('averaged_perceptron_tagger')
+# import nltk
+# nltk.download('averaged_perceptron_tagger')
 
 
 logging.basicConfig(level=logging.INFO)
