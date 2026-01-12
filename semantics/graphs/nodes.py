@@ -194,7 +194,7 @@ class Nodes:
         word_embeddings: Dict[str, List[torch.Tensor]] = {}
         for i, word in enumerate(all_words):
             print(f'Getting the embeddings for the {i} word: {word} ...\n')
-            relevant_dataset = Loader(dataset).sample(target_words=word, max_documents=100, shuffle=True)
+            relevant_dataset = Loader(dataset).sample(target_words=word, max_documents=10, shuffle=True)
             progress_bar = tqdm.tqdm(total=len(relevant_dataset))
             word_embeddings[word] = list()
             for text in relevant_dataset:
@@ -297,7 +297,7 @@ class NodesBuilder:
 
         relevant_dataset = Loader(self.dataset).sample(
             target_words=word,
-            max_documents=1000,
+            max_documents=100,
             shuffle=True
             )
         progress_bar = tqdm.tqdm(total=len(relevant_dataset))
