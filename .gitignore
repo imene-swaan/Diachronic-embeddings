@@ -3,6 +3,7 @@ notebooks/
 output/
 output_trump/
 output_accumulated/
+output_trump/
 DS_Store
 trial1/
 *.ttf

@@ -291,13 +291,9 @@ class TemporalGraph:
             label_feature_idx (int): the index of the edge feature to use as a label. Default: 1.
         """
         for i in range(len(self.xs)-1):
-
-            # current_graph = self[i]
             next_graph = self[i+1]
 
             all_possible_node_pairs = set(itertools.combinations(list(self[i].index.index_to_key.keys()), 2))
-
-            # current_edges = [tuple(edge) for edge in current_graph.edge_index.T]
             next_edges  = [tuple(edge) for edge in next_graph.edge_index.T]
             
             labels = []
@@ -331,23 +327,6 @@ class TemporalGraph:
     
            
 
-            # labels = []
-            # label_mask_1 = []
-            # label_mask_2 = []
-
-            # for edge in current_edges:
-            #     if edge in next_edges:
-            #         label_mask_1.append(edge[0])
-            #         label_mask_2.append(edge[1])
-
-            #         next_index = next_edges.index(edge)
-            #         label = next_graph.edge_features[next_index][label_feature_idx]
-            #         labels.append(label)
-            
-            
-            # self.ys[i] = np.array(labels)
-            # self.y_indices[i] = np.stack([label_mask_1, label_mask_2])
-    
 
     def ffill(
         self,
