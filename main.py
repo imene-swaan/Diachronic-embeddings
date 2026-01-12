@@ -514,7 +514,7 @@ def main(**kwargs):
 
             gc = GraphClustering(graph= g)
             communities = gc.get_clusters(method= method, k = k, label= True, structure= False)
-            # print('Communities: ', communities, '\n')
+            print('Communities: ', communities, '\n')
             
             raw_clusters = gc.get_clusters(method= method, k = k, label= False, structure= False)
 
